@@ -1,17 +1,22 @@
 import { HistoryCard } from "@ikio/graph";
 import {
   group,
-  title,
-  row,
   reading,
   valueText,
   el,
   note,
   formatNumber,
-  button,
+  unitValue,
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
-import { untracked, cycleTotal, forecastStatus } from "./adapter.js";
+import {
+  untracked,
+  cycleTotal,
+  forecastStatus,
+  powerText,
+  powerNumber,
+  energyText,
+} from "./adapter.js";
 export class Card extends HistoryCard {
   validate = validate;
   constructor() {
@@ -20,16 +25,25 @@ export class Card extends HistoryCard {
       el(
         "style",
         `
-    .ae-energy{gap:3px}.ae-energy header{margin-bottom:0}.ae-energy .ae-title{min-height:44px}.ae-energy-heading{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center}.ae-energy-heading .ae-hero{text-align:right}
-    .ae-energy-summary{display:grid;gap:2px}.ae-energy-summary .ae-reading{min-height:44px;padding:2px 4px;gap:1px}
-    .ae-energy-summary .ae-hero{padding-top:0;padding-bottom:0}.ae-energy-summary .ae-hero .ae-value{font-size:24px}
-    .ae-energy-summary .ae-row{display:grid;gap:4px}.ae-energy-summary .ae-note{margin:0 4px}
-    .ae-energy-summary .ae-note:empty{display:none}
-  `,
+      .ae-energy{gap:4px}.ae-energy-header{display:flex;align-items:center;gap:8px;justify-content:space-between}
+      .ae-energy-header h2{min-width:0;margin:0;font-size:14px;font-weight:600;overflow-wrap:anywhere}.ae-energy-header .ae-note{text-align:right;max-width:55%}
+      .ae-energy-summary{display:grid;gap:10px;align-items:start;min-width:0}
+      .ae-energy-summary>*{min-width:0}.ae-energy-summary .ae-reading{padding:2px 0;min-height:44px}
+      .ae-energy-summary .ae-hero{justify-content:flex-start;gap:6px}
+      .ae-energy-summary .ae-hero .ae-value{font-size:32px;font-weight:500;display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;min-width:0}
+      .ae-energy-summary .ae-hero .ae-value span{min-width:0;overflow-wrap:anywhere}
+      .ae-energy-summary .ae-hero small{font-size:14px;color:var(--ae-muted)}
+      .ae-energy-tariffs,.ae-energy-bills{border-inline-start:1px solid var(--ae-border);padding-inline-start:9px;color:var(--ae-muted)}
+      .ae-energy-summary .ae-energy-secondary .ae-value{font-size:13px;font-weight:400;color:var(--ae-muted)}
+      .ae-energy-tariffs>.ae-note{margin:0 0 3px}
+      .ae-energy .ae-energy-tariffs .ae-reading{width:100%;min-height:24px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
+      .ae-energy-tariffs .ae-value{min-width:0;text-align:right}
+      .ae-energy-bills{display:grid;gap:5px}
+      @container(max-width:350px){.ae-energy-summary{gap:7px}.ae-energy-tariffs,.ae-energy-bills{padding-inline-start:6px}.ae-energy-summary .ae-hero .ae-value{font-size:28px}}
+    `,
       ),
     );
   }
-
   static getStubConfig() {
     return {
       schema_version: 1,
@@ -54,124 +68,153 @@ export class Card extends HistoryCard {
       return note(
         "Choose total power and optional billing-cycle entities in the visual editor.",
       );
-    const heading = el("div", undefined, "ae-energy-heading");
-    heading.append(
-      title(this, c.name || "Home energy", c.power_entity),
-      reading(
-        "Current power",
-        valueText(this.hass, c.power_entity),
-        c.power_entity,
-        "ae-hero",
-      ),
-    );
-    const summary = el("div", undefined, "ae-energy-summary");
-    summary.append(heading);
-    const result = group(summary);
-    result.classList.add("ae-energy");
+    const header = el("div", undefined, "ae-energy-header");
+    header.append(el("h2", c.name || "Home energy"));
     const dates =
       c.billing_period_label ||
       (c.cycle_start_entity
         ? `${valueText(this.hass, c.cycle_start_entity)} – ${valueText(this.hass, c.cycle_end_entity)}`
         : "");
-    if (dates) summary.append(note(dates));
-    if (c.day_entity || c.night_entity) {
+    if (dates) header.append(note(dates));
+    const summary = el("div", undefined, "ae-energy-summary");
+    const power = reading(
+      "Current power",
+      powerText(this.hass, c.power_entity),
+      c.power_entity,
+      "ae-hero",
+    );
+    const watts = unitValue(this.state(c.power_entity), "power");
+    if (watts !== null)
+      power
+        .querySelector(".ae-value")
+        .replaceChildren(
+          el("span", powerNumber(this.hass, watts)),
+          el("small", "W"),
+        );
+    summary.append(power);
+    const widths = ["1.05fr"];
+    const result = group(header, summary);
+    result.classList.add("ae-energy");
+    if (c.day_entity || c.night_entity || c.total_energy_entity) {
+      const tariffs = el(
+        "div",
+        undefined,
+        "ae-energy-tariffs ae-energy-secondary",
+      );
+      tariffs.setAttribute("role", "group");
+      tariffs.setAttribute(
+        "aria-label",
+        "Billing-cycle energy in kilowatt-hours",
+      );
+      tariffs.append(note("Energy · kWh"));
       const total = c.total_energy_entity
-        ? valueText(this.hass, c.total_energy_entity)
-        : `${formatNumber(this.hass, cycleTotal(this.state(c.day_entity), this.state(c.night_entity), c.same_cycle))} kWh`;
-      summary.append(
-        row(
-          reading("Day", valueText(this.hass, c.day_entity), c.day_entity),
+        ? energyText(this.hass, c.total_energy_entity)
+        : formatNumber(
+            this.hass,
+            cycleTotal(
+              this.state(c.day_entity),
+              this.state(c.night_entity),
+              c.same_cycle,
+            ),
+          );
+      if (c.day_entity)
+        tariffs.append(
+          reading("Day", energyText(this.hass, c.day_entity), c.day_entity),
+        );
+      if (c.night_entity)
+        tariffs.append(
           reading(
             "Night",
-            valueText(this.hass, c.night_entity),
+            energyText(this.hass, c.night_entity),
             c.night_entity,
           ),
-          reading("Total", total, c.total_energy_entity),
-        ),
-      );
+        );
+      tariffs.append(reading("Total", total, c.total_energy_entity));
+      summary.append(tariffs);
+      widths.push("1.1fr");
       if (!c.same_cycle && !c.total_energy_entity)
-        summary.append(
+        result.append(
           note(
             "Confirm matching day/night billing periods in the editor to calculate their total.",
           ),
         );
     }
-    if (c.accrued_bill_entity || c.forecast_bill_entity)
-      summary.append(
-        row(
-          c.accrued_bill_entity
-            ? reading(
-                "Estimated bill",
-                valueText(this.hass, c.accrued_bill_entity),
-                c.accrued_bill_entity,
-              )
-            : null,
-          c.forecast_bill_entity
-            ? reading(
-                "Forecast",
-                forecastStatus(c, this.hass?.states || {}) ||
-                  valueText(this.hass, c.forecast_bill_entity),
-                c.forecast_bill_entity,
-              )
-            : null,
-        ),
-      );
-    for (const totals of summary.querySelectorAll(".ae-row"))
-      totals.style.gridTemplateColumns = `repeat(${totals.children.length},minmax(0,1fr))`;
+    if (c.accrued_bill_entity || c.forecast_bill_entity) {
+      const bills = el("div", undefined, "ae-energy-bills ae-energy-secondary");
+      if (c.accrued_bill_entity)
+        bills.append(
+          reading(
+            "Estimated bill",
+            valueText(this.hass, c.accrued_bill_entity),
+            c.accrued_bill_entity,
+          ),
+        );
+      if (c.forecast_bill_entity)
+        bills.append(
+          reading(
+            "Forecast",
+            forecastStatus(c, this.hass?.states || {}) ||
+              valueText(this.hass, c.forecast_bill_entity),
+            c.forecast_bill_entity,
+          ),
+        );
+      summary.append(bills);
+      widths.push("1fr");
+    }
+    summary.style.gridTemplateColumns = widths.join(" ");
     result.append(
-      this.historyView([{ entity: c.power_entity }], { axisLabels: true }),
+      this.historyView([{ entity: c.power_entity }], {
+        axisLabels: true,
+        axisGuides: true,
+        formatAxis: (value, unit) => {
+          const watts = unitValue(
+            { state: String(value), attributes: { unit_of_measurement: unit } },
+            "power",
+          );
+          return watts === null
+            ? `${formatNumber(this.hass, value, 0)} ${unit}`.trim()
+            : `${powerNumber(this.hass, watts)} W`;
+        },
+      }),
     );
-    const circuits = (c.circuits || []).filter((r) => r.power_entity),
-      grid = el("div", undefined, "ae-grid");
-    grid.append(
-      ...circuits.map((r) =>
+    const circuits = (c.circuits || []).filter((r) => r.power_entity);
+    const grid = el("div", undefined, "ae-grid");
+    for (const r of circuits)
+      grid.append(
         reading(
           r.name || this.label(r.power_entity),
-          valueText(this.hass, r.power_entity),
+          powerText(this.hass, r.power_entity),
           r.power_entity,
         ),
-      ),
-    );
-    result.append(grid);
+      );
     if (c.untracked_entity)
-      result.append(
+      grid.append(
         reading(
           "Untracked",
-          valueText(this.hass, c.untracked_entity),
+          powerText(this.hass, c.untracked_entity),
           c.untracked_entity,
-          "ae-separator",
         ),
       );
     else if (c.show_untracked) {
-      if (!c.non_overlapping)
-        result.append(
-          note(
-            "Confirm non-overlapping circuits in the editor before calculating untracked power.",
-          ),
-        );
-      else {
-        const calc = untracked(
-          this.state(c.power_entity),
-          circuits.map((r) => this.state(r.power_entity)),
-        );
-        const b = button(
-          `Untracked · ${formatNumber(this.hass, calc.value)} W`,
-          () =>
-            this.dialog("Untracked power", [
-              note("Total power minus the configured device power sensors."),
-              ...circuits.map((r) =>
-                note(
-                  `${r.name || this.label(r.power_entity)}: ${valueText(this.hass, r.power_entity)}`,
-                ),
-              ),
-              note(calc.reason || "Only the selected circuits are subtracted."),
-            ]),
-        );
-        b.classList.add("ae-separator");
-        result.append(b);
-        if (calc.reason) result.append(note(calc.reason, "ae-warn"));
-      }
+      const calc = c.non_overlapping
+        ? untracked(
+            this.state(c.power_entity),
+            circuits.map((r) => this.state(r.power_entity)),
+          )
+        : {
+            value: null,
+            reason:
+              "Confirm non-overlapping circuits in the editor before calculating untracked power.",
+          };
+      const item = reading(
+        "Untracked",
+        `${formatNumber(this.hass, calc.value, 0)} W`,
+      );
+      item.title = "Total power minus the configured device power sensors.";
+      grid.append(item);
+      if (calc.reason) result.append(note(calc.reason, "ae-warn"));
     }
+    result.append(grid);
     return result;
   }
 }

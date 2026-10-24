@@ -108,3 +108,10 @@ Validation for 0.3.2: 74 workspace tests and ten package/release tests passed. B
 Lights grouping is opt-in through a native boolean editor selector. Consecutive areas share a row when their combined light count is at most three; larger areas wrap independently. Area headings, dividers, stable ordering, live counts, Unassigned fallback and unavailable statuses follow the approved compact design. Buttons have a 44 px minimum height. The collection version remains 0.3.2; these changes are not released.
 
 Branch verification: 81 workspace tests plus ten packaging/release tests passed. Builds, formatting, synchronized-version checks and tracked HACS bundle verification passed. Chromium verified packed layouts and 44 px controls at 280/360/390/520 px without clipping or page errors, plus tap/count updates, native touch hold, grouping toggle, light appearance and long labels. These are simulated HA states/forms, not live device or native editor validation.
+
+
+### Pending Energy redesign on feat/light-location-groups
+
+Implemented the approved three-column summary, whole-watt power formatting, subtle dashed min/mid/max guides and ordinary-grid Untracked reading. Calculations/history preserve precision, bound sensors retain native details, and computed Untracked is read-only. Tests cover mixed power/energy units, rounding, missing inputs, optional columns, forecast guards and guide positions. The same simulated mobile fixture measures 369 px high at 360 px width. No collection version or release change.
+
+Energy-change validation: 88 workspace tests and ten package/release tests passed, together with formatting, build, version and tracked-bundle checks. Chromium verified widths 280/360/390/520 px with no overflow or page errors, three-column layout, whole-watt labels, dashed guides aligned within 1 px, plain calculated Untracked, sensor details links, kW conversion and light appearance. Browser states/forms were simulated; native HA/device validation was not performed.

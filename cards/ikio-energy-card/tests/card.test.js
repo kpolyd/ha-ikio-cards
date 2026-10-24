@@ -81,7 +81,7 @@ test("energy math distinguishes missing sensors, overlaps and bill-cycle periods
     "Gathering enough data",
   );
 });
-test("device grid uses identical clickable items and full-width untracked row", () => {
+test("device grid includes Untracked as an identical entity reading", () => {
   const card = document.createElement("ikio-energy-card");
   document.body.append(card);
   card.setConfig({
@@ -106,17 +106,17 @@ test("device grid uses identical clickable items and full-width untracked row", 
     },
   };
   const items = card.shadowRoot.querySelectorAll(".ae-grid button");
-  assert.equal(items.length, 2);
+  assert.equal(items.length, 3);
   assert.equal(items[0].className, items[1].className);
   let id;
   card.addEventListener("hass-more-info", (e) => (id = e.detail.entityId));
   items[1].click();
   assert.equal(id, "sensor.tv");
-  assert.ok(
-    card.shadowRoot
-      .querySelector(".ae-separator")
-      .textContent.includes("Untracked"),
-  );
+  assert.equal(items[2].className, items[0].className);
+  assert.match(items[2].textContent, /Untracked85 W/);
+  items[2].click();
+  assert.equal(id, "sensor.rest");
+  assert.equal(card.shadowRoot.querySelector(".ae-separator"), null);
   card.remove();
 });
 
@@ -157,5 +157,149 @@ test("energy totals form a compact summary and graph has no footer row", () => {
   const plot = card.shadowRoot.querySelector("[data-key=history-graph]");
   assert.equal(plot.querySelector(".ae-note"), null);
   assert.equal(plot.querySelector("[data-extremum=max]").textContent, "160 W");
+  card.remove();
+});
+
+const energySensor = (state, unit) => ({
+  state: String(state),
+  attributes: { unit_of_measurement: unit },
+});
+function energyFixture(config, states) {
+  const card = document.createElement("ikio-energy-card");
+  card.setConfig(config);
+  card.hass = { locale: { language: "en" }, states };
+  document.body.append(card);
+  return card;
+}
+test("three-column summary leads with integer watts and retains energy/cost precision", () => {
+  const card = energyFixture(
+    {
+      power_entity: "sensor.power",
+      day_entity: "sensor.day",
+      night_entity: "sensor.night",
+      same_cycle: true,
+      accrued_bill_entity: "sensor.bill",
+      forecast_bill_entity: "sensor.forecast",
+    },
+    {
+      "sensor.power": energySensor(0.16049, "kW"),
+      "sensor.day": energySensor(11860, "Wh"),
+      "sensor.night": energySensor(7.11, "kWh"),
+      "sensor.bill": energySensor(30.09, "€"),
+      "sensor.forecast": energySensor(60.6, "€"),
+    },
+  );
+  const columns = card.shadowRoot.querySelector(".ae-energy-summary").children;
+  assert.equal(columns.length, 3);
+  assert.match(columns[0].textContent, /Current power160W/);
+  assert.match(
+    columns[1].textContent,
+    /Energy · kWhDay11.86Night7.11Total18.97/,
+  );
+  assert.match(columns[2].textContent, /Estimated bill30.09 €Forecast60.6 €/);
+  assert.equal(card.hass.states["sensor.power"].state, "0.16049");
+  card.remove();
+});
+test("power formatting handles kW, fractional/negative watts and unavailable values without negative zero", async () => {
+  const { powerText, energyText } = await import("../src/adapter.js");
+  const hass = {
+    locale: { language: "en" },
+    states: {
+      kw: energySensor(1.2345, "kW"),
+      negative: energySensor(-0.2, "W"),
+      unavailable: energySensor("unavailable", "W"),
+      energy: energySensor(500, "Wh"),
+    },
+  };
+  assert.equal(powerText(hass, "kw"), "1,235 W");
+  assert.equal(powerText(hass, "negative"), "0 W");
+  assert.equal(powerText(hass, "unavailable"), "unavailable");
+  assert.equal(energyText(hass, "energy"), "0.5");
+  assert.equal(powerText(hass, "missing"), "Entity not found");
+});
+test("computed Untracked is a plain grid reading calculated before rounding", () => {
+  const card = energyFixture(
+    {
+      power_entity: "sensor.power",
+      circuits: [{ power_entity: "sensor.a" }, { power_entity: "sensor.b" }],
+      show_untracked: true,
+      non_overlapping: true,
+    },
+    {
+      "sensor.power": energySensor(100.4, "W"),
+      "sensor.a": energySensor(10.49, "W"),
+      "sensor.b": energySensor(5.49, "W"),
+    },
+  );
+  let untracked = [
+    ...card.shadowRoot.querySelectorAll(".ae-grid .ae-reading"),
+  ].find((n) => n.querySelector(".ae-label").textContent === "Untracked");
+  assert.equal(untracked.tagName, "DIV");
+  assert.equal(untracked.dataset.entity, undefined);
+  assert.equal(untracked.querySelector(".ae-value").textContent, "84 W");
+  assert.equal(card.shadowRoot.querySelector(".ae-button"), null);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "sensor.a": energySensor("unavailable", "W"),
+    },
+  };
+  untracked = [
+    ...card.shadowRoot.querySelectorAll(".ae-grid .ae-reading"),
+  ].find((n) => n.querySelector(".ae-label").textContent === "Untracked");
+  assert.equal(untracked.querySelector(".ae-value").textContent, "— W");
+  assert.match(
+    card.shadowRoot.querySelector(".ae-warn").textContent,
+    /unavailable/,
+  );
+  card.remove();
+});
+test("optional columns do not leave blank sections and a total-only energy binding remains visible", () => {
+  const card = energyFixture(
+    { power_entity: "sensor.power", total_energy_entity: "sensor.energy" },
+    {
+      "sensor.power": energySensor(0, "W"),
+      "sensor.energy": energySensor(5000, "Wh"),
+    },
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-energy-summary").children.length,
+    2,
+  );
+  assert.match(
+    card.shadowRoot.querySelector(".ae-energy-tariffs").textContent,
+    /Total5/,
+  );
+  assert.equal(card.shadowRoot.querySelector(".ae-energy-bills"), null);
+  card.setConfig({ power_entity: "sensor.power" });
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-energy-summary").children.length,
+    1,
+  );
+  card.remove();
+});
+test("forecast validity messages remain visible in the quieter bill column", () => {
+  const card = energyFixture(
+    {
+      power_entity: "sensor.power",
+      forecast_bill_entity: "sensor.forecast",
+      forecast_valid_entity: "binary_sensor.valid",
+    },
+    {
+      "sensor.power": energySensor(160, "W"),
+      "sensor.forecast": energySensor(1e9, "€"),
+      "binary_sensor.valid": { state: "off", attributes: {} },
+    },
+  );
+  assert.match(
+    card.shadowRoot.querySelector(".ae-energy-bills").textContent,
+    /Gathering enough data/,
+  );
+  assert.ok(
+    !card.shadowRoot
+      .querySelector(".ae-energy-bills")
+      .textContent.includes("1,000,000,000"),
+  );
   card.remove();
 });

@@ -1,4 +1,4 @@
-import { unitValue, available, numeric } from "@ikio/card-ui";
+import { unitValue, available, formatNumber, valueText } from "@ikio/card-ui";
 export function untracked(total, circuits) {
   const values = [
     unitValue(total, "power"),
@@ -36,4 +36,21 @@ export function forecastStatus(config, states, now = Date.now()) {
       return "Gathering enough data";
   }
   return null;
+}
+
+// Round only presentation; calculations and plotted history retain raw precision.
+export function powerNumber(hass, value) {
+  return formatNumber(hass, Math.abs(value) < 0.5 ? 0 : value, 0);
+}
+export function powerText(hass, entity) {
+  const value = unitValue(hass?.states?.[entity], "power");
+  return value === null
+    ? valueText(hass, entity)
+    : `${powerNumber(hass, value)} W`;
+}
+export function energyText(hass, entity) {
+  const state = hass?.states?.[entity];
+  const value = unitValue(state, "energy");
+  if (value !== null) return formatNumber(hass, value);
+  return available(state) ? "Incompatible unit" : valueText(hass, entity);
 }

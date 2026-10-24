@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reorganize Energy into a left-focused current-power reading, stacked Day/Night/Total column and quieter estimated/forecast bill column.
+- Show whole watts without rounding calculations or history; add faint dashed min/mid/max graph guides and aligned labels.
+- Place Untracked alongside device readings; calculated Untracked is read-only rather than an action button.
+
 - Add an optional Lights visual-editor toggle to group by location, packing compatible consecutive areas into three-light rows.
 - Use 44 px light buttons, clear area headings/dividers, live counts and an Unassigned group without repeated location labels.
 - Keep native details on hold, stable controls during state updates and visible unavailable statuses.

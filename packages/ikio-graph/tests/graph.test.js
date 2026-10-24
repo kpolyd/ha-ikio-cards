@@ -167,3 +167,65 @@ test("constant, negative and unavailable windows keep truthful axis labels", () 
     null,
   );
 });
+
+test("energy guides and integer axis labels share exact min/mid/max positions without changing series precision", () => {
+  const node = mod.graph(
+    [
+      {
+        name: "Power",
+        points: [
+          { time: 1, value: 50.2 },
+          { time: 2, value: 2643.4 },
+        ],
+      },
+    ],
+    {
+      axisLabels: true,
+      axisGuides: true,
+      unit: "W",
+      formatAxis: (v, u) => `${Math.round(v)} ${u}`,
+    },
+  );
+  const labels = [...node.querySelectorAll("[data-extremum]")];
+  assert.deepEqual(
+    labels.map((n) => n.textContent),
+    ["2643 W", "1347 W", "50 W"],
+  );
+  const lines = [...node.querySelectorAll("[data-guide]")];
+  assert.deepEqual(
+    lines.map((n) => n.getAttribute("data-guide")),
+    ["max", "mid", "min"],
+  );
+  assert.deepEqual(
+    lines.map((n) => Number(n.getAttribute("y1"))),
+    [8, 50, 92],
+  );
+  assert.ok(lines.every((n) => n.getAttribute("stroke-dasharray") === "3 4"));
+  for (let i = 0; i < labels.length; i++)
+    assert.equal(
+      parseFloat(labels[i].style.top),
+      Number(lines[i].getAttribute("y1")),
+    );
+  assert.match(
+    node.querySelector("svg").getAttribute("aria-label"),
+    /50 W to 2643 W/,
+  );
+});
+test("constant energy history gets one guide; plain graphs do not gain guides or a midpoint", () => {
+  const series = [
+    {
+      name: "Power",
+      points: [
+        { time: 1, value: 160 },
+        { time: 2, value: 160 },
+      ],
+    },
+  ];
+  const node = mod.graph(series, { axisLabels: true, axisGuides: true });
+  assert.equal(node.querySelectorAll("[data-guide]").length, 1);
+  assert.equal(node.querySelector("[data-guide]").getAttribute("y1"), "50");
+  const plain = mod.graph(series);
+  assert.equal(plain.querySelector("[data-guide]"), null);
+  assert.equal(plain.querySelector(".ae-y-axis"), null);
+  assert.ok(plain.querySelector(".ae-note"));
+});
