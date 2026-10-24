@@ -80,7 +80,7 @@ test("car summaries never claim secure when some sensors are unknown", async () 
   );
 });
 
-test("map navigation is an unboxed text link in the parking row", () => {
+test("parking is in the header and map navigation is an unboxed footer link", () => {
   const card = document.createElement("ikio-drive-card");
   document.body.append(card);
   card.setConfig({ tracker_entity: "device_tracker.car" });
@@ -98,7 +98,11 @@ test("map navigation is an unboxed text link in the parking row", () => {
   assert.equal(link.textContent, "Open location in maps");
   assert.equal(link.classList.contains("ae-button"), false);
   assert.match(link.href, /google.com\/maps/);
-  assert.ok(link.parentElement.textContent.includes("Parking"));
+  assert.ok(link.parentElement.textContent.includes("Location ·"));
+  assert.match(
+    card.shadowRoot.querySelector(".ae-drive-header").textContent,
+    /ParkingHome/,
+  );
   card.remove();
 });
 
@@ -192,5 +196,199 @@ test("adding binary lock entities displays Locked/Unlocked while door/window map
     },
   };
   assert.deepEqual(readings(), ["Unlocked", "Closed", "Open"]);
+  card.remove();
+});
+
+const driveState = (entity_id, state, attributes = {}) => ({
+  entity_id,
+  state: String(state),
+  attributes,
+});
+function driveFixture(config = {}, states = {}) {
+  const card = document.createElement("ikio-drive-card");
+  card.setConfig(config);
+  card.hass = { locale: { language: "en" }, states };
+  document.body.append(card);
+  return card;
+}
+test("all six readings have decorative icons and use two compact groups", () => {
+  const card = driveFixture(
+    {
+      range_entity: "sensor.range",
+      fuel_entity: "sensor.fuel",
+      odometer_entity: "sensor.odo",
+      locks: [{ entity: "lock.car" }],
+      doors: [{ entity: "binary_sensor.doors" }],
+      windows: [{ entity: "binary_sensor.windows" }],
+    },
+    {
+      "sensor.range": driveState("sensor.range", 437, {
+        unit_of_measurement: "km",
+      }),
+      "sensor.fuel": driveState("sensor.fuel", 86, {
+        unit_of_measurement: "%",
+      }),
+      "sensor.odo": driveState("sensor.odo", 25901, {
+        unit_of_measurement: "km",
+      }),
+      "lock.car": driveState("lock.car", "locked"),
+      "binary_sensor.doors": driveState("binary_sensor.doors", "off"),
+      "binary_sensor.windows": driveState("binary_sensor.windows", "on"),
+    },
+  );
+  const metrics = card.shadowRoot.querySelectorAll(
+    ".ae-drive-metrics .ae-reading",
+  );
+  assert.equal(metrics.length, 3);
+  assert.deepEqual(
+    [...metrics].map((n) => n.querySelector("ha-icon").getAttribute("icon")),
+    ["mdi:map-marker-distance", "mdi:gas-station", "mdi:counter"],
+  );
+  const statuses = card.shadowRoot.querySelectorAll(
+    ".ae-drive-statuses .ae-reading",
+  );
+  assert.equal(statuses.length, 3);
+  assert.ok(statuses[0].classList.contains("drive-secure"));
+  assert.ok(statuses[1].classList.contains("drive-secure"));
+  assert.ok(statuses[2].classList.contains("drive-warning"));
+  assert.equal(
+    statuses[2].querySelector("ha-icon").getAttribute("icon"),
+    "mdi:window-open",
+  );
+  assert.ok(
+    [...card.shadowRoot.querySelectorAll("ha-icon")].every(
+      (n) => n.getAttribute("aria-hidden") === "true",
+    ),
+  );
+  assert.equal(card.shadowRoot.querySelector("progress"), null);
+  card.remove();
+});
+test("status colours distinguish secure, alerts, jammed, transitions and unknown data", async () => {
+  const { statusPresentation } = await import("../src/adapter.js");
+  for (const status of ["Locked", "Closed"])
+    assert.equal(statusPresentation("locks", status).tone, "secure");
+  for (const status of ["Unlocked", "Open"])
+    assert.equal(statusPresentation("doors", status).tone, "warning");
+  assert.equal(statusPresentation("locks", "Jammed").tone, "error");
+  for (const status of ["Locking", "Unlocking"])
+    assert.equal(statusPresentation("locks", status).tone, "pending");
+  for (const status of [
+    "Unknown",
+    "Unavailable",
+    "Not configured",
+    "unexpected",
+  ])
+    assert.equal(statusPresentation("windows", status).tone, "neutral");
+});
+test("status updates change icons/colours without losing focus or enabling vehicle commands", async () => {
+  const card = driveFixture(
+    { locks: [{ entity: "lock.car" }] },
+    { "lock.car": driveState("lock.car", "locked") },
+  );
+  const button = card.shadowRoot.querySelector("[data-key=status-locks]");
+  button.focus();
+  let detail,
+    calls = 0;
+  card.addEventListener("hass-more-info", (e) => {
+    detail = e.detail.entityId;
+  });
+  card.hass = {
+    ...card.hass,
+    callService: async () => {
+      calls++;
+    },
+    states: { "lock.car": driveState("lock.car", "unlocked") },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector("[data-key=status-locks]"),
+    button,
+  );
+  assert.equal(card.shadowRoot.activeElement, button);
+  assert.ok(button.classList.contains("drive-warning"));
+  assert.equal(
+    button.querySelector("ha-icon").getAttribute("icon"),
+    "mdi:lock-open",
+  );
+  button.click();
+  assert.equal(detail, "lock.car");
+  assert.equal(calls, 0);
+  card.hass = {
+    ...card.hass,
+    states: { "lock.car": driveState("lock.car", "jammed") },
+  };
+  assert.ok(button.classList.contains("drive-error"));
+  card.hass = {
+    ...card.hass,
+    states: { "lock.car": driveState("lock.car", "unavailable") },
+  };
+  assert.ok(button.classList.contains("drive-neutral"));
+  assert.equal(button.dataset.status, "Unavailable");
+  card.remove();
+});
+test("aggregate status tap and hold open the member responsible for the alert", async () => {
+  const card = driveFixture(
+    {
+      doors: [
+        { entity: "binary_sensor.first" },
+        { entity: "binary_sensor.second" },
+      ],
+    },
+    {
+      "binary_sensor.first": driveState("binary_sensor.first", "off"),
+      "binary_sensor.second": driveState("binary_sensor.second", "on"),
+    },
+  );
+  const button = card.shadowRoot.querySelector("[data-key=status-doors]");
+  let detail;
+  card.addEventListener("hass-more-info", (e) => {
+    detail = e.detail.entityId;
+  });
+  button.click();
+  assert.equal(detail, "binary_sensor.second");
+  detail = undefined;
+  button.dispatchEvent(new dom.window.MouseEvent("pointerdown"));
+  await new Promise((r) => setTimeout(r, 570));
+  button.click();
+  assert.equal(detail, "binary_sensor.second");
+  card.remove();
+});
+test("fuel capacity retains a compact percentage display without a separate progress row", () => {
+  const card = driveFixture(
+    { fuel_entity: "sensor.fuel", fuel_capacity: 40 },
+    {
+      "sensor.fuel": driveState("sensor.fuel", 20, {
+        unit_of_measurement: "L",
+      }),
+    },
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-drive-metrics .ae-value").textContent,
+    "50%",
+  );
+  card.setConfig({ fuel_entity: "sensor.fuel" });
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-drive-metrics .ae-value").textContent,
+    "20L",
+  );
+  assert.equal(card.shadowRoot.querySelector("progress"), null);
+  card.remove();
+});
+test("invalid coordinates stay disabled and missing timestamps stay explicit", () => {
+  const card = driveFixture(
+    { tracker_entity: "device_tracker.car" },
+    {
+      "device_tracker.car": driveState("device_tracker.car", "home", {
+        latitude: 200,
+        longitude: 0,
+      }),
+    },
+  );
+  const link = card.shadowRoot.querySelector("a");
+  assert.equal(link.getAttribute("aria-disabled"), "true");
+  assert.equal(link.hasAttribute("href"), false);
+  assert.match(
+    card.shadowRoot.querySelector(".ae-drive-footer").textContent,
+    /Location update time unknown/,
+  );
   card.remove();
 });

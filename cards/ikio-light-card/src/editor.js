@@ -12,6 +12,7 @@ const labels = {
   entity: "Light or switch",
   location: "Location (optional override)",
   theme: "Appearance",
+  group_by_location: "Group by location",
 };
 const rowSchema = [
   {
@@ -66,8 +67,14 @@ export class IkioLightEditor extends HTMLElement {
     this.shadowRoot.append(
       form(
         this._hass,
-        { name: this.config.name },
-        [{ name: "name", selector: { text: {} } }],
+        {
+          name: this.config.name,
+          group_by_location: this.config.group_by_location ?? false,
+        },
+        [
+          { name: "name", selector: { text: {} } },
+          { name: "group_by_location", selector: { boolean: {} } },
+        ],
         labels,
         (value) => this.changed({ ...this.config, ...value }),
       ),

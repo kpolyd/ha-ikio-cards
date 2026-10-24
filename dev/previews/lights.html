@@ -47,6 +47,9 @@
   <button id="dark">Dark</button
   ><button id="light">Light</button
   ><button id="offline">Toggle unavailable fixture</button>
+  <label
+    ><input id="grouping" type="checkbox" checked /> Group by location</label
+  >
   <main></main>
   <pre id="log" role="status"></pre>
   <script type="module">
@@ -78,14 +81,38 @@
         attributes: { friendly_name: "Entrance" },
       },
     };
+    for (const [entity, friendly_name, state] of [
+      ["light.kitchen_main", "Main light", "off"],
+      ["switch.kitchen_cabinet", "Cabinet lights", "on"],
+      ["light.office_strip", "Desk strip", "on"],
+      ["light.bedroom", "Ceiling light", "unavailable"],
+      ["light.balcony", "Wall lamp", "off"],
+      ["light.spare", "Spare lamp", "off"],
+    ])
+      states[entity] = {
+        entity_id: entity,
+        state,
+        attributes: { friendly_name },
+      };
     let appearance = "dark";
     const cards = [];
     const config = {
-      name: "Living room lights",
+      name: "Lights",
+      group_by_location: true,
       lights: [
-        { entity: "light.strip" },
-        { entity: "light.tv", control_mode: "power-only" },
-        { entity: "switch.entrance" },
+        { entity: "light.strip", location: "Living room" },
+        {
+          entity: "light.tv",
+          location: "Living room",
+          control_mode: "power-only",
+        },
+        { entity: "switch.entrance", location: "Living room" },
+        { entity: "light.kitchen_main", location: "Kitchen" },
+        { entity: "switch.kitchen_cabinet", location: "Kitchen" },
+        { entity: "light.office_strip", location: "Office" },
+        { entity: "light.bedroom", location: "Bedroom" },
+        { entity: "light.balcony", location: "Balcony" },
+        { entity: "light.spare" },
       ],
     };
     const hass = {
@@ -137,6 +164,12 @@
           card.setConfig({ ...config, appearance: { theme: appearance } });
         update();
       };
+    document.querySelector("#grouping").onchange = (event) => {
+      config.group_by_location = event.currentTarget.checked;
+      for (const card of cards)
+        card.setConfig({ ...config, appearance: { theme: appearance } });
+      update();
+    };
     document.querySelector("#offline").onclick = () => {
       states["light.strip"] = {
         ...states["light.strip"],

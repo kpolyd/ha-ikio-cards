@@ -77,3 +77,35 @@ test("reorder, remove and appearance are all available through the visual editor
   assert.deepEqual(config.lights, [{ entity: "light.one" }]);
   editor.remove();
 });
+
+test("grouping is a native boolean selector and preserves names, rows and HA metadata through feedback", async () => {
+  const editor = document.createElement("ikio-light-card-editor");
+  editor.setConfig({
+    name: "Lights",
+    lights: [{ entity: "light.strip", name: "Strip" }],
+    grid_options: { columns: 6 },
+  });
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const form = editor.shadowRoot.querySelector("ha-form");
+  assert.deepEqual(
+    form.schema.find((field) => field.name === "group_by_location").selector,
+    { boolean: {} },
+  );
+  assert.equal(form.data.group_by_location, false);
+  let saved;
+  editor.addEventListener("config-changed", (event) => {
+    saved = event.detail.config;
+    editor.setConfig(saved);
+  });
+  form.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...form.data, group_by_location: true } },
+    }),
+  );
+  assert.equal(saved.group_by_location, true);
+  assert.equal(saved.lights[0].name, "Strip");
+  assert.deepEqual(saved.grid_options, { columns: 6 });
+  assert.equal(editor.shadowRoot.querySelector("ha-form"), form);
+  editor.remove();
+});

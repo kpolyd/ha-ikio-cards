@@ -151,7 +151,17 @@ export function windowPoints(points, start, end) {
 }
 export function graph(
   series,
-  { min = 0, max = 3500, start, end, unit = "", hass, axisLabels = false } = {},
+  {
+    min = 0,
+    max = 3500,
+    start,
+    end,
+    unit = "",
+    hass,
+    axisLabels = false,
+    axisGuides = false,
+    formatAxis,
+  } = {},
 ) {
   series = series.map((s) => ({
     ...s,
@@ -175,16 +185,55 @@ export function graph(
     height = 100,
     x = (t) => 8 + ((t - xMin) / Math.max(1, xMax - xMin)) * 344,
     y = (v) => 8 + ((yMax - v) / (yMax - yMin)) * (axisLabels ? 84 : 72);
+  const axisText =
+    formatAxis ||
+    ((value, unit) => `${formatNumber(hass, value)}${unit ? " " + unit : ""}`);
+  const ticks = constant
+    ? [{ value: high, kind: "constant" }]
+    : [
+        { value: high, kind: "max" },
+        ...(axisGuides ? [{ value: (high + low) / 2, kind: "mid" }] : []),
+        { value: low, kind: "min" },
+      ];
+  // A rounded midpoint that repeats an endpoint adds clutter without information.
+  const visibleTicks = ticks.filter(
+    (tick) =>
+      tick.kind !== "mid" ||
+      (axisText(tick.value, unit) !== axisText(low, unit) &&
+        axisText(tick.value, unit) !== axisText(high, unit)),
+  );
   const wrap = el("div", undefined, undefined, "history-graph");
   const svg = svgNode("svg", {
     viewBox: `0 0 ${width} ${height}`,
     class: "ae-graph",
     preserveAspectRatio: axisLabels ? "none" : "xMidYMid meet",
     role: "img",
-    "aria-label": `${series.map((s) => s.name).join(", ")} history, ${formatNumber(hass, low)} to ${formatNumber(hass, high)} ${unit}`,
+    "aria-label": `${series.map((s) => s.name).join(", ")} history, ${axisText(low, unit)} to ${axisText(high, unit)}`,
   });
   const defs = svgNode("defs");
   svg.append(defs);
+  if (axisLabels && axisGuides) {
+    const guides = svgNode("g", {
+      "aria-hidden": "true",
+      class: "ae-axis-guides",
+    });
+    for (const tick of visibleTicks)
+      guides.append(
+        svgNode("line", {
+          x1: 8,
+          x2: 352,
+          y1: y(tick.value),
+          y2: y(tick.value),
+          stroke: "var(--ae-text)",
+          "stroke-opacity": 0.07,
+          "stroke-width": 1,
+          "stroke-dasharray": "3 4",
+          "vector-effect": "non-scaling-stroke",
+          "data-guide": tick.kind,
+        }),
+      );
+    svg.append(guides);
+  }
   series.forEach((s, index) => {
     const rangeMin = s.min ?? min,
       rangeMax = s.max ?? max;
@@ -229,17 +278,14 @@ export function graph(
     plot.style.cssText =
       "display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:6px;";
     const labels = el("div", undefined, "ae-y-axis");
-    labels.style.cssText = `display:flex;flex-direction:column;justify-content:${constant ? "center" : "space-between"};padding:4px 0;font-size:12px;color:var(--ae-muted);font-variant-numeric:tabular-nums;`;
-    const label = (value, kind) => {
-      const node = el(
-        "span",
-        `${formatNumber(hass, value)}${unit ? " " + unit : ""}`,
-      );
-      node.dataset.extremum = kind;
-      return node;
-    };
-    labels.append(label(high, constant ? "constant" : "max"));
-    if (!constant) labels.append(label(low, "min"));
+    labels.style.cssText =
+      "display:grid;align-items:start;font-size:12px;color:var(--ae-muted);font-variant-numeric:tabular-nums;";
+    for (const tick of visibleTicks) {
+      const node = el("span", axisText(tick.value, unit));
+      node.dataset.extremum = tick.kind;
+      node.style.cssText = `grid-area:1/1;position:relative;top:${y(tick.value)}%;transform:translateY(-50%);white-space:nowrap;`;
+      labels.append(node);
+    }
     plot.append(labels, svg);
     wrap.append(plot);
   } else {

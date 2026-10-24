@@ -8,6 +8,11 @@ export function normalizeConfig(config) {
   const lights = (config.lights || []).map((row) =>
     typeof row === "string" ? { entity: row } : { ...row },
   );
+  if (
+    config.group_by_location !== undefined &&
+    typeof config.group_by_location !== "boolean"
+  )
+    throw new Error("Group by location must be a toggle");
   const ids = new Set();
   for (const row of lights) {
     if (!/^(light|switch)\.[\w]+$/.test(row.entity || ""))
@@ -23,5 +28,11 @@ export function normalizeConfig(config) {
   const appearance = { theme: "dark", ...config.appearance };
   if (!["dark", "light", "ha"].includes(appearance.theme))
     throw new Error("Choose Dark, Light or Home Assistant theme.");
-  return { ...config, schema_version: 1, lights, appearance };
+  return {
+    ...config,
+    schema_version: 1,
+    group_by_location: config.group_by_location ?? false,
+    lights,
+    appearance,
+  };
 }

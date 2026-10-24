@@ -44,3 +44,13 @@ Stable display order. Do not select both a parent circuit and its child.
 Dark, light and follow-HA appearance use the same shared Ikio styles. Controls have at least 44 px targets; readings remain useful when another entity is offline. Native entity details open on hold. No service call is made in the editor preview. Backend errors remain visible. Optional entities may be omitted. See [full contract](../../docs/ikio/SPECIFICATION.md) and [collection status](../../docs/ikio/STATUS.md).
 
 No external runtime CDN dependencies. esbuild MIT license is copied into the build output. Shared UI/graph code is bundled locally.
+
+## Pending compact summary layout
+
+On the feature branch, current power is the primary reading on the left. Day/Night/Total energy are stacked in the middle, with estimated bill and forecast stacked on the right in a quieter colour. Optional columns disappear when not configured. Tariff energy is normalized to kWh for the shared column heading; billing-period and forecast-validity safeguards remain in place.
+
+Power readings display whole watts, including values supplied by kW/MW sensors. Only presentation is rounded: untracked calculations and plotted history retain full precision. The energy graph has faint dashed horizontal guides aligned with observed minimum, midpoint and maximum labels. A constant series has one guide; duplicate rounded midpoint labels are omitted. Expected min/max still control only the colour gradient. The standalone Graph card does not gain these guides.
+
+Untracked occupies an ordinary slot in the device grid. A bound sensor has the same appearance and native details interaction as the other sensor readings. A calculated remainder is a plain read-only value with no fabricated entity or action button; unavailable/incompatible input and overlap warnings remain visible. The upper tariff figures use compact information rows; the main power and device entries retain their existing touch targets.
+
+These changes are unreleased. The collection version remains 0.3.2 until the owner requests a release.

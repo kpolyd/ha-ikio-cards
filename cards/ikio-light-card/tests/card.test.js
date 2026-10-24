@@ -220,3 +220,154 @@ test("configured heading renders text rather than the native host title property
   assert.equal(card.shadowRoot.textContent.includes("[object HTML"), false);
   card.remove();
 });
+
+test("grouping packs 3, 2+1 and 1+1+1 without reordering configured areas", () => {
+  const counts = [3, 2, 1, 1, 1, 1];
+  const lights = counts.flatMap((count, area) =>
+    Array.from({ length: count }, (_, i) => ({
+      entity: `light.area_${area}_${i}`,
+      location: `Area ${area}`,
+    })),
+  );
+  const packed = adapter.groupLights(lights, {});
+  assert.deepEqual(
+    packed.map((row) => row.map((group) => group.lights.length)),
+    [[3], [2, 1], [1, 1, 1]],
+  );
+  assert.deepEqual(
+    packed.flat().map((group) => group.location),
+    counts.map((_, i) => `Area ${i}`),
+  );
+  const interleaved = [
+    lights[0],
+    lights[3],
+    lights[1],
+    lights[2],
+    ...lights.slice(4),
+  ];
+  assert.deepEqual(adapter.groupLights(interleaved, {}).flat()[0].lights, [
+    lights[0],
+    lights[1],
+    lights[2],
+  ]);
+});
+
+test("larger areas wrap independently and empty grouping produces no sections", () => {
+  const lights = [0, 1, 2, 3].map((i) => ({
+    entity: `light.room_${i}`,
+    location: "Room",
+  }));
+  const packed = adapter.groupLights(
+    [...lights, { entity: "light.other", location: "Other" }],
+    {},
+  );
+  assert.deepEqual(
+    packed.map((row) => row.map((g) => [g.columns, g.lights.length])),
+    [[[3, 4]], [[1, 1]]],
+  );
+  assert.deepEqual(adapter.groupLights([], {}), []);
+});
+
+test("grouped card hides repeated area labels, retains offline status and updates counts without replacing controls", () => {
+  const { card } = fixture(
+    {
+      "light.strip": light(),
+      "switch.other": { state: "unavailable", attributes: {} },
+    },
+    {
+      group_by_location: true,
+      lights: [
+        { entity: "light.strip", location: "Kitchen" },
+        { entity: "switch.other", location: "Kitchen" },
+      ],
+    },
+  );
+  const button = card.rows[0].toggle;
+  button.focus();
+  assert.equal(card.shadowRoot.querySelector("h3").textContent, "Kitchen");
+  assert.equal(
+    card.shadowRoot.querySelector(".area-count").textContent,
+    "1/2 on",
+  );
+  assert.equal(card.rows[0].location.hidden, true);
+  assert.equal(card.rows[1].location.hidden, false);
+  assert.match(card.rows[1].location.textContent, /unavailable/i);
+  assert.equal(card.rows[1].toggle.disabled, true);
+  const section = card.shadowRoot.querySelector(".area-group");
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "switch.other": { state: "on", attributes: {} },
+    },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector(".area-count").textContent,
+    "2/2 on",
+  );
+  assert.equal(card.shadowRoot.querySelector(".area-group"), section);
+  assert.equal(card.rows[0].toggle, button);
+  assert.equal(card.shadowRoot.activeElement, button);
+  card.remove();
+});
+
+test("area registry changes regroup existing controls and preserve native hold behaviour", async () => {
+  const { card, calls } = fixture(
+    { "light.strip": light() },
+    { group_by_location: true, lights: ["light.strip"] },
+  );
+  assert.equal(card.shadowRoot.querySelector("h3").textContent, "Unassigned");
+  const button = card.rows[0].toggle;
+  button.focus();
+  card.hass = {
+    ...card.hass,
+    entities: { "light.strip": { device_id: "strip" } },
+    devices: { strip: { area_id: "office" } },
+    areas: { office: { name: "Office" } },
+  };
+  assert.equal(card.shadowRoot.querySelector("h3").textContent, "Office");
+  assert.equal(card.rows[0].toggle, button);
+  assert.equal(card.shadowRoot.activeElement, button);
+  assert.equal(card.shadowRoot.querySelector(".area-count").hidden, true);
+  let detail;
+  card.addEventListener("hass-more-info", (e) => {
+    detail = e.detail;
+  });
+  button.dispatchEvent(new dom.window.MouseEvent("pointerdown"));
+  await new Promise((r) => setTimeout(r, 570));
+  button.click();
+  assert.deepEqual(detail, { entityId: "light.strip" });
+  assert.equal(calls.length, 0);
+  card.remove();
+});
+
+test("grouping is opt-in and config changes can restore the flat location labels", () => {
+  assert.equal(normalize({ lights: [] }).group_by_location, false);
+  assert.throws(() => normalize({ group_by_location: "true" }), /toggle/);
+  const { card } = fixture(
+    { "light.strip": light() },
+    { lights: [{ entity: "light.strip", location: "Office" }] },
+  );
+  assert.equal(card.shadowRoot.querySelector(".area-group"), null);
+  card.setConfig({ ...card.config, group_by_location: true });
+  assert.equal(card.shadowRoot.querySelector("h3").textContent, "Office");
+  card.setConfig({ ...card.config, group_by_location: false });
+  assert.equal(card.shadowRoot.querySelector(".area-group"), null);
+  assert.equal(card.rows[0].location.hidden, false);
+  assert.equal(card.rows[0].location.textContent, "Office");
+  card.remove();
+});
+
+test("reconnecting a grouped card rebuilds working controls without duplicates", async () => {
+  const { card, calls } = fixture(
+    { "light.strip": light("off") },
+    { group_by_location: true, lights: ["light.strip"] },
+  );
+  card.remove();
+  document.body.append(card);
+  assert.equal(card.shadowRoot.querySelectorAll(".toggle").length, 1);
+  card.rows[0].toggle.click();
+  await Promise.resolve();
+  assert.deepEqual(calls, [["light", "turn_on", { entity_id: "light.strip" }]]);
+  card.remove();
+});

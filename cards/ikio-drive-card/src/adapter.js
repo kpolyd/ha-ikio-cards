@@ -66,3 +66,22 @@ export function fuelPercent(state, capacity) {
   const percent = (value / capacity) * 100;
   return percent >= 0 && percent <= 100 ? percent : null;
 }
+
+// Colour communicates state, not whether the reading is a lock, door or window.
+export function statusPresentation(kind, status) {
+  if (["Unknown", "Unavailable", "Not configured"].includes(status))
+    return { tone: "neutral", icon: "mdi:help-circle-outline" };
+  if (status === "Jammed") return { tone: "error", icon: "mdi:lock-alert" };
+  if (["Locking", "Unlocking"].includes(status))
+    return { tone: "pending", icon: "mdi:lock-clock" };
+  const warning = ["Unlocked", "Open"].includes(status);
+  if (!warning && !["Locked", "Closed"].includes(status))
+    return { tone: "neutral", icon: "mdi:help-circle-outline" };
+  const icons =
+    kind === "locks"
+      ? ["mdi:lock", "mdi:lock-open"]
+      : kind === "doors"
+        ? ["mdi:door-closed", "mdi:door-open"]
+        : ["mdi:window-closed", "mdi:window-open"];
+  return { tone: warning ? "warning" : "secure", icon: icons[warning ? 1 : 0] };
+}
