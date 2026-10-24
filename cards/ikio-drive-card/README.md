@@ -52,3 +52,13 @@ No external runtime CDN dependencies. esbuild MIT license is copied into the bui
 Automatic handles native `lock.*` locked/unlocked states and HA lock binary sensors (`off` = Locked, `on` = Unlocked). The earlier default `unlocked` setting also accepts these binary states, so existing configurations do not need manual edits. Choose the inverted binary mapping only when the integration uses `off` for unlocked. Explicit locked/unlocked text is recognized regardless of casing. Multiple members show Unlocked if any known member is unlocked; missing or unavailable members cannot produce Locked. Native transitional/jammed states remain distinct. Doors/windows retain their original open/close interpretation.
 
 If a source entity itself is unavailable, the card cannot recover its state; check the entity in Home Assistant. Raw binary values and HA frontend labels differ: a lock binary sensor can display Locked while its actual stored state is off. Reference: https://www.home-assistant.io/integrations/binary_sensor/ .
+
+## Pending compact layout and status icons
+
+The feature branch uses two three-column rows: range/fuel/odometer above locks/doors/windows. All six readings have native HA MDI icons and remain labelled. Parking moves into the header; location age and the unboxed maps link share the footer. Optional metric bindings do not leave empty columns. There is no separate fuel progress row: when a compatible fuel volume and capacity are supplied, the Fuel value shows the calculated percentage; otherwise it preserves the sensor's units.
+
+Secure states use muted mint, Open/Unlocked amber, Jammed soft red, and Unknown/Unavailable/Not configured grey. Locking/Unlocking use the shared blue accent and a clock icon. Text always identifies the state; colour is supplementary. Unknown/unavailable inputs never appear secure, and the existing lock/binary-sensor interpretation is unchanged.
+
+Metric and status controls open native HA entity details on tap or hold; the card sends no vehicle commands. An aggregate alert opens the member responsible for that state, rather than an unrelated secure member. Existing buttons retain focus during normal status updates. Invalid coordinates disable the maps link, and absent timestamps remain explicit.
+
+These changes are unreleased; the shared collection version remains 0.3.2.

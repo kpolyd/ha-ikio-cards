@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Compact Drive into two rows with icons for range/fuel/odometer and locks/doors/windows.
+- Add state-based secure/alert/error/unknown colours and native sensor details on status tap/hold.
+- Move parking into the header and preserve a plain maps link beside location age.
+
 - Reorganize Energy into a left-focused current-power reading, stacked Day/Night/Total column and quieter estimated/forecast bill column.
 - Show whole watts without rounding calculations or history; add faint dashed min/mid/max graph guides and aligned labels.
 - Place Untracked alongside device readings; calculated Untracked is read-only rather than an action button.

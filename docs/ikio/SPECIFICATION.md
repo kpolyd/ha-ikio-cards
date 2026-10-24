@@ -412,3 +412,10 @@ Current power is the dominant left column. Stack Day/Night/Total in a compact mi
 Display all power readings as whole watts, converting compatible source units before rounding. Never round inputs before computing Untracked or plotting history. Keep currency/energy precision. The energy graph uses faint dashed min/mid/max guides aligned with left labels from the observed history scale, with power labels in whole watts. Constant series have one guide; a midpoint with a duplicate rounded label is omitted. Colour thresholds remain independent of axis range. Standalone Graph does not change by default.
 
 Untracked is an ordinary device-grid reading with matching typography, not a separate action button or separator row. A configured sensor retains its native sensor-details interaction. Computed Untracked is read-only, has no fake entity, and retains warnings for missing/incompatible/overlapping inputs. No release/version bump is authorized yet.
+
+
+## 20. Compact Drive card (unreleased)
+
+Use two three-column rows: range/fuel/odometer, then aggregate locks/doors/windows. Add native HA icons beside metric labels and state-dependent icons beside status text. Use muted mint for known secure states, amber for open/unlocked, soft red for jammed, grey for unknown/unavailable/unconfigured, and blue for locking/unlocking. Do not infer secure from unavailable data or introduce car commands. Preserve aggregate mappings and explicit unit handling.
+
+Move parking to the header and keep location age plus the plain Open location in maps link in one wrapping footer. Retain 44 px entity targets, readable labels and full values on narrow widths. Remove the separate fuel bar; a configured compatible fuel capacity can still convert the Fuel metric into percentage. Metric/status taps and holds open native HA details; aggregates select the member explaining an alert. Main/version/release are unchanged until the owner asks to publish.
