@@ -388,3 +388,8 @@ Use 10 px card padding, 4 px section gaps, 6 px control gaps, 24 px main reading
 ## 15. Public Ikio repository (0.3.0)
 
 The collection is named Ikio and lives in `kpolyd/ha-ikio-cards`. All eleven cards, shared packages, tests, theme, previews and design documents are included. The 3D card, household bindings and legacy release automation are excluded. Public element names, package scopes, bundle names and resources use `ikio`. See INSTALLATION.md for the one-time migration from Aethora. The 0.2.x changelog records earlier collection work; 0.3.0 is the first Ikio namespace version.
+
+
+## 16. HACS distribution (0.3.1)
+
+HACS custom Dashboard repository support is now part of the collection. The root hacs.json selects `ha-ikio-cards.js` from a published release. A build without code splitting combines all eleven cards and their editors into that single self-contained asset; individual lazy builds remain available for manual installation. One shared version controls HACS updates. CI validates before publishing a draft with all assets, then publishes only after every upload succeeds. Published releases/tags are not changed. No submission to the default HACS catalogue or license selection is implied.

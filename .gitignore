@@ -5,3 +5,4 @@ cards/*/dist/
 *.log
 __pycache__/
 release/
+dist/

@@ -1,6 +1,6 @@
 # Ikio implementation status
 
-Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.3.0**, synchronized across eleven card workspaces and two internal packages.
+Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.3.1**, synchronized across eleven card workspaces and two internal packages.
 
 ## Implemented
 
@@ -32,7 +32,7 @@ Common `@ikio/card-ui` supplies tokens, touch-sized controls, hold behaviour, ke
 
 Live Home Assistant verification is still required. Validate native HA form loading, real selectors/icons, camera streaming, recorder history permissions, actual device capabilities/actions, Alarmo code behaviour and assistive technology in the deployed HA frontend. Automated DOM tests simulate HA form components; browser fixtures simulate HA data and backend calls. Neither proves live integration compatibility.
 
-HACS and automated Ikio release publishing are not configured. Ikio's version checker and package script produce one synchronized installation directory; they do not publish a tag or release.
+HACS custom-repository support uses a single release asset, `ha-ikio-cards.js`. CI validates main and publishes the collection version as a GitHub release. HACS default-catalog inclusion is not configured; it is a separate process.
 
 
 ### 0.2.2 design refinement
@@ -87,3 +87,10 @@ Validation: 126 JavaScript tests and four legacy release-tool tests passed in th
 Renamed the full collection to Ikio, including packages, elements, bundles, theme and documentation URLs. Imported only collection sources into a fresh repository; no original Git history, 3D card, geometry, household mappings or legacy release pipeline is included. The lockfile no longer includes Three.js. Earlier verification counts describe the original repository; migration-specific results are recorded after running checks here.
 
 Migration verification: 74 card/shared-package tests and two independent packaging tests passed in the new repository. Formatting, synchronized versions, clean dependency installation and all eleven production builds passed. Chromium verified the renamed gallery at 280/360/390/520 px with no overflow/page errors, dark/light layouts, native-details touch hold, media source, vacuum transitions, energy links and editor typing with simulated parent feedback. These fixtures do not prove native HA selector or live-device compatibility.
+
+
+### HACS distribution (0.3.1)
+
+Added a root hacs.json manifest, a self-contained bundle of all eleven cards/editors, and a CI release job that publishes only after validation. The installer needs one JavaScript file with no local chunks, external imports or runtime CDN. Published releases are immutable; draft uploads can be retried on the same source. Existing manual installation remains supported. HACS installs/updates the collection as one custom Dashboard repository. Live HACS installation on a user instance is not tested by the automated pipeline.
+
+HACS-build verification: 74 workspace tests plus eight packaging/release tests passed. Browser checks loaded only the single HACS bundle while individual entry requests were stubbed out: all eleven cards rendered without overflow/page errors at 280/360/390/520 px; touch holds, media/vacuum/energy actions and editor typing passed with simulated HA data/forms. Native HACS installation on the user’s server remains unverified.

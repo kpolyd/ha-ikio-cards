@@ -43,6 +43,12 @@ async function fixture() {
     join(root, "cards/ikio-light-card/dist/licenses/NOTICE.txt"),
     "Notice",
   );
+  await mkdir(join(root, "dist/licenses"), { recursive: true });
+  await writeFile(
+    join(root, "dist/ha-ikio-cards.js"),
+    "// combined HACS bundle",
+  );
+  await writeFile(join(root, "dist/licenses/NOTICE.txt"), "Notice");
   await writeFile(join(root, "private-untracked.txt"), "not for distribution");
   return root;
 }
@@ -68,6 +74,8 @@ test("distribution preserves lazy chunks/notices and includes only tracked repro
     );
     for (const name of [
       "ikio.js",
+      "ha-ikio-cards.js",
+      "licenses/NOTICE.txt",
       "ikio-light-card/chunks/editor.js",
       "ikio-light-card/licenses/NOTICE.txt",
       "themes/ikio.yaml",

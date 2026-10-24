@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.3.1 — HACS support
+
+- Add HACS custom Dashboard repository support with a single self-contained bundle containing all eleven cards and editors.
+- Publish validated GitHub releases with the HACS asset, reproducible ZIP and dependency notices.
+- Preserve manual installation and existing Ikio card configuration; document migration to HACS-managed resources.
+
 ## 0.3.0 — public repository migration
 
 - Rename Aethora to Ikio across all eleven cards, shared packages, theme, editors, bundles and documentation.

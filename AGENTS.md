@@ -33,5 +33,5 @@ Run affected workspace checks for focused changes; run all workspaces after shar
 - Use `ikio-vX.Y.Z` release names. Do not overwrite tags. During 0.x, breaking changes bump the minor version.
 - Keep installation URLs and documentation aligned with the current version. Use Conventional Commits.
 - `npm run package:ikio` creates an installation folder and a ZIP containing compiled cards, lazy chunks, notices, theme, docs and reproducible tracked source. Stage new files before packaging. Keep source and design documents outside Home Assistant's public www directory.
-- CI validates and uploads a build artifact. It does not publish releases or provide HACS support yet. Do not copy unrelated release automation into this repository.
+- CI validates and publishes one versioned GitHub release on main. HACS installs the single `ha-ikio-cards.js` asset named in `hacs.json`. Individual builds remain available in the ZIP. Never add required external imports to the HACS bundle; never overwrite published releases/tags. Keep unrelated release automation out of this repository.
 - Commit or publish only when the user has authorized it. Do not add an original-source license without the owner's choice. Third-party notices apply to their respective dependencies.

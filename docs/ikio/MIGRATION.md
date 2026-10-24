@@ -12,3 +12,7 @@ Ikio 0.3.0 retains the card behaviour and configuration fields from Aethora 0.2.
 There is no automatic alias registration for Aethora types. Do not register both the collection loader and individual Ikio bundles; choose one installation route. Keep every card's lazy chunks beside its entry module.
 
 All eleven suffixes are retained: `light-card`, `comfort-card`, `appliance-card`, `media-card`, `cleaning-card`, `security-card`, `camera-card`, `energy-card`, `system-card`, `drive-card`, and `graph-card`.
+
+## Switching manual Ikio installations to HACS
+
+Install Ikio Cards through the HACS custom Dashboard repository, verify its `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` resource, remove the old `/local/ikio/...` resource, and fully reload. Existing `custom:ikio-*-card` types and all entity selections stay unchanged. HACS manages subsequent version updates. Aethora types still need the one-time rename described above.

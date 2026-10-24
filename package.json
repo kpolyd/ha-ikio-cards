@@ -10,12 +10,16 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present && npm run build:hacs",
     "test": "npm run test --workspaces --if-present",
     "format": "npm run format --workspaces --if-present",
     "format:check": "npm run format:check --workspaces --if-present",
     "check:ikio-version": "node scripts/ikio-version.mjs --check",
     "package:ikio": "npm run check:ikio-version && node scripts/package-ikio.mjs",
-    "test:scripts": "node --test scripts/tests/*.test.mjs"
+    "test:scripts": "node --test scripts/tests/*.test.mjs",
+    "build:hacs": "node scripts/build-hacs.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
   }
 }

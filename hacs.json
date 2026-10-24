@@ -1,0 +1,7 @@
+{
+  "name": "Ikio Cards",
+  "filename": "ha-ikio-cards.js",
+  "render_readme": true,
+  "hide_default_branch": true,
+  "homeassistant": "2026.10.0"
+}

@@ -13,6 +13,14 @@ export async function packageCollection(root = process.cwd()) {
   const output = join(root, "release", folder);
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
+  // Include the standalone HACS asset and its build notices in manual releases.
+  await cp(
+    join(root, "dist/ha-ikio-cards.js"),
+    join(output, "ha-ikio-cards.js"),
+  );
+  await cp(join(root, "dist/licenses"), join(output, "licenses"), {
+    recursive: true,
+  });
   const modules = [];
   for (const name of (await readdir(join(root, "cards"))).sort()) {
     if (!name.startsWith("ikio-")) continue;

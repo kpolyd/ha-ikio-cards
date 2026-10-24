@@ -20,19 +20,24 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 ## Installation
 
-Current collection version: **0.3.0**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS and automatic release publishing are not configured yet.
+Current collection version: **0.3.1**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
-Build with Node 24, npm and Python 3:
+### HACS (recommended)
 
-```sh
-npm ci
-npm run build
-npm run package:ikio
-```
+1. Open HACS → ⋮ → Custom repositories.
+2. Add `https://github.com/kpolyd/ha-ikio-cards` with type **Dashboard** (called Lovelace/Plugin in some HACS versions).
+3. Find **Ikio Cards**, download the latest release, and reload your browser or Home Assistant app.
+4. Edit dashboard → Add card → search **Ikio**, then choose entities in the visual editor.
 
-Copy `ikio.js` and all eleven `ikio-*-card/` folders from `release/ikio-v0.3.0/` into your Home Assistant `/config/www/ikio/` directory. Preserve the card folders and their `chunks/` subdirectories. Do not copy `source/` or design documents into `www`.
+HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-Add `/local/ikio/ikio.js?v=0.3.0` as a **JavaScript module** under Settings → Dashboards → Resources. Reload the dashboard, then Add card → search **Ikio** and select entities in the visual editor. No manual card configuration is required.
+All eleven cards and editors are included in one file, with one HACS version/update. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Existing `custom:ikio-...` configurations stay the same. Aethora configurations need the one-time namespace migration below.
+
+This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
+
+### Manual installation
+
+Download `ha-ikio-cards.js` from the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.3.1` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
 
 See the [installation guide](docs/ikio/INSTALLATION.md), [Aethora migration guide](docs/ikio/MIGRATION.md), [design specification](docs/ikio/SPECIFICATION.md) and [validation status](docs/ikio/STATUS.md).
 
@@ -58,8 +63,8 @@ The collection version is stored in `ikio/package.json`. After changing it, run 
 
 ## Distribution and licensing
 
-`npm run package:ikio` creates a reproducible installation folder and ZIP under `release/`. CI validates changes and uploads the ZIP as a build artifact; it does not publish a GitHub release or register the project in HACS.
+`npm run build` builds the individual cards and the single-file HACS bundle at `dist/ha-ikio-cards.js`. `npm run package:ikio` creates a reproducible installation folder and ZIP under `release/`. After validation on `main`, CI publishes the current version as `ikio-vX.Y.Z` with the HACS bundle, ZIP and notices. Published releases/tags are never overwritten; increase the collection version to ship changes. Failed draft uploads remain unpublished and can be retried by rerunning CI on the same source commit.
 
-Ikio was previously developed as Aethora. Version 0.3.0 introduces the Ikio namespace and retains the implemented features and fixes from 0.2.3. The 3D model card, household configuration and private repository history are excluded.
+Ikio was previously developed as Aethora. Version 0.3.1 introduces the Ikio namespace and retains the implemented features and fixes from 0.2.3. The 3D model card, household configuration and private repository history are excluded.
 
 An original-source license has not yet been selected. Dependency notices are included in generated distributions and apply to their respective dependencies.
