@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## Unreleased
+
+- Add an optional Lights visual-editor toggle to group by location, packing compatible consecutive areas into three-light rows.
+- Use 44 px light buttons, clear area headings/dividers, live counts and an Unassigned group without repeated location labels.
+- Keep native details on hold, stable controls during state updates and visible unavailable statuses.
+
 ## 0.3.2 — HACS download compatibility
 
 - Serve the tracked, verified collection bundle from raw tagged repository content to avoid oversized GitHub release-redirect headers in HACS 2.0.5.

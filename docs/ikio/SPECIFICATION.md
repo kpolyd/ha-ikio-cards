@@ -398,3 +398,8 @@ HACS custom Dashboard repository support is now part of the collection. The root
 ## 17. HACS raw-file compatibility (0.3.2, overrides release-asset packaging)
 
 Track the generated collection bundle at root `ha-ikio-cards.js` and set `content_in_root: true`. Publish versioned releases without any attached assets; HACS 2.0.5 otherwise selects release downloads before raw files. CI rebuilds and compares the tracked bundle and notices before publishing, protecting against stale generated code. Keep full ZIPs in CI artifacts. The resulting HACS resource and card configuration do not change. This avoids oversized GitHub release-redirect headers without modifying HACS.
+
+
+## 18. Optional Lights location grouping (unreleased)
+
+Provide a Group by location toggle, off by default. Use the existing location override or HA entity/device area; missing locations form Unassigned. Maintain first-occurrence group order and configured light order within groups. Pack consecutive areas into three-column rows when their combined light count is at most three (2+1 or 1+1+1). Larger areas use a full-width section and wrap internally. Do not reorder areas to fill gaps. Separate shared-row areas with subtle vertical dividers and rows with horizontal dividers. Show an on/total count for groups larger than one; omit the redundant singleton count. Hide repeated area labels on grouped buttons, but retain unavailable status. Use 44 px minimum buttons, readable 12 px labels and tight gaps. At very narrow widths, stack groups and use two columns. Hold always opens native details; changing entity states must not recreate buttons or lose focus. No release/version change is authorized yet.

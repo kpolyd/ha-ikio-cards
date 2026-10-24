@@ -101,3 +101,10 @@ HACS-build verification: 74 workspace tests plus eight packaging/release tests p
 The 0.3.1 download URL reproduces the HACS/aiohttp header-limit error; increasing max_field_size allows the exact published SHA-256 bundle to download. The repository-side workaround stores the verified bundle at the repository root, sets content_in_root=true, and publishes tags/releases with no attached assets. HACS 2.0.5 then selects raw tagged content. Full ZIPs remain available in CI artifacts. CI checks tracked bundle/notices against a fresh build and the release publisher rejects drafts with assets.
 
 Validation for 0.3.2: 74 workspace tests and ten package/release tests passed. Builds, formatting, version checks and tracked-bundle/notices comparisons passed. Unmodified HACS 2.0.5 filename selection, file gathering and download queue methods were exercised with a repository/release fixture: asset-free releases select raw tagged content; attached assets select release redirects. Chromium loaded all eleven cards and editors from the root bundle without page errors. Live installation still requires verification on the user’s HA instance.
+
+
+### Pending changes on feat/light-location-groups
+
+Lights grouping is opt-in through a native boolean editor selector. Consecutive areas share a row when their combined light count is at most three; larger areas wrap independently. Area headings, dividers, stable ordering, live counts, Unassigned fallback and unavailable statuses follow the approved compact design. Buttons have a 44 px minimum height. The collection version remains 0.3.2; these changes are not released.
+
+Branch verification: 81 workspace tests plus ten packaging/release tests passed. Builds, formatting, synchronized-version checks and tracked HACS bundle verification passed. Chromium verified packed layouts and 44 px controls at 280/360/390/520 px without clipping or page errors, plus tap/count updates, native touch hold, grouping toggle, light appearance and long labels. These are simulated HA states/forms, not live device or native editor validation.
