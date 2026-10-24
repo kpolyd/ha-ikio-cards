@@ -1,6 +1,6 @@
 # Ikio changelog
 
-## Unreleased
+## 0.4.0 — Compact mobile controls
 
 - Compact Drive into two rows with icons for range/fuel/odometer and locks/doors/windows.
 - Add state-based secure/alert/error/unknown colours and native sensor details on status tap/hold.

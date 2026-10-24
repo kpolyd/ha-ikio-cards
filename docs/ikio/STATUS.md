@@ -1,6 +1,6 @@
 # Ikio implementation status
 
-Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.3.2**, synchronized across eleven card workspaces and two internal packages.
+Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.4.0**, synchronized across eleven card workspaces and two internal packages.
 
 ## Implemented
 
@@ -103,20 +103,20 @@ The 0.3.1 download URL reproduces the HACS/aiohttp header-limit error; increasin
 Validation for 0.3.2: 74 workspace tests and ten package/release tests passed. Builds, formatting, version checks and tracked-bundle/notices comparisons passed. Unmodified HACS 2.0.5 filename selection, file gathering and download queue methods were exercised with a repository/release fixture: asset-free releases select raw tagged content; attached assets select release redirects. Chromium loaded all eleven cards and editors from the root bundle without page errors. Live installation still requires verification on the user’s HA instance.
 
 
-### Pending changes on feat/light-location-groups
+### 0.4.0 — Location groups
 
-Lights grouping is opt-in through a native boolean editor selector. Consecutive areas share a row when their combined light count is at most three; larger areas wrap independently. Area headings, dividers, stable ordering, live counts, Unassigned fallback and unavailable statuses follow the approved compact design. Buttons have a 44 px minimum height. The collection version remains 0.3.2; these changes are not released.
+Lights grouping is opt-in through a native boolean editor selector. Consecutive areas share a row when their combined light count is at most three; larger areas wrap independently. Area headings, dividers, stable ordering, live counts, Unassigned fallback and unavailable statuses follow the approved compact design. Buttons have a 44 px minimum height. Included in collection version 0.4.0.
 
 Branch verification: 81 workspace tests plus ten packaging/release tests passed. Builds, formatting, synchronized-version checks and tracked HACS bundle verification passed. Chromium verified packed layouts and 44 px controls at 280/360/390/520 px without clipping or page errors, plus tap/count updates, native touch hold, grouping toggle, light appearance and long labels. These are simulated HA states/forms, not live device or native editor validation.
 
 
-### Pending Energy redesign on feat/light-location-groups
+### 0.4.0 — Energy redesign
 
-Implemented the approved three-column summary, whole-watt power formatting, subtle dashed min/mid/max guides and ordinary-grid Untracked reading. Calculations/history preserve precision, bound sensors retain native details, and computed Untracked is read-only. Tests cover mixed power/energy units, rounding, missing inputs, optional columns, forecast guards and guide positions. The same simulated mobile fixture measures 369 px high at 360 px width. No collection version or release change.
+Implemented the approved three-column summary, whole-watt power formatting, subtle dashed min/mid/max guides and ordinary-grid Untracked reading. Calculations/history preserve precision, bound sensors retain native details, and computed Untracked is read-only. Tests cover mixed power/energy units, rounding, missing inputs, optional columns, forecast guards and guide positions. The same simulated mobile fixture measures 369 px high at 360 px width. Included in collection version 0.4.0.
 
 Energy-change validation: 88 workspace tests and ten package/release tests passed, together with formatting, build, version and tracked-bundle checks. Chromium verified widths 280/360/390/520 px with no overflow or page errors, three-column layout, whole-watt labels, dashed guides aligned within 1 px, plain calculated Untracked, sensor details links, kW conversion and light appearance. Browser states/forms were simulated; native HA/device validation was not performed.
 
 
-### Pending compact Drive card
+### 0.4.0 — Compact Drive card
 
-Implemented the approved two-row layout, six labelled icons, state-based colours, header parking and footer age/maps link. Kept existing lock mappings, missing-data handling, native details and validated coordinates. No car commands are sent. Regression tests cover secure/alert/jammed/transitional/unknown tones, stable focused controls, the relevant aggregate member, fuel-capacity percentage and disabled maps. Validation: 94 workspace tests plus ten package/release tests passed, with formatting/build/version/HACS-bundle checks. Chromium verified 280/360/390/520 px layouts without clipping/page errors, 44 px targets, native tap/touch-hold dispatch, status tones, long values and light appearance. At 360 px, the fixture is 192 px high. Fixture icons are placeholders; real HA icon rendering and live vehicle integration still need deployment verification. Version remains 0.3.2 and no release is authorized.
+Implemented the approved two-row layout, six labelled icons, state-based colours, header parking and footer age/maps link. Kept existing lock mappings, missing-data handling, native details and validated coordinates. No car commands are sent. Regression tests cover secure/alert/jammed/transitional/unknown tones, stable focused controls, the relevant aggregate member, fuel-capacity percentage and disabled maps. Validation: 94 workspace tests plus ten package/release tests passed, with formatting/build/version/HACS-bundle checks. Chromium verified 280/360/390/520 px layouts without clipping/page errors, 44 px targets, native tap/touch-hold dispatch, status tones, long values and light appearance. At 360 px, the fixture is 192 px high. Fixture icons are placeholders; real HA icon rendering and live vehicle integration still need deployment verification. Included in collection version 0.4.0.
