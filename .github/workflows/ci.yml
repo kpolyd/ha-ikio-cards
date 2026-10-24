@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run check:ikio-version
+      - run: npm test
+      - run: npm run test:scripts
+      - run: npm run format:check
+      - run: npx --no-install prettier --check scripts/*.mjs scripts/tests/*.mjs
+      - run: npm run build
+      - run: npm run package:ikio
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ikio-cards
+          path: release/ikio-v*.zip
+          if-no-files-found: error

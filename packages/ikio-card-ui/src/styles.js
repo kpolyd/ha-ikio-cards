@@ -1,0 +1,10 @@
+export const styles = `
+:host{display:block;color:var(--ikio-text,#e5e9e7);font:13px var(--ha-font-family,system-ui,sans-serif);container-type:inline-size;--ae-surface:#17282e;--ae-well:#21353b;--ae-border:#34474d;--ae-text:#e5e9e7;--ae-muted:#a4adb2;--ae-active:#25564c;--ae-accent:#90caf9;--ae-error:#f2a69b;--ae-warning:#f2c66d;--ae-temperature:#a4e4b8;--ae-humidity:#adcfff;--ae-power:#f2d487;--ae-fridge:#b9e6ff}
+:host([appearance=light]){--ae-surface:#f3f7f6;--ae-well:#e4eeeb;--ae-border:#bdcfca;--ae-text:#17282e;--ae-muted:#50645f;--ae-active:#cee6db;--ae-accent:#245d85;--ae-error:#9a3830;--ae-warning:#805900;--ae-temperature:#28613e;--ae-humidity:#36597f;--ae-power:#775600;--ae-fridge:#245f73}
+:host([appearance=ha]){--ae-surface:var(--ha-card-background,var(--card-background-color));--ae-well:var(--secondary-background-color);--ae-border:var(--divider-color);--ae-text:var(--primary-text-color);--ae-muted:var(--secondary-text-color);--ae-active:var(--secondary-background-color);--ae-accent:var(--primary-color);--ae-error:var(--error-color);--ae-warning:var(--warning-color,#805900);--ae-temperature:var(--primary-color);--ae-humidity:var(--primary-color);--ae-power:var(--primary-color);--ae-fridge:var(--primary-color)}
+*{box-sizing:border-box}ha-card{display:block;padding:10px;border:1px solid var(--ae-border);border-radius:12px;background:var(--ae-surface);color:var(--ae-text);box-shadow:none}
+header{display:flex;gap:6px;align-items:center;margin-bottom:4px}h2{font-size:14px;font-weight:600;margin:0;flex:1;overflow-wrap:anywhere}.summary{font-size:12px;color:var(--ae-muted)}
+button,input{font:inherit}button{color:inherit;cursor:pointer;border:0}button:disabled{cursor:default}button:focus-visible,input:focus-visible{outline:2px solid var(--ae-accent);outline-offset:2px}
+.error{font-size:12px;color:var(--ae-error);margin:8px 0 0}.error:empty{display:none}.empty{color:var(--ae-muted);margin:0;font-size:13px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.sr:focus-visible{position:static;clip-path:none;width:auto;height:44px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+`;

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="380" height="116" preserveAspectRatio="xMinYMin meet" viewBox="0 0 380 116" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="380" height="116"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-116)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="380" height="116" rx="12" ry="12" style="stroke: rgb(20%,27%,30%); stroke-linecap: butt; stroke-width: 1; fill: rgb(9%,15%,18%); fill-rule: evenodd;"/>
+			<text x="12" y="92.24" style="font-family: UIB; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,184) scale(1,-1)">Living room lights</text>
+			<text x="322.296875" y="91.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,183) scale(1,-1)">2 / 3 on</text>
+			<rect x="12" y="12" width="114" height="66" rx="9" ry="9" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,33%,29%); fill-rule: evenodd;"/>
+			<text x="21" y="59.92" style="font-family: UI; font-size: 12px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,119) scale(1,-1)">Ceiling strip</text>
+			<text x="21" y="38.08" style="font-family: UIB; font-size: 13px;fill: rgb(56%,79%,97%); stroke:none;" transform="translate(0,76) scale(1,-1)">40%</text>
+			<rect x="21" y="19" width="96" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(20%,27%,30%); fill-rule: evenodd;"/>
+			<rect x="21" y="19" width="38.400000000000006" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,83%,52%); fill-rule: evenodd;"/>
+			<rect x="134" y="12" width="114" height="66" rx="9" ry="9" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,33%,29%); fill-rule: evenodd;"/>
+			<text x="143" y="59.92" style="font-family: UI; font-size: 12px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,119) scale(1,-1)">TV glow</text>
+			<text x="143" y="38.08" style="font-family: UIB; font-size: 13px;fill: rgb(56%,79%,97%); stroke:none;" transform="translate(0,76) scale(1,-1)">On</text>
+			<rect x="256" y="12" width="114" height="66" rx="9" ry="9" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,20%,23%); fill-rule: evenodd;"/>
+			<text x="265" y="59.92" style="font-family: UI; font-size: 12px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,119) scale(1,-1)">Entrance</text>
+			<text x="265" y="38.08" style="font-family: UIB; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,76) scale(1,-1)">Off</text>
+		</g>
+	</g>
+</svg>

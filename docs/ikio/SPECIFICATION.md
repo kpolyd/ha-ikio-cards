@@ -1,0 +1,390 @@
+# Ikio cards — implementation specification
+
+Design handoff · 24 October 2026 · version 3
+
+## 1. Goal and deliverables
+
+Implement a cohesive family of eleven compact, mobile-first Home Assistant custom cards. Each card provides direct controls or focused summaries using a shared visual system.
+
+Editable SVG compositions are in `design/`; current interactive fixture previews are in `dev/previews/`. This document records the design decisions, with later sections overriding earlier proposals. All example readings are illustrative, not live measurements or evidence of device support.
+
+The requested outcome is a functioning card family with full graphical editors. No required option may depend on YAML, templates, CSS snippets, entity IDs typed by hand, or browser developer tools. Installation of custom frontend resources is a separate one-time process and must be documented through Home Assistant's UI. Backend automations remain optional dependencies selected through pickers.
+
+| Card name | Element / config type suffix | Primary purpose | Mockup |
+|---|---|---|---|
+| Light Studio | `ikio-light-card` | Mixed light/switch control, selected-light detail | [SVG](design/compact-lights.svg) |
+| Room Comfort | `ikio-comfort-card` | Room readings, AC, dehumidifier or fan | [SVG](design/compact-comfort.svg) |
+| Appliance Run | `ikio-appliance-card` | Switch, actual power and optional timed run | [SVG](design/compact-appliance.svg) |
+| Media Session | `ikio-media-card` | Current media, transport, source and volume | [SVG](design/compact-media.svg) |
+| Cleaning Mission | `ikio-cleaning-card` | Vacuum state and supported cleaning actions | [SVG](design/compact-cleaning.svg) |
+| Security Readiness | `ikio-security-card` | Alarm, open contacts, presence and motion | [SVG](design/compact-security.svg) |
+| Camera Window | `ikio-camera-card` | On-demand camera, optional power/snapshot controls | [SVG](design/compact-camera.svg) |
+| Energy Ledger | `ikio-energy-card` | Power, tariff usage, costs and breakdown | [SVG](design/compact-energy.svg) |
+| System Pulse | `ikio-system-card` | Host metrics, availability and optional services | [SVG](design/compact-system.svg) |
+| Drive Brief | `ikio-drive-card` | Fuel, range, odometer and parking | [SVG](design/compact-drive.svg) |
+
+| Graph | `ikio-graph-card` | Numeric history and value-based colours | [SVG](design/compact-graph.svg) |
+
+Use `custom:` before each suffix in saved dashboard configuration. These are independent reusable cards, not a single monolithic dashboard. The monitoring cards need not invent actuator controls to qualify as useful cards.
+
+## 2. Visual system
+
+### Source of continuity
+
+The shared colour system uses temperature `#a4e4b8`, humidity `#adcfff`, power `#f2d487`, fridge `#b9e6ff`, active device `#90caf9`, open contact `#f2c66d`, primary text `#e5e9e7` and secondary text `#a4adb2`. The dark surface is `#17282e` and selected toolbar colour is `#25564c`. Reuse those meanings. Use readable mobile typography for interactive controls.
+
+The proposal introduces opaque teal card surfaces, subtle borders, a small icon tile, larger typography and distinct layouts for each task. No glass blur, animated glows, spinning fans, large empty circular gauges, photographic car cutouts or copied floor-plan layouts. Use Material Design icons through HA's icon component in production; the SVGs use simple original line drawings as placeholders.
+
+### Tokens and sizing
+
+- Card surface `#17282e`; nested surface `#21353b`; border `#34474d`; selected button `#25564c`; primary text `#e5e9e7`. Error accent `#f2a69b`.
+- Card radius 16 px, nested panels 12 px, controls 10 px, status chips 7 px. Border 1 px; no heavy shadow.
+- Padding 16 px, control gap 8 px, section gap 16 or 24 px. Touch targets at least 44×44 px, preferably 48 px. Slider track may be thin but its hit area must be 44 px high.
+- Title 16 px semibold, body 14–16 px, secondary text at least 12 px, large reading 36–44 px. Use system/HA font; tabular numerals for dynamic readings. Small presentation captions in the mockups must become at least 12 px in production.
+- Normal card design width 380 px; wide monitoring composition 520 px. Adapt to container width, not viewport width. At 280–359 px, stack crowded rows and wrap labels; never shrink touch targets. Two tariff tiles become one column below 400 px.
+- Long names wrap to two lines; full accessible names remain available. Do not rely on hover. No horizontal scrolling for the whole card. More than four modes use a native select rather than cramped segments.
+- Provide an Appearance choice: **Ikio dark** (the illustrated default), **Follow HA theme**, **Ikio light**. Light mode uses a pale neutral/teal surface, dark foreground and darker versions of semantic colours; do not paste pastel text onto white. Expose accent choice, density Normal/Compact and optional icon/name. Compact retains useful readings and actions; reduce spacing and visual hierarchy rather than hiding information. No arbitrary colour code entry required.
+- Motion is limited to 140 ms state feedback. Respect reduced motion. Do not animate constantly when idle.
+
+### Common control rules
+
+The icon/name opens entity more-info, not a toggle. Dedicated power buttons toggle explicitly. Holding any entity control opens native HA more-info. No hold action opens custom settings. On lighting buttons, tap toggles and dragging the embedded track changes brightness; suppress click and long-press after a drag. A visible ellipsis opens details/settings available to the user; it never grants dashboard editing permission. Buttons carry descriptive accessible labels such as “Turn off entrance light”.
+
+Use real buttons, labelled sliders and keyboard-operable selects. Give mode tabs appropriate selected semantics, focus outlines and arrow-key navigation. Do not communicate status only through colour. Measured values, target values and units must be unambiguous. A state chip that can act must have a full-size hit target; otherwise it is read-only. Announce action failures and meaningful state changes without reading every sensor update aloud.
+
+## 3. Graphical configuration contract
+
+### Home Assistant integration
+
+Register each card in `window.customCards` with name, description, preview and documentation link. Supply `getStubConfig()`, `setConfig()`, a `hass` setter and a visual editor. Current HA documentation offers `getConfigForm()` for schema-only editors and `getConfigElement()` for custom ones; if both exist, the custom element takes precedence. Custom editors receive `hass` and `setConfig()` and emit `config-changed` with the complete config, bubbling across shadow boundaries. Use HA form selectors and controls. [S1]
+
+Use a custom editor for the family because repeatable rows, capability warnings and dependent options are central. Keep it thin: compose reusable entity fields and sections; do not invent a second configuration framework. HA frontend elements are internal rather than a version-stable third-party API; isolate access in a compatibility module and test against the installed HA frontend. Verify the exact HA version before coding rather than inferring it from screenshot dates. [S2]
+
+### User flow
+
+1. Add card → search “Ikio” → select a named card.
+2. Content section shows the required entity selector and useful optional selectors. Empty picker configuration shows an instructional preview, with controls disabled; no fake live entities.
+3. Selecting an entity immediately updates the preview and capability notes. Use friendly name, entity ID and area in search results so similar names can be distinguished. Suggestions can prioritize the chosen area, but never silently bind a guessed entity.
+4. Appearance and Actions sections expose every supported option. Editor changes are local until HA's Save action. The editor must not trigger devices, start streams or execute scripts while previewing.
+5. Save and reopen: every field, list order and choice round-trips. Removing a configured entity from HA yields “Entity not found” without destroying the saved binding. The user can replace it in the picker.
+
+A required field has inline validation. A temporary offline entity is allowed as a saved configuration. A domain mismatch is a configuration error, not an offline state. Optional selectors include a clear/remove action. Repeating lists support add, remove and accessible move up/down; drag-and-drop is optional. For long lists, the editor shows the same ordering as the card.
+
+HA's selector vocabulary includes domain-filtered entity, select, number and icon inputs. Use selectors for values, not raw text entry of service payloads. Do not confuse an automation action sequence selector with dashboard action configuration. [S3]
+
+### Shared internal schema (not a user editing requirement)
+
+```ts
+type BaseConfig = {
+  type: string;
+  schema_version: 1;
+  name?: string;
+  icon?: string;
+  appearance?: {
+    theme: 'dark' | 'ha' | 'light';
+    density: 'normal' | 'compact';
+    accent: 'auto' | 'blue' | 'mint' | 'amber';
+  };
+  details?: { mode: 'more-info' | 'navigate'; path?: string };
+};
+type EntityRow = { entity: string; name?: string; icon?: string };
+type ExistingAction = { entity: string; label: string; confirm: boolean };
+```
+
+ExistingAction is an entity selected from `script`, `scene` or `button`, according to the particular field. It is not arbitrary JavaScript or an unvalidated service name. Dispatch the corresponding domain action. For optional navigation, provide a dashboard/view selector when available on the supported frontend; otherwise retain more-info as the complete default and expose a validated relative path text field as an optional advanced choice. Nothing requires a URL.
+
+Preserve HA-owned keys such as layout and visibility metadata through editor changes. Version schemas from the first release. Never mutate an incoming config object. Normalize defaults consistently at runtime and editor boundaries. Unsupported future schema versions show a helpful message instead of silently discarding fields.
+
+## 4. State and interaction model
+
+Every actuator has a state adapter and an action adapter. Format locale-sensitive values with HA formatters or Intl using the user's HA locale. Raw states drive logic; translated labels are presentation only. Read units from entities; do not hardcode °C, kilometres, litres or euros globally. Decimal commas and locale-specific currency placement must work.
+
+| Situation | Display | Behaviour |
+|---|---|---|
+| Normal off/idle | Neutral label; valid measurements remain | Appropriate start/on control |
+| Normal active | Domain accent and actual activity | Appropriate stop/off/pause control |
+| Awaiting action | Small pending indicator on affected control | Prevent duplicate identical requests |
+| Service rejected | Clear error near the control | Keep actual HA state, allow retry |
+| State not confirmed after 10 s | “No confirmation yet” | End spinner; do not claim failure or success |
+| Unknown | “Unknown”; no fabricated reading | Disable actions requiring known capabilities |
+| Unavailable | Offline message | Disable entity actions, allow details |
+| Entity absent | “Entity not found” + name/ID in details | Allow editor replacement |
+| Optional sensor unavailable | Em dash and unavailable label | Other controls continue |
+
+A successful service response is not proof of the final physical state. Track the intended predicate (e.g. target temperature changed) until a relevant state update confirms it. Ignore late results from obsolete configuration or disconnected elements. Handle remote changes during a gesture: preserve the user's draft until release, then reconcile from HA. No optimistic fake sensor values.
+
+Sliders show local feedback during drag and send one final request on pointer release/keyboard commit; optionally debounce repeated keyboard steps for 250 ms. Clamp to the advertised range and step. Do not send dozens of service calls while dragging. An off brightness-capable light shows “Off” plus its retained setting when known; brightness zero must not force an on/off-only light to appear off.
+
+No dashboard background click should operate an entity. In preview mode all service actions and live media are disabled. Clean up observers, listeners, subscriptions, pending timers and media streams on disconnect. A remapped entity must immediately stop driving the old entity's UI.
+
+## 5. Per-card designs and contracts
+
+### 5.1 Light Studio — `ikio-light-card`
+
+**Use case:** living-room ceiling strip and TV glow; kitchen mixed switches; office strip; entrance, balcony and bedroom light. Group by room rather than one enormous whole-home lighting card.
+
+**Layout:** compact per-light buttons, 76–88 px high. Name and state inside each button; an embedded bottom brightness track for capable lights. No selected-light well or shared lower controls.
+
+**Editor:** `lights: EntityRow[]` (required, light/switch; default one empty picker); `controls: {brightness: auto|hide, colour: auto|hide}`; `show_group_power: boolean` default false; normal appearance fields. Reordering changes display order. Selecting a switch explains that only power is available. TV glow allows a per-row `control_mode: auto|power-only` override; set power-only through the editor for the known device below.
+
+**Actions:** use `light.turn_on/off` for lights and `switch.turn_on/off` for switches. Brightness UI 0–100 maps to HA's brightness percentage action; zero intentionally switches off. Colour-temperature range comes from the entity, and use a supported Kelvin parameter on the target HA version. RGB/HS controls appear only for advertised colour modes. Do not send colour fields to on/off-only lights. [S4]
+
+**Details:** warmth and colour are adjusted in native entity details, opened on hold. Optional explicit group power is editor-controlled; only configured members are affected.
+
+**Acceptance:** `light.h66a0` remains on when HA state is on even if brightness/RGB attributes are zero. Kitchen switches have no fake sliders. Dragging brightness must not toggle the light. Partial availability does not disable the whole group.
+
+### 5.2 Room Comfort — `ikio-comfort-card`
+
+**Use case:** living room AC plus dehumidifier; bedroom fan plus separate light card; balcony/bathroom read-only climate summaries. Do not place the bedroom fan in the living-room instance merely because it is shown on the same dashboard.
+
+**Layout:** room measured temperature and humidity; tabs for configured actuators; target/setpoint panel and supported mode controls. When only one actuator is present, omit tabs. When no actuator exists, render a smaller room-reading card. Details include extra supported fan/preset/swing settings. Optional fridge reading uses a separate labelled ice-blue row, never replaces room temperature.
+
+**Editor:** `temperature_entity?` (temperature sensor), `humidity_entity?` (humidity sensor), `climate_entity?`, `humidifier_entity?`, `fan_entity?`, `fridge_entity?`, `default_device?: climate|humidifier|fan`; `show_power` and optional power entity per actuator. Require at least one reading or actuator. Selectors are domain/device-class aware; custom sensors with suitable units may be chosen through “Show other sensors” with a compatibility warning.
+
+**Actions:** climate uses `set_temperature`, `set_hvac_mode` and supported fan/preset/swing actions. Enumerate `hvac_modes`, bounds and target step. HVAC mode and actual activity (`hvac_action`) are different labels. Range targets need two setpoints; do not collapse them to a single number. [S5] Humidifier uses `turn_on/off`, `set_humidity` and supported `set_mode`; target humidity differs from measured humidity. [S6] Fan uses `turn_on/off`, `set_percentage`, `set_preset_mode`, `oscillate` and `set_direction` only when exposed. Percentage steps come from the device. [S7]
+
+**Acceptance:** changing device tab does not turn it on; changing HVAC mode does not rewrite a target without user input; unsupported temperature range and mode are never offered. An unavailable bedroom fan still shows valid room temperature/humidity as in guide p9. Do not add automatic humidity-based control to the frontend.
+
+### 5.3 Appliance Run — `ikio-appliance-card`
+
+**Use case:** water heater or monitored plug. State, instantaneous W and optional elapsed/timed operation matter more than a decorative history graph.
+
+**Editor:** `entity` (required switch/input_boolean); `power_entity?` (power sensor); `energy_entity?` (energy sensor); `timed_runs?: [{label, start_script, timer_entity?}]`; `stop_script?`; `confirm_manual_on` default false; `show_history` default false. Timed-run row uses an existing script selector and optional timer selector. Labels are editable; do not infer duration from a script's name. A duration display can be explicit informational metadata, with helper text stating it must match the script.
+
+**Actions:** domain-specific turn_on/off. A timed run calls the selected script. The complete timed shutoff must already be owned by that script/backend automation. The card does not create helpers, promise shutoff based on a browser timer, or attempt to reverse engineer script internals. Normal power control works without timed runs. Explain this optional dependency inline and link to HA's native script editor; do not ask the user to write YAML.
+
+If a timer is bound, render its reported activity/finish time; browser countdown is display only. On reconnection re-read the timer. “Stop run” calls a configured stop script; if absent, label the manual action “Turn off” and do not imply it cancels a backend schedule. In timed mode make the intended action prominent and manual turn-on secondary. Unknown/offline power does not mean 0 W.
+
+**Acceptance:** closing the browser does not affect a backend timed run; selecting its script in the editor never executes it; timer cancellation and switch off are not conflated. A switch can be on while consuming 0 W.
+
+### 5.4 Media Session — `ikio-media-card`
+
+**Use case:** Chromecast or Samsung TV. One player per card; no assumed synchronisation between the TV and a separate Chromecast entity.
+
+**Editor:** `entity` (media_player); `show_artwork` default true; `show_volume` default true; `show_source` default true; optional `power_entity` (sensor, for W), `backlight_entity` (light/switch); optional ordered `shortcuts` (existing script/scene). The same type may be instantiated twice.
+
+**Layout:** artwork or simple fallback, title/subtitle, supported transport, volume; source in details. Idle shows source/power without an empty timeline. For live media or unknown duration, omit progress. Only enable seeking when supported. Use media artwork returned through HA; don't guess third-party album-art URLs.
+
+**Actions:** media_play/pause, previous/next, volume_set/mute, select_source and turn_on/off according to supported features. Use current source list. [S8] TV glow is an explicitly bound separate power button in details, never an implicit consequence of play/pause. Unsupported mute, power or previous/next are hidden rather than faked.
+
+**Acceptance:** volume 0 remains valid; live streams don't have a fake end time; media position interpolation runs only while playing and visible and uses the entity's update timestamp. Pause interpolation on hidden pages.
+
+### 5.5 Cleaning Mission — `ikio-cleaning-card`
+
+**Use case:** Roborock Q8 Max, currently shown docked with Quiet selected.
+
+**Editor:** `entity` (vacuum); `battery_entity?` override; `status_entity?` supplemental status; optional `maintenance: EntityRow[]` (sensor); optional `missions: ExistingAction[]` restricted to existing scripts. Primary battery can use the vacuum attribute if supplied; don't require a second entity unnecessarily.
+
+**Layout/state:** docked → Start cleaning; cleaning → Pause and Return; paused → Resume and Return; returning → Returning with only supported actions; error → visible error and Details. Fan/suction presets use the actual vacuum's list, not the sample Quiet/Standard/Max labels. Put maintenance in details unless one configured threshold is breached.
+
+**Actions:** `vacuum.start`, `pause`, `return_to_base`, `stop`, `set_fan_speed` only when available. [S9] This release does not invent a room map or Roborock segment IDs. Optional named room missions invoke selected existing scripts with known behaviour. Native area-cleaning support can be a later capability adapter after it is verified on this device.
+
+**Acceptance:** returning is distinct from docked; absent battery is not 0%; unavailable removes action affordances. Never offer a Resume service name that the integration doesn't expose—map to the verified supported action.
+
+### 5.6 Security Readiness — `ikio-security-card`
+
+**Use case:** Alarmo, contact exceptions, presence and current motion. Complements the floor plan without duplicating it.
+
+**Editor:** `entity` (alarm_control_panel); `persons: EntityRow[]`; `contacts: EntityRow[]` (binary sensors for door/window/opening); `motion: EntityRow[]` (motion/occupancy); `modes` (subset of supported Home/Away/Night/etc); `confirm_arm` default true; optional `show_recent_activity` default false. No PIN/code field exists in saved configuration.
+
+**Layout:** state first; open/unavailable contacts as exception rows, expandable all-contacts list; arm/disarm controls. Presence is informational. If contacts aren't configured, say “No contacts selected”, not “All secure”. Distinguish armed, arming, pending, triggered, disarmed and unavailable. A triggered state is prominent and labelled; do not use a decorative pulsing effect.
+
+**Action flow:** choose mode → if configured, review exception summary → use the appropriate alarm action. If a code is required, hand off to the native alarm more-info flow in v1; no home-grown PIN persistence. Code-free actions may be direct after review. Respect server errors and Alarmo logic, including open-sensor rejection; explicit force-arm is supported only through the reviewed override flow below; never automatic bypass. [S10]
+
+**Recent activity:** baseline can show current states and “changed X ago” from entity timestamps. Label that as current state, not a complete security log. Optional recorder history may produce an actual limited timeline with explicit loading/unavailable states. Do not infer complete events from a card that was not open.
+
+**Acceptance:** mere presence never arms/disarms; refresh never repeats the last action; a PIN appears in neither logs nor config; an unknown contact prevents a claim that all monitored openings are closed.
+
+### 5.7 Camera Window — `ikio-camera-card`
+
+**Use case:** living-room camera, optional smart-plug power and existing snapshot automation. Camera may legitimately be off while home.
+
+**Editor:** `entity` (camera); `power_switch?` (switch); `snapshot_automation?` (automation); `snapshot_script?` (script); `default_view` fixed to still/on-demand in v1; `show_timestamp` default true. No required stream URL, credential, filename or NAS path.
+
+**Layout:** 16:9 media region, state caption, explicit Live action while available. A known bound power switch off allows “Camera power is off”; without that evidence show generic “Camera unavailable”. A stored image must carry its actual capture time if known; entity last_changed is not necessarily an image capture timestamp. If capture time is unavailable, label it unknown rather than claiming freshness.
+
+**Actions:** native camera viewing/stream infrastructure on demand; stop on close/disconnect. Turn camera on/off only for the selected power switch. Snapshot automation has explicit enable/disable using automation.turn_on/off. “Capture snapshot” appears only for a bound existing script. Do not call camera.snapshot with a guessed server filename. Camera support varies by integration. [S11]
+
+**Acceptance:** browsing or editing a dashboard does not power a camera or start a stream; live viewing is not restarted by unrelated sensor updates; a camera failure does not change the snapshot automation state. Never expose access tokens in logs or exported config.
+
+### 5.8 Energy Ledger — `ikio-energy-card`
+
+**Use case:** total draw, office/TV/AC/dehumidifier/heater breakdown, day/night energy and tariffs, today's cost, estimated/accrued bill and forecast.
+
+**Editor:** required `power_entity`; optional `today_energy_entity`; `tariffs: [{label, price_entity?, energy_entity?, cost_entity?}]`; `today_cost_entity?`; `accrued_bill_entity?`, `forecast_bill_entity?`; editable `billing_period_label`; `circuits: [{name, power_entity}]`; `show_untracked` default false; `history: {enabled:false, hours:6|12|24}`. Include a clear checkbox confirming listed circuits are non-overlapping before enabling the remainder. Currency is inferred from cost units, with a currency dropdown only if metadata is incomplete; warn on mixed currencies.
+
+**Layout:** current W is the hero. Above the graph show billing-cycle dates, Day kWh, Night kWh and their Total, followed by estimated/accrued cost and forecast cost. Under the graph show sub-device power in a compact two-column grid, including zero readings and valid untracked power. Tariff prices are optional secondary details. These values are billing-cycle totals, not today's totals. Add explicit cycle-start/end fields and billing-cycle day/night energy selectors; never relabel daily sensors as cycle sensors. Total = day + night only when both valid, compatible and from the same cycle; otherwise show unavailable, not a partial sum. Prefer a verified total entity when provided.
+
+**Calculations:** prefer existing HA sensors for costs, usage totals and forecasts. Today’s cost, accrued billing-cycle cost and full-cycle forecast are distinct quantities. Never derive a bill by multiplying today's energy by the current price. No browser-maintained energy accumulators or new financial model in v1. If there is no total-today sensor, display separate tariff usage rather than silently summing periods that might differ.
+
+**Early-cycle forecast:** preserve the user’s requirement to avoid unreliable estimates immediately after a billing reset. Prefer an existing forecast sensor that already applies its minimum-hours rule. If a separate validity entity is available, expose `forecast_valid_entity` in the editor and show “Gathering enough data” when false. An optional UI-configured age gate may bind a cycle-start timestamp (or the verified utility-meter `last_reset` attribute) and `forecast_minimum_hours` (default 24, editable including 2). It only hides the displayed estimate until enough time has passed; it does not calculate or repair the bill. Missing/future cycle start shows “Forecast validity unknown”, not an estimate. Without validity metadata, label the number as a supplied forecast and do not claim its stability has been checked.
+
+For untracked, convert compatible power units to a common unit, require valid total and all selected circuits, and compute total minus selected circuits. Do not include a parent circuit and its child simultaneously. If materially negative, show “Measurements do not reconcile” and the discrepancy; do not hide it with clamping. A small tolerance may default to 1 W and is explicitly documented. Asynchronous reading times can create a discrepancy even with correct wiring. Unknown measurements make the remainder unavailable.
+
+**History:** request the selected power series only, using the target HA version's supported authenticated connection/history mechanism. Limit chart samples, preserve spikes and gaps, label range/unit and provide a textual current-value alternative. Never connect across unavailable gaps as though measured. No history service = live card still works. This is an optional visualization, not a prerequisite for switching appliances.
+
+**Acceptance:** W versus kWh is never mixed; 0 is distinct from missing; thresholds/percentages cannot divide by zero; locale formatting preserves tariff precision (up to five decimals) while money totals normally show two. Billing periods are explicit, not assumed to be the calendar month.
+
+### 5.9 System Pulse — `ikio-system-card`
+
+**Use case:** HA host uptime, CPU, RAM, disk, database, temperature and network. Reusable for another host by changing entities.
+
+**Editor:** all explicit optional metric bindings, requiring at least one: `availability_entity`, `uptime_entity`, `cpu_entity`, `temperature_entity`, `ram_used_entity`, `ram_total_entity`, `ram_percent_entity`, `disk_used_entity`, `disk_total_entity`, `disk_percent_entity`, `database_entity`, `network_rx_entity`, `network_tx_entity`. Availability entity includes an `online_state` choice to avoid assuming whether on/off means healthy. Uptime includes interpretation selector: duration with unit, or timestamp for boot time. Percent readings take precedence for bars; used/total supplies readable capacity. Missing metrics collapse cleanly.
+
+Optional `thresholds` use per-metric warning/critical numeric fields with units and direction. Optional `services: [{name,status_entity?,control_entity?,restart_action?}]` bind HA entities explicitly. Restart actions are selected existing scripts/buttons and always confirmed. Switch power and actual application health are displayed separately. No direct Docker/NAS API calls.
+
+**Behaviour:** don't invent a composite health score. If a user supplies a score sensor later, display its exact value and label without implying the card computed it. Validate compatible storage units before deriving percentages. Network rate entities show rates; cumulative-byte sensors show totals with an appropriate label, or are rejected from rate fields. No differencing of sparse counters in the browser. An availability-only Online label must not imply all services are healthy.
+
+**Acceptance:** don't compare bytes and gigabytes without conversion; values over 100% produce an explanatory warning, not a deceptive full bar; uptime updates at most once per minute while visible. Show RAM/disk used/total independently if percentage cannot be computed.
+
+### 5.10 Drive Brief — `ikio-drive-card`
+
+**Use case:** Vehicle fuel, estimated range, odometer and parked location. This is a read-only status card with navigation to details.
+
+**Editor:** `fuel_entity?`, `range_entity?`, `odometer_entity?`, `tracker_entity?`, `location_entity?`, `location_timestamp_entity?`, `name`; require at least one. Fuel percent is a 0–100 bar only for a percentage sensor. A volume sensor displays volume and needs a configured capacity before any percentage is calculated; that capacity is optional numeric input with unit. Tracker and textual location may be separate.
+
+**Layout:** range hero, fuel bar, odometer, parking label and last-known location age. “Home” is based on the selected entity, not hardcoded coordinates. Open location opens Google Maps using the selected tracker’s valid latitude and longitude, through a standard Maps URL. Never guess coordinates. Native more-info remains the hold action. Without a tracker, the button opens the available location entity's details; without either, omit it. Do not ship a third-party map or location service in v1.
+
+**Acceptance:** no car lock/remote-start action is assumed; last location update and last fuel update remain distinct. A stale location is marked last known, not current. Never interpret a tracker name as an address.
+
+## 6. Entity bindings
+
+All entity IDs must be selected in the visual editor. The public collection contains no household entity map or device bindings. Preview and test IDs are simulated examples only. Confirm each entity’s units, capabilities and billing period before using it.
+
+## 7. Suggested placement
+
+- **Overview:** add compact room lighting, bedroom comfort/fan, media and cleaning around/below it according to available screen space. Drive Brief can sit below them. Do not squeeze all eleven cards into the first screen.
+- **Energy:** full-width Energy Ledger, then Appliance Run for water heater and any useful monitored plug. Circuit details expand only when needed.
+- **Security:** Security Readiness, Camera Window, then the existing spatial security view if still useful. Avoid showing duplicate contact timelines by default.
+- **Server:** System Pulse, with optional service rows or a second instance for another machine.
+
+These placements are suggestions, not a requirement to replace existing dashboard content. Card design does not depend on a particular dashboard layout.
+
+## 8. Repository and runtime architecture
+
+Read the root and applicable `AGENTS.md`, preserve unrelated work, and follow the pinned Node version, root lockfile and synchronized collection version.
+
+Each card has its own package, custom-element name and bundle filename under `cards/ikio-*-card/`. Shared source packages provide tokens, accessible controls, value formatting, action state and editor fields. There is no 3D rendering dependency.
+
+Suggested per-card structure: `src/card.ts`, `src/editor.ts`, `src/config.ts`, `src/adapter.ts`, `src/styles.ts`, behaviour tests, README and build script. Shared helpers stay domain-neutral; climate/vacuum/alarm capabilities belong in their adapters. Use the repository's established build tooling where practical. A modest Lit dependency is acceptable if pinned locally; avoid runtime CDN imports or borrowing a private Lit class from another custom card.
+
+Each card bundle should register only its own card and lazy-load its editor where the supported build allows. An optional distribution loader may import all eleven local bundle files for one resource registration; it must ship those files and preserve standalone bundles. Document either route clearly and avoid duplicate registration if both are loaded. Do not promise HACS installation before the repository's publishing support exists.
+
+Use `ha-card` for the shell, scoped CSS custom properties for Ikio appearance, and HA more-info for native entity details. `getCardSize()` supplies Masonry size; `getGridOptions()` supplies Sections sizing. Start with full section width and automatic height, then allow compact widths only where controls remain usable. Do not copy an unrelated/older layout method from existing code without checking the target frontend. HA updates `hass` frequently; update only affected UI. [S2]
+
+For updates, compare configured entity objects and relevant attributes; avoid serialising every state in the house. Recompute subscriptions only when bindings change. Current states come from HA, not custom REST polling. Optional history is cached by entity/time range, deduplicated across instances where practical and cancelled/ignored when obsolete. The documented authenticated WebSocket API is a starting point; confirm the actual history command against the supported frontend rather than guessing an endpoint. [S12]
+
+Use a visibility observer and document visibility to suspend position/countdown animation and history refresh. Still reconcile actual entity state immediately when visible again. Limit history to approximately 240 display samples per series while preserving peaks/gaps. No recurring render loop for static cards. Lazy-load camera and chart functionality only when used. Resolve and revoke any created media resources on disconnect. Include dependency/license notices in releases.
+
+## 9. Validation and definition of done
+
+### Automated behaviour checks
+
+Cover the user-observable boundaries: entity missing/unknown/unavailable, config remapping, editor round-trip, immutable config handling, capability gating, correct action payloads, pending/confirmation/error states, switch-only lights, HVAC range targets, zero volume, unsupported vacuum modes, partial contact availability, camera disconnect cleanup, power-unit conversion and invalid remainder, stale tracker information, and timer display after reconnect.
+
+Do not write tests that merely restate CSS constants. Mocked DOM tests are not live Home Assistant validation. Add a fixture harness for deterministic screenshots, with conspicuous fixture status and disabled backend actions. It must never ship fake readings as a live fallback.
+
+### Visual and interaction checks
+
+Check all eleven cards at 280, 360, 390 and 520 px container widths and in an actual Sections and Masonry dashboard. Inspect dark, light and HA-theme modes; long translated names; decimal comma locale; 200% zoom; keyboard-only operation; screen-reader names; mobile tap/drag and reduced motion. Ensure focus is not lost on normal HA updates. Verify nested controls do not trigger the card's more-info action.
+
+In a real HA browser, add every card through the picker, configure it entirely with the visual editor, save, reload and reopen. Verify no “visual editor not supported” escape hatch is required. Check actual service outcomes for each configured domain. Device-affecting tests must use explicit authorized fixtures/devices; avoid arming security, power-cycling a camera or starting a heater as incidental smoke tests. A design review is not authorization to operate live devices.
+
+### Repository checks
+
+Run the pinned-runtime workspace tests, formatting check and build from the repository root. Run broader checks when shared packages or release configuration change. Verify produced module URLs and lazy editor imports from a local HA resource path with no CDN access. Report browser/live-device checks separately from build and mocked tests.
+
+### Delivery gates
+
+1. Shared tokens and one complete Light Studio + visual editor vertical slice.
+2. Comfort, Appliance, Media and Cleaning, each with capability tests and editor coverage.
+3. Security, Camera, Energy, System and Drive, each with useful missing-data states.
+4. Optional history and backend-script bindings; finish responsive/theme/accessibility checks.
+5. README with UI-only setup, supported HA version, exact per-card bundles, optional dependencies and known limitations. Preserve SemVer/release metadata rules. Commit/PR only when the implementation task authorizes it.
+
+The family is done when all core actions exposed by the chosen entities work, every required configuration has a graphical control, all eleven designs behave responsively, and unverified capabilities are disclosed rather than simulated.
+
+## 10. Official reference links
+
+Reviewed 24 October 2026. These establish HA integration contracts; the layouts and product choices above are original design proposals. Recheck compatibility against the exact deployed frontend when implementing.
+
+- **S1** [Card editor and picker](https://contributors.home-assistant.io/frontend/custom-ui/card-editor/)
+- **S2** [Custom cards, lifecycle, sizing and helpers](https://contributors.home-assistant.io/frontend/custom-ui/card/)
+- **S3** [Selectors](https://www.home-assistant.io/docs/blueprint/selectors/)
+- **S4** [Light integration](https://www.home-assistant.io/integrations/light/)
+- **S5** [Climate integration](https://www.home-assistant.io/integrations/climate/)
+- **S6** [Humidifier integration](https://www.home-assistant.io/integrations/humidifier/)
+- **S7** [Fan integration](https://www.home-assistant.io/integrations/fan/)
+- **S8** [Media player integration](https://www.home-assistant.io/integrations/media_player/)
+- **S9** [Vacuum integration](https://www.home-assistant.io/integrations/vacuum/)
+- **S10** [Alarm control panel integration](https://www.home-assistant.io/integrations/alarm_control_panel/)
+- **S11** [Camera integration](https://www.home-assistant.io/integrations/camera/)
+- **S12** [Authenticated WebSocket API](https://contributors.home-assistant.io/core/internals/websocket-api/)
+
+No live Home Assistant instance, physical device or editor implementation was tested during this design-only task.
+
+
+## 11. Consolidated V3 mobile contract (authoritative)
+
+This section replaces all older spacious layouts and any conflicting interaction examples. The family now contains eleven cards, including the standalone graph. Retain functional capability checks and visual configuration for every card. Default mobile padding is 12 px; body 13–14 px, secondary at least 12 px, main readings 22–30 px. Keep 44 px interactive hit targets. Do not hide readings merely to reduce height. Containers grow when translated labels wrap. No fixed-height clipping. Old SVG mockups are superseded by the compact-* assets.
+
+### Lighting
+Every light is an independent button. Tap toggles, drag its embedded bottom track adjusts brightness, and hold always opens native HA entity details. No shared brightness/warmth section and no select-first workflow. The line can reflect current warmth/colour; those settings are adjusted in native details. Power-only entities have no track. Keep the bottom drag target distinct from the upper tap/hold area; cancel tap and hold on drag initiation, allow vertical page scrolling, and commit brightness on release. Provide keyboard-accessible brightness input and an accessible Details action equivalent to hold. Unknown/offline controls cannot operate the entity. No user-defined hold remapping.
+
+### Media and vacuum
+Media uses familiar MDI icons for previous, play/pause, next, volume/mute and supported power. Labels remain accessible; tooltips are supplementary. Vacuum is two rows: name/state/battery, then primary action icon, relevant dock icon and selected suction value such as Quiet with dropdown indicator. Remove Ready to clean and the redundant Suction label/row. Primary action: docked/idle → start; cleaning → pause; paused → resume using the device's verified action; returning → state indicator; error/unavailable → disabled with readable status. Do not assume every device supports pause or docking. Holding entity controls opens native details.
+
+### Alarmo override
+Offer Arm anyway when open sensors prevent arming. Review the affected sensor names and selected arm mode before confirmation. Dispatch alarmo.arm with entity_id, mode and force=true; preserve normal exit delay and required arming code. Required codes are transient, masked, never logged or stored; use a dedicated accessible code prompt when the native details flow cannot submit force=true. Do not claim native alarm more-info implements this custom override. Cancel clears transient data. Only expose this action when Alarmo support is verified. On success read bypassed_sensors from Alarmo and show an amber count with tappable names. Clear the local force option after every attempt. Backend bypass status is authoritative. Ordinary arming remains force=false. Reference: https://github.com/nielsfaber/alarmo#services .
+
+### Car summaries and maps
+Add three separate indicators in one row: locks Locked/Unlocked, doors Closed/Open, windows Closed/Open. Visual editor fields accept an aggregate entity or an explicit entity list for each category. Define domain-aware active states (lock locked/unlocked; binary opening off/on), with a UI state mapping for nonstandard aggregate sensors. Any known unlocked/open member wins; otherwise any absent/unknown/unavailable member yields Unknown; only all known secure members yield Locked/Closed. Empty configuration is Not configured, not secure. Do not display per-door or per-window detail in the card. Neutral secure states, amber exceptions. Use Google Maps URL https://www.google.com/maps/search/?api=1&query=LAT,LON with validated, encoded numerical coordinates from the tracker. Keep location update age visible. No coordinates means disabled location action; no invented home position. Hold still opens native entity details.
+
+### Standalone graph — ikio-graph-card
+New independent workspace/card/editor. Title and current value, compact historical line, optional multi-entity legend with current readings. Required entity list; graphical optional name, time range, legend toggle. Share the graph renderer and history lifecycle with Energy Ledger. Each displayed series has only Expected minimum and Expected maximum for colour configuration, in its display unit. No palette selector, colour picker, threshold rows, logarithmic option or user-written configuration. Multiple entities must use compatible units on a shared axis; reject incompatible combinations with an editor explanation. Use markers/dash patterns and labels to distinguish series because colour communicates value, not identity. Holding an entity legend/value opens its native details; a multi-entity plot has no guessed default entity. Axis and expected colour range are separate.
+
+### Exact shared colour algorithm
+Use the user's fixed palette as normalized stops. For each numeric value v in a consistent display unit and expected range [min,max], calculate u = clamp((v-min)/(max-min),0,1). Require finite min < max, with inline editor validation. Stops are (position, hex):
+
+| Position | Colour |
+|---|---|
+| 0 / 3500 | #6ff7b3 |
+| 100 / 3500 | #64f564 |
+| 200 / 3500 | #00ff00 |
+| 380 / 3500 | #ffff00 |
+| 500 / 3500 | #ffc800 |
+| 700 / 3500 | #ff8000 |
+| 950 / 3500 | #ff5100 |
+| 1500 / 3500 | #ff4000 |
+| 2200 / 3500 | #ff0000 |
+| 3500 / 3500 | #d400ff |
+
+Find adjacent stops enclosing u, compute t=(u-stopLow)/(stopHigh-stopLow), and interpolate each encoded sRGB channel linearly, rounding to the nearest integer. This deliberately reproduces the supplied palette; it is not logarithmic, percentile based or automatically normalized to visible history. Split line segments at crossed colour stops (and at min/max crossings) so long intervals traverse the full palette smoothly, not merely endpoint colours. A vertical SVG gradient aligned to the current numeric y-axis mapping is an equivalent implementation if stop coordinates are correctly transformed and clamped. Gradient orientation follows value, not time. If fill is shown, use the same colour with low opacity. Do not bridge missing-data gaps. Outliers stay visible with endpoint colour. Changing history range must not change the colour assigned to the same value. Include tests for every exact stop, midpoint interpolation, min/max/outliers, negative configured minimum, invalid ranges, gaps, unit conversion and long segments crossing multiple stops.
+
+Energy Ledger uses the same Expected minimum/maximum fields and renderer. Current total power comes first, billing-cycle Day/Night/Total and costs above the graph, circuit power below it. Default home-power range 0–3500 W matches the supplied palette, but is editable. Other sensors need sensible validated ranges, never watts hardcoded into their UI.
+
+
+## 12. Final architecture and energy interaction decisions
+
+Collection name: Ikio. All cards and internal packages share one version, one changelog and ikio-vX.Y.Z releases. Each card owns a cards/ikio-*-card workspace; packages/ikio-card-ui and packages/ikio-graph hold reused code. One root lockfile. One installation package may contain individual standalone bundles; shared modules require no separate HA installation.
+
+Energy device readings are equally styled, self-contained items in a stable two-column grid, names above values. Narrow containers/large text fall back to one column. Untracked occupies its own full-width row after a divider. Tap or hold a device item opens the bound power sensor native details. Existing untracked sensor opens native details; computed untracked opens an explanation of total minus tracked circuits, without inventing an entity. Native hold actions require an entity; computed-only elements are explicitly labelled calculations.
+
+Implementation starts with shared foundations and a complete Light Studio vertical slice, then graph/energy, media/vacuum/comfort/appliance, security/camera/drive/system. No placeholder cards should appear as implemented in the picker. Validate capability, interaction, editor round-trips, cleanup and formatting/build. Report live HA/device verification separately.
+
+
+## 13. Installed-dashboard refinement (0.2.0, overrides previous light layout)
+
+Remove all light brightness tracks and percentage labels. Use the HA entity area, then device area, as the secondary device location. An optional location text override is available in the visual editor; missing area reads No area assigned. Tap toggles, hold opens native details for brightness/colour. Preserve existing card configuration.
+
+Home Energy removes the graph footer row. Show the actual displayed-window minimum and maximum on its vertical axis; constant data gets a single accurate label. Axis scaling and observed extrema are independent of configured colour min/max. The title and current draw share a compact header; totals use tight rows with 44 px tap targets. Keep device readings and Untracked interaction unchanged. Standalone Graph retains its existing footer.
+
+
+## 14. Collection-wide compact default (0.2.1)
+
+Use 10 px card padding, 4 px section gaps, 6 px control gaps, 24 px main readings and at least 12 px supporting text. Retain 44 px buttons/sliders/readings that operate an entity. Inline range captions share their slider row. Combine media volume/mute, playback time/seek, timed appliance actions and camera icon controls. Keep all configured information visible; do not use hidden details to achieve compactness. The energy device grid retains identical styles and a separate Untracked row. Compact graphs are 84 px high; live camera aspect ratio remains native. Car parking/update age and an unboxed Open location in maps text link share a footer row. Native details on hold and existing action semantics remain unchanged.
+
+
+## 15. Public Ikio repository (0.3.0)
+
+The collection is named Ikio and lives in `kpolyd/ha-ikio-cards`. All eleven cards, shared packages, tests, theme, previews and design documents are included. The 3D card, household bindings and legacy release automation are excluded. Public element names, package scopes, bundle names and resources use `ikio`. See INSTALLATION.md for the one-time migration from Aethora. The 0.2.x changelog records earlier collection work; 0.3.0 is the first Ikio namespace version.

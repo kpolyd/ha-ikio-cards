@@ -1,0 +1,39 @@
+import { unitValue, available, numeric } from "@ikio/card-ui";
+export function untracked(total, circuits) {
+  const values = [
+    unitValue(total, "power"),
+    ...circuits.map((s) => unitValue(s, "power")),
+  ];
+  if (values.some((v) => v === null))
+    return {
+      value: null,
+      reason:
+        "One or more power readings are unavailable or have incompatible units.",
+    };
+  const value = values[0] - values.slice(1).reduce((a, b) => a + b, 0);
+  return {
+    value: value < 0 && value >= -1 ? 0 : value,
+    reason: value < -1 ? "Measurements do not reconcile" : "",
+  };
+}
+export function cycleTotal(day, night, confirmed) {
+  if (!confirmed) return null;
+  const a = unitValue(day, "energy"),
+    b = unitValue(night, "energy");
+  return a === null || b === null ? null : a + b;
+}
+export function forecastStatus(config, states, now = Date.now()) {
+  if (config.forecast_valid_entity) {
+    const s = states[config.forecast_valid_entity];
+    if (!available(s)) return "Forecast validity unknown";
+    if (s.state !== "on") return "Gathering enough data";
+  }
+  if (config.forecast_minimum_hours !== undefined) {
+    const start = Date.parse(states[config.cycle_start_entity]?.state);
+    if (!Number.isFinite(start) || start > now)
+      return "Forecast validity unknown";
+    if (now - start < config.forecast_minimum_hours * 3600000)
+      return "Gathering enough data";
+  }
+  return null;
+}

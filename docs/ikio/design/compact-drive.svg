@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="380" height="164" preserveAspectRatio="xMinYMin meet" viewBox="0 0 380 164" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="380" height="164"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-164)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="380" height="164" rx="12" ry="12" style="stroke: rgb(20%,27%,30%); stroke-linecap: butt; stroke-width: 1; fill: rgb(9%,15%,18%); fill-rule: evenodd;"/>
+			<text x="12" y="140.24" style="font-family: UIB; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,280) scale(1,-1)">Car</text>
+			<text x="332.5625" y="139.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,279) scale(1,-1)">Home</text>
+			<text x="12" y="103.84" style="font-family: UIB; font-size: 24px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,207) scale(1,-1)">437 km</text>
+			<text x="162" y="107.24" style="font-family: UI; font-size: 14px;fill: rgb(64%,89%,72%); stroke:none;" transform="translate(0,214) scale(1,-1)">Fuel 86%</text>
+			<text x="292.818359375" y="106.24" style="font-family: UI; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,212) scale(1,-1)">25,901 km</text>
+			<rect x="12" y="84" width="356" height="5" rx="2.5" ry="2.5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(20%,27%,30%); fill-rule: evenodd;"/>
+			<rect x="12" y="84" width="306.15999999999997" height="5" rx="2.5" ry="2.5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(64%,89%,72%); fill-rule: evenodd;"/>
+			<text x="12" y="14.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,29) scale(1,-1)">Location · 12 min ago</text>
+			<text x="281.6796875" y="14.92" style="font-family: UI; font-size: 12px;fill: rgb(56%,79%,97%); stroke:none;" transform="translate(0,29) scale(1,-1)">Google Maps ›</text>
+			<text x="12" y="52.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,89%,72%); stroke:none;" transform="translate(0,104) scale(1,-1)">Locked</text>
+			<text x="133" y="52.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,89%,72%); stroke:none;" transform="translate(0,104) scale(1,-1)">Doors closed</text>
+			<text x="265" y="52.92" style="font-family: UI; font-size: 12px;fill: rgb(94%,83%,52%); stroke:none;" transform="translate(0,105) scale(1,-1)">Windows open</text>
+		</g>
+	</g>
+</svg>

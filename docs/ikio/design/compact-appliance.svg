@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="380" height="150" preserveAspectRatio="xMinYMin meet" viewBox="0 0 380 150" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="380" height="150"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-150)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="380" height="150" rx="12" ry="12" style="stroke: rgb(20%,27%,30%); stroke-linecap: butt; stroke-width: 1; fill: rgb(9%,15%,18%); fill-rule: evenodd;"/>
+			<text x="12" y="126.24" style="font-family: UIB; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,252) scale(1,-1)">Water heater</text>
+			<text x="315.34765625" y="125.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,251) scale(1,-1)">Off · 0 W</text>
+			<text x="12" y="96.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,192) scale(1,-1)">Timed run</text>
+			<text x="223.27978515625" y="96.08" style="font-family: UI; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,192) scale(1,-1)">30 minutes · HA script</text>
+			<rect x="12" y="32" width="226" height="44" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,33%,29%); fill-rule: evenodd;"/>
+			<text x="52.011474609375" y="50.08" style="font-family: UIB; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,100) scale(1,-1)">Start 30-minute run</text>
+			<rect x="246" y="32" width="122" height="44" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,20%,23%); fill-rule: evenodd;"/>
+			<text x="278.749755859375" y="50.08" style="font-family: UIB; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,100) scale(1,-1)">Turn on</text>
+			<text x="12" y="9.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,19) scale(1,-1)">Shutoff is scheduled in Home Assistant.</text>
+		</g>
+	</g>
+</svg>

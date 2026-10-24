@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="380" height="174" preserveAspectRatio="xMinYMin meet" viewBox="0 0 380 174" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="380" height="174"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-174)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="380" height="174" rx="12" ry="12" style="stroke: rgb(20%,27%,30%); stroke-linecap: butt; stroke-width: 1; fill: rgb(9%,15%,18%); fill-rule: evenodd;"/>
+			<text x="12" y="150.24" style="font-family: UIB; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,300) scale(1,-1)">Home security</text>
+			<text x="310.197265625" y="149.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,299) scale(1,-1)">Disarmed</text>
+			<text x="12" y="123.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,246) scale(1,-1)">Resident</text>
+			<text x="329.609375" y="123.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,89%,72%); stroke:none;" transform="translate(0,246) scale(1,-1)">Home</text>
+			<text x="12" y="98.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,196) scale(1,-1)">Monitored openings</text>
+			<text x="302.23828125" y="98.08" style="font-family: UI; font-size: 13px;fill: rgb(94%,83%,52%); stroke:none;" transform="translate(0,196) scale(1,-1)">1 open / 3</text>
+			<text x="12" y="74.92" style="font-family: UI; font-size: 12px;fill: rgb(94%,83%,52%); stroke:none;" transform="translate(0,149) scale(1,-1)">Kitchen window open · Arm anyway ›</text>
+			<rect x="12" y="13" width="174" height="44" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,20%,23%); fill-rule: evenodd;"/>
+			<text x="60.64111328125" y="31.08" style="font-family: UIB; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,62) scale(1,-1)">Arm Home</text>
+			<rect x="194" y="13" width="174" height="44" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,20%,23%); fill-rule: evenodd;"/>
+			<text x="244.0693359375" y="31.08" style="font-family: UIB; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,62) scale(1,-1)">Arm Away</text>
+		</g>
+	</g>
+</svg>

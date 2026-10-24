@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="380" height="260" preserveAspectRatio="xMinYMin meet" viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="380" height="260"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-260)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="380" height="260" rx="12" ry="12" style="stroke: rgb(20%,27%,30%); stroke-linecap: butt; stroke-width: 1; fill: rgb(9%,15%,18%); fill-rule: evenodd;"/>
+			<text x="12" y="236.24" style="font-family: UIB; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,472) scale(1,-1)">Living room camera</text>
+			<text x="297.447265625" y="235.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,471) scale(1,-1)">Unavailable</text>
+			<rect x="12" y="82" width="356" height="140" rx="8" ry="8" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,12%,14%); fill-rule: evenodd;"/>
+			<text x="109.33203125" y="155.56" style="font-family: UI; font-size: 16px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,311) scale(1,-1)">Camera power is off</text>
+			<rect x="12" y="28" width="174" height="44" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,33%,29%); fill-rule: evenodd;"/>
+			<text x="41.47436523437499" y="46.08" style="font-family: UIB; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,92) scale(1,-1)">Turn camera on</text>
+			<rect x="194" y="28" width="174" height="44" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,20%,23%); fill-rule: evenodd;"/>
+			<text x="255.377685546875" y="46.08" style="font-family: UIB; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,92) scale(1,-1)">Details</text>
+			<text x="12" y="8.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,17) scale(1,-1)">Snapshot automation</text>
+			<text x="350.94921875" y="8.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,89%,72%); stroke:none;" transform="translate(0,17) scale(1,-1)">On</text>
+		</g>
+	</g>
+</svg>

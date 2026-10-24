@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Ikio collection fixtures</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #0d171b;
+      color: #e5e9e7;
+      font: 14px system-ui;
+    }
+    h1 {
+      font-size: 22px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    button,
+    select {
+      min-height: 44px;
+      font: inherit;
+    }
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+    section {
+      min-width: 0;
+    }
+    .caption {
+      font-size: 12px;
+      color: #a4adb2;
+      margin: 8px;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+    ha-icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+    }
+    ha-icon:before {
+      content: "●";
+      color: currentColor;
+    }
+  </style>
+  <h1>Ikio · interactive fixture gallery</h1>
+  <p>
+    Simulated entities only. No Home Assistant connection. Icon dots stand in
+    for HA icons.
+  </p>
+  <div class="toolbar">
+    <button data-theme="dark">Dark</button
+    ><button data-theme="light">Light</button
+    ><label
+      >Card width
+      <select id="width">
+        <option value="auto">Auto grid</option>
+        <option>280</option>
+        <option>360</option>
+        <option>390</option>
+        <option>520</option>
+      </select></label
+    ><button id="offline">Toggle offline fixtures</button>
+  </div>
+  <main></main>
+  <pre id="log" role="status"></pre>
+  <script type="module">
+    class FixtureIcon extends HTMLElement {
+      connectedCallback() {
+        if (this.shadowRoot) return;
+        const root = this.attachShadow({ mode: "open" });
+        const glyph = document.createElement("span");
+        glyph.textContent =
+          {
+            "mdi:play": "▶",
+            "mdi:pause": "Ⅱ",
+            "mdi:skip-previous": "◀|",
+            "mdi:skip-next": "|▶",
+            "mdi:power": "⏻",
+            "mdi:volume-high": "◖",
+            "mdi:volume-off": "×",
+            "mdi:home-import-outline": "⌂",
+            "mdi:close": "×",
+            "mdi:video": "▷",
+            "mdi:camera": "▣",
+            "mdi:restart": "↻",
+            "mdi:lightbulb-outline": "○",
+          }[this.getAttribute("icon")] || "○";
+        root.append(glyph);
+      }
+    }
+    customElements.define("ha-icon", FixtureIcon);
+    const types = [
+      "light",
+      "comfort",
+      "appliance",
+      "media",
+      "cleaning",
+      "security",
+      "camera",
+      "energy",
+      "system",
+      "drive",
+      "graph",
+    ];
+    for (const type of types)
+      await import(
+        `../../cards/ikio-${type}-card/dist/ikio-${type}-card.js`
+      );
+    const states = {};
+    function state(id, value, attributes = {}) {
+      return (states[id] = {
+        entity_id: id,
+        state: String(value),
+        attributes: {
+          friendly_name: id.split(".")[1].replaceAll("_", " "),
+          ...attributes,
+        },
+        last_updated: new Date(Date.now() - 720000).toISOString(),
+        last_changed: new Date(Date.now() - 120000).toISOString(),
+      });
+    }
+    function sensor(id, value, unit) {
+      return state("sensor." + id, value, { unit_of_measurement: unit });
+    }
+    state("light.strip", "on", {
+      supported_color_modes: ["brightness"],
+      brightness: 102,
+    });
+    state("light.glow", "on", { supported_color_modes: ["onoff"] });
+    state("switch.entrance", "off");
+    state("switch.heater", "off");
+    state("script.timed_heater", "off");
+    state("script.snapshot", "off");
+    state("automation.snapshots", "on");
+    state("switch.camera", "off");
+    state("camera.room", "unavailable");
+    state("person.owner", "home");
+    state("alarm_control_panel.home", "disarmed", {
+      supported_features: 3,
+      code_arm_required: false,
+    });
+    state("binary_sensor.window", "on");
+    state("lock.car", "locked");
+    state("binary_sensor.car_door", "off");
+    state("binary_sensor.car_window", "on");
+    state("device_tracker.car", "home", { latitude: 0, longitude: 0 });
+    state("vacuum.robot", "docked", {
+      battery_level: 86,
+      supported_features: 8192 | 4 | 16 | 32,
+      fan_speed: "Quiet",
+      fan_speed_list: ["Quiet", "Balanced", "Turbo"],
+    });
+    state("climate.room", "cool", {
+      supported_features: 1 | 8,
+      hvac_modes: ["off", "cool", "heat", "auto"],
+      hvac_action: "cooling",
+      temperature: 22,
+      min_temp: 16,
+      max_temp: 30,
+      target_temp_step: 0.5,
+      fan_modes: ["auto", "low", "high"],
+      fan_mode: "auto",
+    });
+    state("humidifier.room", "on", {
+      humidity: 55,
+      min_humidity: 35,
+      max_humidity: 80,
+      supported_features: 1,
+      available_modes: ["Auto", "Continuous"],
+      mode: "Auto",
+    });
+    state("fan.bedroom", "off", {
+      supported_features: 1 | 2 | 4,
+      percentage: 40,
+      percentage_step: 10,
+      direction: "forward",
+      oscillating: false,
+    });
+    state("media_player.tv", "playing", {
+      supported_features: 1 | 2 | 4 | 8 | 16 | 32 | 128 | 256 | 16384 | 2048,
+      media_title: "Evening playlist",
+      media_artist: "Cast session",
+      volume_level: 0.35,
+      is_volume_muted: false,
+      media_position: 84,
+      media_duration: 250,
+      media_position_updated_at: new Date().toISOString(),
+      source: "Chromecast",
+      source_list: ["Chromecast", "TV"],
+    });
+    for (const [id, value, unit] of [
+      ["total", 160, "W"],
+      ["office", 14, "W"],
+      ["tv", 9, "W"],
+      ["ac", 0, "W"],
+      ["heater", 0, "W"],
+      ["dry", 0, "W"],
+      ["temperature", 21.6, "°C"],
+      ["humidity", 63, "%"],
+      ["day", 11.86, "kWh"],
+      ["night", 7.11, "kWh"],
+      ["bill", 30.09, "€"],
+      ["forecast", 60.6, "€"],
+      ["fuel", 86, "%"],
+      ["range", 437, "km"],
+      ["odometer", 25901, "km"],
+      ["cpu", 2, "%"],
+      ["ram", 30.1, "%"],
+      ["disk", 17.9, "%"],
+      ["database", 871.44, "MB"],
+      ["uptime", 13.77, "h"],
+      ["server_temperature", 52, "°C"],
+    ])
+      sensor(id, value, unit);
+    state("binary_sensor.host", "on");
+    const configs = {
+      light: {
+        name: "Living room lights",
+        lights: [
+          { entity: "light.strip", name: "Ceiling strip" },
+          { entity: "light.glow", name: "TV glow" },
+          { entity: "switch.entrance", name: "Entrance" },
+        ],
+      },
+      comfort: {
+        name: "Living room comfort",
+        temperature_entity: "sensor.temperature",
+        humidity_entity: "sensor.humidity",
+        climate_entity: "climate.room",
+        humidifier_entity: "humidifier.room",
+      },
+      appliance: {
+        name: "Water heater",
+        entity: "switch.heater",
+        power_entity: "sensor.heater",
+        timed_runs: [
+          { label: "Start 30-minute run", start_script: "script.timed_heater" },
+        ],
+      },
+      media: { name: "Chromecast", entity: "media_player.tv" },
+      cleaning: { name: "Roborock Q8 Max", entity: "vacuum.robot" },
+      security: {
+        name: "Home security",
+        entity: "alarm_control_panel.home",
+        persons: [{ entity: "person.owner", name: "Resident" }],
+        contacts: [{ entity: "binary_sensor.window", name: "Kitchen window" }],
+      },
+      camera: {
+        name: "Living room camera",
+        entity: "camera.room",
+        power_switch: "switch.camera",
+        snapshot_automation: "automation.snapshots",
+        snapshot_script: "script.snapshot",
+      },
+      energy: {
+        name: "Home energy",
+        power_entity: "sensor.total",
+        day_entity: "sensor.day",
+        night_entity: "sensor.night",
+        same_cycle: true,
+        billing_period_label: "1–31 October · fixture",
+        accrued_bill_entity: "sensor.bill",
+        forecast_bill_entity: "sensor.forecast",
+        circuits: [
+          { name: "Office", power_entity: "sensor.office" },
+          { name: "TV", power_entity: "sensor.tv" },
+          { name: "Air conditioner", power_entity: "sensor.ac" },
+          { name: "Dehumidifier", power_entity: "sensor.dry" },
+          { name: "Water heater", power_entity: "sensor.heater" },
+        ],
+        show_untracked: true,
+        non_overlapping: true,
+        hours: 6,
+      },
+      system: {
+        name: "Home Assistant server",
+        availability_entity: "binary_sensor.host",
+        cpu_entity: "sensor.cpu",
+        ram_percent_entity: "sensor.ram",
+        disk_percent_entity: "sensor.disk",
+        temperature_entity: "sensor.server_temperature",
+        uptime_entity: "sensor.uptime",
+        database_entity: "sensor.database",
+      },
+      drive: {
+        name: "Car",
+        range_entity: "sensor.range",
+        fuel_entity: "sensor.fuel",
+        odometer_entity: "sensor.odometer",
+        tracker_entity: "device_tracker.car",
+        locks: [{ entity: "lock.car" }],
+        doors: [{ entity: "binary_sensor.car_door" }],
+        windows: [{ entity: "binary_sensor.car_window" }],
+      },
+      graph: {
+        name: "Office power",
+        entities: [{ entity: "sensor.office" }],
+        expected_min: 0,
+        expected_max: 3500,
+        hours: 6,
+      },
+    };
+    const connection = {},
+      cards = [];
+    const hass = {
+      states,
+      entities: {
+        "light.strip": { device_id: "living_lamp" },
+        "light.glow": { area_id: "living" },
+        "switch.entrance": { area_id: "hall" },
+      },
+      devices: { living_lamp: { area_id: "living" } },
+      areas: { living: { name: "Living room" }, hall: { name: "Entrance" } },
+      connection,
+      locale: { language: "en" },
+      services: { alarmo: { arm: {} } },
+      callWS: async (msg) =>
+        Object.fromEntries(
+          msg.entity_ids.map((id) => [
+            id,
+            Array.from({ length: 50 }, (_, i) => ({
+              lu: Date.now() / 1000 - (49 - i) * 440,
+              s: String(
+                i === 20
+                  ? null
+                  : Math.round(
+                      100 + Math.sin(i * 0.4) * 50 + (i % 17 === 0 ? 2500 : 0),
+                    ),
+              ),
+              a: { unit_of_measurement: "W" },
+            })),
+          ]),
+        ),
+      callService: async (domain, service, data) => {
+        document.querySelector("#log").textContent = JSON.stringify({
+          domain,
+          service,
+          data: { ...data, code: data.code ? "[redacted]" : undefined },
+        });
+        const old = states[data.entity_id];
+        if (!old) return;
+        let value = old.state,
+          attrs = { ...old.attributes };
+        if (service === "turn_on") value = "on";
+        if (service === "turn_off") value = "off";
+        if (domain === "vacuum") {
+          value =
+            service === "start"
+              ? "cleaning"
+              : service === "pause"
+                ? "paused"
+                : service === "return_to_base"
+                  ? "returning"
+                  : value;
+          if (data.fan_speed) attrs.fan_speed = data.fan_speed;
+        }
+        if (domain === "media_player") {
+          value =
+            service === "media_play"
+              ? "playing"
+              : service === "media_pause"
+                ? "paused"
+                : value;
+          if (data.volume_level !== undefined)
+            attrs.volume_level = data.volume_level;
+          if (data.source) attrs.source = data.source;
+          if (data.is_volume_muted !== undefined)
+            attrs.is_volume_muted = data.is_volume_muted;
+        }
+        if (domain === "climate" && data.hvac_mode) value = data.hvac_mode;
+        for (const key of ["temperature", "humidity", "percentage", "mode"])
+          if (data[key] !== undefined) attrs[key] = data[key];
+        if (data.brightness_pct !== undefined)
+          attrs.brightness = Math.round((data.brightness_pct / 100) * 255);
+        if (domain === "alarm_control_panel" || domain === "alarmo") {
+          value =
+            service === "alarm_disarm"
+              ? "disarmed"
+              : `armed_${data.mode || service.replace("alarm_arm_", "")}`;
+          if (data.force) attrs.bypassed_sensors = ["binary_sensor.window"];
+        }
+        states[data.entity_id] = { ...old, state: value, attributes: attrs };
+        setTimeout(update, 150);
+      },
+    };
+    function update() {
+      for (const card of cards) card.hass = { ...hass, states: { ...states } };
+    }
+    for (const type of types) {
+      const section = document.createElement("section"),
+        caption = document.createElement("p"),
+        card = document.createElement("ikio-" + type + "-card");
+      caption.className = "caption";
+      caption.textContent = type;
+      section.append(caption, card);
+      document.querySelector("main").append(section);
+      cards.push(card);
+      card.setConfig(configs[type]);
+      card.addEventListener(
+        "hass-more-info",
+        (e) =>
+          (document.querySelector("#log").textContent =
+            "Native HA details: " + e.detail.entityId),
+      );
+    }
+    update();
+    for (const button of document.querySelectorAll("[data-theme]"))
+      button.onclick = () => {
+        for (let i = 0; i < cards.length; i++)
+          cards[i].setConfig({
+            ...configs[types[i]],
+            appearance: { theme: button.dataset.theme },
+          });
+        update();
+      };
+    document.querySelector("#width").onchange = (e) => {
+      const width = e.target.value;
+      document.querySelector("main").style.gridTemplateColumns =
+        width === "auto"
+          ? "repeat(auto-fit,minmax(min(100%,340px),1fr))"
+          : `minmax(0,${width}px)`;
+    };
+    let offline = false;
+    document.querySelector("#offline").onclick = () => {
+      offline = !offline;
+      for (const id of [
+        "sensor.total",
+        "climate.room",
+        "vacuum.robot",
+        "media_player.tv",
+      ])
+        states[id] = {
+          ...states[id],
+          state: offline
+            ? "unavailable"
+            : id.startsWith("climate")
+              ? "cool"
+              : id.startsWith("vacuum")
+                ? "docked"
+                : id.startsWith("media")
+                  ? "playing"
+                  : "160",
+        };
+      update();
+    };
+  </script>
+</html>

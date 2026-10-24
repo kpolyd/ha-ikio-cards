@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="380" height="276" preserveAspectRatio="xMinYMin meet" viewBox="0 0 380 276" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="380" height="276"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-276)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="380" height="276" rx="12" ry="12" style="stroke: rgb(20%,27%,30%); stroke-linecap: butt; stroke-width: 1; fill: rgb(9%,15%,18%); fill-rule: evenodd;"/>
+			<text x="12" y="252.24" style="font-family: UIB; font-size: 14px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,504) scale(1,-1)">Home Assistant server</text>
+			<text x="329.29296875" y="251.92" style="font-family: UI; font-size: 12px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,503) scale(1,-1)">Online</text>
+			<text x="12" y="224.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,448) scale(1,-1)">Uptime 13 h 46 m</text>
+			<text x="331.74853515625" y="224.08" style="font-family: UI; font-size: 13px;fill: rgb(72%,90%,100%); stroke:none;" transform="translate(0,448) scale(1,-1)">52 °C</text>
+			<text x="12" y="193.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,386) scale(1,-1)">CPU</text>
+			<text x="347.37646484375" y="193.08" style="font-family: UI; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,386) scale(1,-1)">2%</text>
+			<rect x="12" y="176" width="356" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(20%,27%,30%); fill-rule: evenodd;"/>
+			<rect x="12" y="176" width="7.120000000000001" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(64%,89%,72%); fill-rule: evenodd;"/>
+			<text x="12" y="151.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,302) scale(1,-1)">RAM</text>
+			<text x="228.91650390625" y="151.08" style="font-family: UI; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,302) scale(1,-1)">4.6 / 15.4 GB · 30.1%</text>
+			<rect x="12" y="134" width="356" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(20%,27%,30%); fill-rule: evenodd;"/>
+			<rect x="12" y="134" width="107.15599999999999" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(56%,79%,97%); fill-rule: evenodd;"/>
+			<text x="12" y="109.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,218) scale(1,-1)">Disk</text>
+			<text x="212.37451171875" y="109.08" style="font-family: UI; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,218) scale(1,-1)">80.7 / 449.7 GB · 17.9%</text>
+			<rect x="12" y="92" width="356" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(20%,27%,30%); fill-rule: evenodd;"/>
+			<rect x="12" y="92" width="63.72399999999999" height="4" rx="2.0" ry="2.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(72%,90%,100%); fill-rule: evenodd;"/>
+			<text x="12" y="63.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,126) scale(1,-1)">Database</text>
+			<text x="298.24560546875" y="63.08" style="font-family: UI; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,126) scale(1,-1)">871.44 MB</text>
+			<text x="12" y="36.08" style="font-family: UI; font-size: 13px;fill: rgb(64%,67%,69%); stroke:none;" transform="translate(0,72) scale(1,-1)">Network RX / TX</text>
+			<text x="262.044921875" y="36.08" style="font-family: UI; font-size: 13px;fill: rgb(89%,91%,90%); stroke:none;" transform="translate(0,72) scale(1,-1)">0.00 / 0.00 MB/s</text>
+			<text x="12" y="11.92" style="font-family: UI; font-size: 12px;fill: rgb(56%,79%,97%); stroke:none;" transform="translate(0,23) scale(1,-1)">System details ›</text>
+		</g>
+	</g>
+</svg>

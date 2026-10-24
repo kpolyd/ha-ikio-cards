@@ -1,0 +1,7 @@
+node_modules/
+cards/*/dist/
+.idea/
+.DS_Store
+*.log
+__pycache__/
+release/

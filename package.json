@@ -1,0 +1,21 @@
+{
+  "name": "ha-ikio-cards",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "cards/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "format:check": "npm run format:check --workspaces --if-present",
+    "check:ikio-version": "node scripts/ikio-version.mjs --check",
+    "package:ikio": "npm run check:ikio-version && node scripts/package-ikio.mjs",
+    "test:scripts": "node --test scripts/tests/*.test.mjs"
+  }
+}

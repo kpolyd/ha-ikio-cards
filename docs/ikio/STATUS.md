@@ -1,0 +1,89 @@
+# Ikio implementation status
+
+Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.3.0**, synchronized across eleven card workspaces and two internal packages.
+
+## Implemented
+
+All eleven cards are registered, separately buildable and available in the visual card picker. Each has an entity-based native-style editor, immutable configuration round-trips and dark/light/follow-HA appearance.
+
+- **Lights:** compact buttons, area/location labels, switch support and native details on hold.
+- **Graph:** numeric history, fixed normalized user palette, continuous value gradient, min/max colour configuration, multi-series legend and distinct line patterns, gaps and outlier handling.
+- **Energy:** current power, cycle Day/Night/Total and costs above the graph; identically styled clickable device grid below; separate Untracked row and explanation for calculated readings. Forecast validity/age gates are optional.
+- **Comfort:** independent room readings, climate/dehumidifier/fan selection, supported setpoints/modes and range targets, optional power.
+- **Appliance:** switch, power/energy, existing backend timed-run script bindings and optional backend timer display.
+- **Media:** supported icon controls, volume/mute, source, artwork and playback progress/seek.
+- **Cleaning:** state-aware start/pause/resume/stop, relevant dock action, selected suction value, optional maintenance/mission scripts.
+- **Security:** alarm state, presence/contacts/motion, supported modes, explicit Alarmo force-arm review with transient required code, visible bypass count. Code-required normal disarm uses native details.
+- **Camera:** explicit on-demand native HA live view, close/visibility/disconnect cleanup, separately configured camera power, snapshot automation and script.
+- **Drive:** fuel/range/odometer, three aggregate lock/door/window indicators, unknown-data handling and Google Maps link with location age.
+- **System:** selected availability/host metrics, compatible-unit utilization, explicit thresholds, service health/power/restart bindings.
+
+Common `@ikio/card-ui` supplies tokens, touch-sized controls, hold behaviour, keyed DOM reconciliation, action confirmation/errors and visual editor sections. `@ikio/graph` is shared by Energy and Graph. Shared code is bundled locally, with no separate HA resource installation or runtime CDN. Optional matching global HA theme YAML is included.
+
+## Verification
+
+- Card, editor, adapter, graph/history and interaction tests pass; collection packaging is checked separately.
+- Root formatting checks, builds, synchronized-version check and collection packaging pass.
+- Real Chromium fixture gallery checked at 280, 360, 390 and 520 px: eleven cards rendered, no horizontal page overflow and no JavaScript page errors. Dark/light screenshots inspected.
+- Browser interactions verified: light heading, vacuum start/pause/resume transitions, media source selector and energy native sensor-details dispatch. Fixture icons substitute for HA's native icon component.
+- Preview fixtures are simulated; no actual household device was operated.
+
+## Remaining deployment verification
+
+Live Home Assistant verification is still required. Validate native HA form loading, real selectors/icons, camera streaming, recorder history permissions, actual device capabilities/actions, Alarmo code behaviour and assistive technology in the deployed HA frontend. Automated DOM tests simulate HA form components; browser fixtures simulate HA data and backend calls. Neither proves live integration compatibility.
+
+HACS and automated Ikio release publishing are not configured. Ikio's version checker and package script produce one synchronized installation directory; they do not publish a tag or release.
+
+
+### 0.2.2 design refinement
+
+Lights no longer show brightness bars or percentages. The secondary label resolves entity area before device area, with an optional visual-editor override. State remains available through colour, accessible labels and native details. Home Energy combines its title/current power into one compact header and tightens totals. Its graph now shows observed window minimum/maximum on the vertical axis rather than the footer row; the expected range still controls only colours.
+
+
+### Collection-wide compact layout
+
+Default spacing is now 10 px outer padding / 4 px section gaps, with inline ranges and grouped action rows. All configured readings remain visible. Media, camera, appliance and car footers use fewer stacked rows. The car map action is an unboxed text link labelled Open location in maps. Touch buttons and sliders remain at least 44 px.
+
+
+#### 0.2.2 browser density check
+
+Same simulated data at 360 px card width; all cards retain their readings/actions.
+
+| Card | Before (px) | Compact (px) |
+|---|---:|---:|
+| Light | 125 | 90 |
+| Comfort | 401 | 288 |
+| Appliance | 286 | 198 |
+| Media | 426 | 280 |
+| Cleaning | 130 | 114 |
+| Security | 272 | 232 |
+| Camera | 424 | 252 |
+| Energy | 520 | 460 |
+| System | 420 | 330 |
+| Drive | 398 | 256 |
+| Graph | 328 | 268 |
+
+112 JavaScript tests and four Python release-tool tests passed. Browser checks passed at 280/360/390/520 px with no horizontal overflow or page errors. Native-details hold, vacuum transitions, media source and energy entity links were checked again. Visible card buttons, ranges, selectors and entity hold targets were measured at least 44 px high at 280 px; the plain car navigation link intentionally follows inline text-link sizing.
+
+
+### Lock indicator correction (0.2.2)
+
+A confirmed mapping defect treated on/off binary lock sensors as unknown with the old unlocked default. Automatic lock interpretation now supports native locked/unlocked states and binary off/on, including existing configs. Explicit inversion remains available. Actual HA unavailable states remain unavailable. Regression tests cover mixed members, unknown data, transitions and unchanged door/window outputs. A genuinely unavailable source needs integration-side diagnosis.
+
+Lock-fix validation: 115 JavaScript tests and four Python release-tool tests passed, plus builds/format/version checks. Chromium verified off/on/unavailable/unknown lock results while doors remained Closed and windows Open. These are simulated backend states, not a live connection to the car.
+
+
+### Editor typing correction (0.2.3)
+
+All eleven editors now retain their form elements when Home Assistant echoes an unchanged configuration after an edit. Previously that feedback rebuilt the entire form, dropping focus during typing. Actual external configuration changes and list add/remove/reorder operations still rebuild the editor. Regression tests reproduce the parent feedback cycle for every card, including Energy device names and Light names, and check focus, complete text, preserved configuration and external updates. Native HA selectors still require live verification.
+
+Mobile Chromium checked continuous typing and insertion at the current cursor in the bundled Energy editor while a simulated parent synchronously echoed every config change. No page errors occurred. This browser check used a test form substitute, not native HA selectors.
+
+Validation: 126 JavaScript tests and four legacy release-tool tests passed in the original repository, plus formatting, synchronized-version checks and production builds.
+
+
+### Public repository migration (0.3.0)
+
+Renamed the full collection to Ikio, including packages, elements, bundles, theme and documentation URLs. Imported only collection sources into a fresh repository; no original Git history, 3D card, geometry, household mappings or legacy release pipeline is included. The lockfile no longer includes Three.js. Earlier verification counts describe the original repository; migration-specific results are recorded after running checks here.
+
+Migration verification: 74 card/shared-package tests and two independent packaging tests passed in the new repository. Formatting, synchronized versions, clean dependency installation and all eleven production builds passed. Chromium verified the renamed gallery at 280/360/390/520 px with no overflow/page errors, dark/light layouts, native-details touch hold, media source, vacuum transitions, energy links and editor typing with simulated parent feedback. These fixtures do not prove native HA selector or live-device compatibility.

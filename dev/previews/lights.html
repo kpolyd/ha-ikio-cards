@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Ikio Lights fixture preview</title>
+  <style>
+    body {
+      font-family: system-ui;
+      background: #0d171b;
+      color: #e5e9e7;
+      padding: 16px;
+      margin: 0;
+    }
+    main {
+      display: flex;
+      gap: 24px;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+    section {
+      max-width: 100%;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    h2 {
+      font-size: 14px;
+    }
+    ikio-light-card {
+      width: 100%;
+      max-width: 100%;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+    button {
+      min-height: 44px;
+      margin: 8px 8px 16px 0;
+    }
+  </style>
+  <h1>Ikio Lights · fixture preview</h1>
+  <p>
+    Simulated entities only. No Home Assistant connection or real device
+    actions.
+  </p>
+  <button id="dark">Dark</button
+  ><button id="light">Light</button
+  ><button id="offline">Toggle unavailable fixture</button>
+  <main></main>
+  <pre id="log" role="status"></pre>
+  <script type="module">
+    import "../../cards/ikio-light-card/dist/ikio-light-card.js";
+    const states = {
+      "light.strip": {
+        entity_id: "light.strip",
+        state: "on",
+        attributes: {
+          friendly_name: "Ceiling strip",
+          brightness: 102,
+          supported_color_modes: ["color_temp"],
+          color_temp_kelvin: 2700,
+        },
+      },
+      "light.tv": {
+        entity_id: "light.tv",
+        state: "on",
+        attributes: {
+          friendly_name: "TV glow",
+          brightness: 0,
+          rgb_color: [0, 0, 0],
+          supported_color_modes: ["rgb"],
+        },
+      },
+      "switch.entrance": {
+        entity_id: "switch.entrance",
+        state: "off",
+        attributes: { friendly_name: "Entrance" },
+      },
+    };
+    let appearance = "dark";
+    const cards = [];
+    const config = {
+      name: "Living room lights",
+      lights: [
+        { entity: "light.strip" },
+        { entity: "light.tv", control_mode: "power-only" },
+        { entity: "switch.entrance" },
+      ],
+    };
+    const hass = {
+      states,
+      callService: async (domain, action, data) => {
+        document.querySelector("#log").textContent = JSON.stringify({
+          domain,
+          action,
+          data,
+        });
+        setTimeout(() => {
+          const old = states[data.entity_id];
+          states[data.entity_id] = {
+            ...old,
+            state: action === "turn_off" ? "off" : "on",
+            attributes: {
+              ...old.attributes,
+              ...(data.brightness_pct !== undefined
+                ? { brightness: Math.round((data.brightness_pct / 100) * 255) }
+                : {}),
+            },
+          };
+          update();
+        }, 200);
+      },
+    };
+    function update() {
+      for (const card of cards) card.hass = { ...hass, states: { ...states } };
+    }
+    for (const width of [280, 360, 390, 520]) {
+      const section = document.createElement("section");
+      section.style.width = `${width}px`;
+      const title = document.createElement("h2");
+      title.textContent = `${width}px container`;
+      const card = document.createElement("ikio-light-card");
+      section.append(title, card);
+      document.querySelector("main").append(section);
+      cards.push(card);
+      card.setConfig(config);
+      card.addEventListener("hass-more-info", (event) => {
+        document.querySelector("#log").textContent =
+          `Native HA more-info: ${event.detail.entityId} (fixture only)`;
+      });
+    }
+    for (const theme of ["dark", "light"])
+      document.querySelector("#" + theme).onclick = () => {
+        appearance = theme;
+        for (const card of cards)
+          card.setConfig({ ...config, appearance: { theme: appearance } });
+        update();
+      };
+    document.querySelector("#offline").onclick = () => {
+      states["light.strip"] = {
+        ...states["light.strip"],
+        state:
+          states["light.strip"].state === "unavailable" ? "on" : "unavailable",
+      };
+      update();
+    };
+    update();
+  </script>
+</html>

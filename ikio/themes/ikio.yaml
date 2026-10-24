@@ -1,0 +1,26 @@
+Ikio:
+  primary-color: '#90caf9'
+  accent-color: '#a4e4b8'
+  ha-card-border-radius: '12px'
+  ha-card-box-shadow: none
+  modes:
+    dark:
+      primary-background-color: '#0d171b'
+      secondary-background-color: '#21353b'
+      card-background-color: '#17282e'
+      primary-text-color: '#e5e9e7'
+      secondary-text-color: '#a4adb2'
+      divider-color: '#34474d'
+      warning-color: '#f2c66d'
+      error-color: '#f2a69b'
+    light:
+      primary-color: '#245d85'
+      accent-color: '#28613e'
+      primary-background-color: '#edf3f1'
+      secondary-background-color: '#e4eeeb'
+      card-background-color: '#f3f7f6'
+      primary-text-color: '#17282e'
+      secondary-text-color: '#50645f'
+      divider-color: '#bdcfca'
+      warning-color: '#805900'
+      error-color: '#9a3830'

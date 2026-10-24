@@ -1,0 +1,14 @@
+# Migrating from Aethora to Ikio
+
+Ikio 0.3.0 retains the card behaviour and configuration fields from Aethora 0.2.3. Card identifiers, bundles, package names, resources and theme names now use `ikio`. This is a one-time namespace migration; loading the new resource does not automatically rewrite saved dashboards.
+
+1. Back up your dashboard configuration.
+2. Install the Ikio loader and card folders in `/config/www/ikio/` (or `/homeassistant/www/ikio/` when that is your editor's configuration path).
+3. Change the JavaScript module resource to `/local/ikio/ikio.js?v=0.3.0` and fully reload the frontend.
+4. For each existing card, replace its type prefix `custom:aethora-` with `custom:ikio-`. For example, `custom:aethora-energy-card` becomes `custom:ikio-energy-card`. Entity selections and all other fields stay the same. The new cards also offer full visual editors if you prefer to recreate them through Add card → Ikio.
+5. If using the optional global theme, install `ikio/themes/ikio.yaml` through your existing theme setup and select Ikio and your preferred dark/light mode. Card-level `appearance.theme` values (`dark`, `light`, `ha`) do not change.
+6. Remove old Aethora resource entries once no dashboard uses the old card types. Keep the old files until you have verified your migrated dashboard.
+
+There is no automatic alias registration for Aethora types. Do not register both the collection loader and individual Ikio bundles; choose one installation route. Keep every card's lazy chunks beside its entry module.
+
+All eleven suffixes are retained: `light-card`, `comfort-card`, `appliance-card`, `media-card`, `cleaning-card`, `security-card`, `camera-card`, `energy-card`, `system-card`, `drive-card`, and `graph-card`.
