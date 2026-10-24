@@ -3,5 +3,6 @@
   "filename": "ha-ikio-cards.js",
   "render_readme": true,
   "hide_default_branch": true,
-  "homeassistant": "2026.10.0"
+  "homeassistant": "2026.10.0",
+  "content_in_root": true
 }

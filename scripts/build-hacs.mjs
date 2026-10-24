@@ -49,3 +49,12 @@ await writeFile(
 console.log(
   `Ikio ${version}: eleven cards and editors in dist/ha-ikio-cards.js`,
 );
+
+// HACS reads this tracked file from the selected release tag through raw GitHub.
+if (process.argv.includes("--write")) {
+  await copyFile("dist/ha-ikio-cards.js", "ha-ikio-cards.js");
+  await mkdir("licenses", { recursive: true });
+  for (const name of ["NOTICE.txt", "esbuild-LICENSE.md"])
+    await copyFile(`dist/licenses/${name}`, `licenses/${name}`);
+  console.log("Updated tracked HACS bundle and notices");
+}

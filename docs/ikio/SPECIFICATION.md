@@ -393,3 +393,8 @@ The collection is named Ikio and lives in `kpolyd/ha-ikio-cards`. All eleven car
 ## 16. HACS distribution (0.3.1)
 
 HACS custom Dashboard repository support is now part of the collection. The root hacs.json selects `ha-ikio-cards.js` from a published release. A build without code splitting combines all eleven cards and their editors into that single self-contained asset; individual lazy builds remain available for manual installation. One shared version controls HACS updates. CI validates before publishing a draft with all assets, then publishes only after every upload succeeds. Published releases/tags are not changed. No submission to the default HACS catalogue or license selection is implied.
+
+
+## 17. HACS raw-file compatibility (0.3.2, overrides release-asset packaging)
+
+Track the generated collection bundle at root `ha-ikio-cards.js` and set `content_in_root: true`. Publish versioned releases without any attached assets; HACS 2.0.5 otherwise selects release downloads before raw files. CI rebuilds and compares the tracked bundle and notices before publishing, protecting against stale generated code. Keep full ZIPs in CI artifacts. The resulting HACS resource and card configuration do not change. This avoids oversized GitHub release-redirect headers without modifying HACS.

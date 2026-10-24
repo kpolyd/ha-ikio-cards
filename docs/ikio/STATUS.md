@@ -1,6 +1,6 @@
 # Ikio implementation status
 
-Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.3.1**, synchronized across eleven card workspaces and two internal packages.
+Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.3.2**, synchronized across eleven card workspaces and two internal packages.
 
 ## Implemented
 
@@ -32,7 +32,7 @@ Common `@ikio/card-ui` supplies tokens, touch-sized controls, hold behaviour, ke
 
 Live Home Assistant verification is still required. Validate native HA form loading, real selectors/icons, camera streaming, recorder history permissions, actual device capabilities/actions, Alarmo code behaviour and assistive technology in the deployed HA frontend. Automated DOM tests simulate HA form components; browser fixtures simulate HA data and backend calls. Neither proves live integration compatibility.
 
-HACS custom-repository support uses a single release asset, `ha-ikio-cards.js`. CI validates main and publishes the collection version as a GitHub release. HACS default-catalog inclusion is not configured; it is a separate process.
+HACS custom-repository support uses the tracked root bundle, `ha-ikio-cards.js`, downloaded from raw tagged source. CI validates main and publishes the collection version as a GitHub release. HACS default-catalog inclusion is not configured; it is a separate process.
 
 
 ### 0.2.2 design refinement
@@ -94,3 +94,10 @@ Migration verification: 74 card/shared-package tests and two independent packagi
 Added a root hacs.json manifest, a self-contained bundle of all eleven cards/editors, and a CI release job that publishes only after validation. The installer needs one JavaScript file with no local chunks, external imports or runtime CDN. Published releases are immutable; draft uploads can be retried on the same source. Existing manual installation remains supported. HACS installs/updates the collection as one custom Dashboard repository. Live HACS installation on a user instance is not tested by the automated pipeline.
 
 HACS-build verification: 74 workspace tests plus eight packaging/release tests passed. Browser checks loaded only the single HACS bundle while individual entry requests were stubbed out: all eleven cards rendered without overflow/page errors at 280/360/390/520 px; touch holds, media/vacuum/energy actions and editor typing passed with simulated HA data/forms. Native HACS installation on the user’s server remains unverified.
+
+
+### Raw HACS downloads (0.3.2)
+
+The 0.3.1 download URL reproduces the HACS/aiohttp header-limit error; increasing max_field_size allows the exact published SHA-256 bundle to download. The repository-side workaround stores the verified bundle at the repository root, sets content_in_root=true, and publishes tags/releases with no attached assets. HACS 2.0.5 then selects raw tagged content. Full ZIPs remain available in CI artifacts. CI checks tracked bundle/notices against a fresh build and the release publisher rejects drafts with assets.
+
+Validation for 0.3.2: 74 workspace tests and ten package/release tests passed. Builds, formatting, version checks and tracked-bundle/notices comparisons passed. Unmodified HACS 2.0.5 filename selection, file gathering and download queue methods were exercised with a repository/release fixture: asset-free releases select raw tagged content; attached assets select release redirects. Chromium loaded all eleven cards and editors from the root bundle without page errors. Live installation still requires verification on the user’s HA instance.

@@ -17,7 +17,9 @@
     "check:ikio-version": "node scripts/ikio-version.mjs --check",
     "package:ikio": "npm run check:ikio-version && node scripts/package-ikio.mjs",
     "test:scripts": "node --test scripts/tests/*.test.mjs",
-    "build:hacs": "node scripts/build-hacs.mjs"
+    "build:hacs": "node scripts/build-hacs.mjs",
+    "prepare:hacs": "npm run build:hacs -- --write",
+    "check:hacs": "node scripts/check-hacs.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.10"

@@ -7,7 +7,7 @@ This guide applies to the whole repository. Read the applicable `cards/<card>/AG
 - Eleven cards live in separate `cards/ikio-*-card` npm workspaces.
 - `packages/ikio-card-ui` and `packages/ikio-graph` provide shared code. Keep domain-specific capabilities in card adapters.
 - The root lockfile is shared. Never introduce workspace lockfiles or runtime CDN imports.
-- Edit source, then rebuild; generated `dist/` and `release/` output is ignored.
+- Edit source, then rebuild; generated `dist/` and `release/` output is ignored. The root `ha-ikio-cards.js` and `licenses/` are intentionally tracked for HACS raw-file delivery. Update them with `npm run prepare:hacs` and verify with `npm run check:hacs`; do not edit the minified bundle by hand.
 - Do not add household bindings, coordinates, camera images, credentials or the separate 3D card. Tests and previews use clearly simulated entities.
 - `docs/ikio/SPECIFICATION.md` records decisions, with later sections overriding earlier ones. Keep all configuration available through visual editors; hold always opens native entity details.
 
@@ -22,6 +22,7 @@ npm run test:scripts
 npm run format:check
 npm run check:ikio-version
 npm run build
+npm run check:hacs
 npm run package:ikio
 ```
 
@@ -33,5 +34,5 @@ Run affected workspace checks for focused changes; run all workspaces after shar
 - Use `ikio-vX.Y.Z` release names. Do not overwrite tags. During 0.x, breaking changes bump the minor version.
 - Keep installation URLs and documentation aligned with the current version. Use Conventional Commits.
 - `npm run package:ikio` creates an installation folder and a ZIP containing compiled cards, lazy chunks, notices, theme, docs and reproducible tracked source. Stage new files before packaging. Keep source and design documents outside Home Assistant's public www directory.
-- CI validates and publishes one versioned GitHub release on main. HACS installs the single `ha-ikio-cards.js` asset named in `hacs.json`. Individual builds remain available in the ZIP. Never add required external imports to the HACS bundle; never overwrite published releases/tags. Keep unrelated release automation out of this repository.
+- CI validates and publishes one versioned GitHub release on main. HACS installs the tracked root `ha-ikio-cards.js` named in `hacs.json` from raw tagged content. Releases must have no attached assets: HACS 2.0.5 would prefer the release-download route if any assets exist. ZIPs remain in CI artifacts. Individual builds remain available in the ZIP. Never add required external imports to the HACS bundle; never overwrite published releases/tags. Keep unrelated release automation out of this repository.
 - Commit or publish only when the user has authorized it. Do not add an original-source license without the owner's choice. Third-party notices apply to their respective dependencies.

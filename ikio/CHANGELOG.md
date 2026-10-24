@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.3.2 — HACS download compatibility
+
+- Serve the tracked, verified collection bundle from raw tagged repository content to avoid oversized GitHub release-redirect headers in HACS 2.0.5.
+- Publish releases without attached assets so HACS falls back to repository files; retain full ZIPs in CI artifacts.
+- Verify that the tracked HACS bundle/notices exactly match a fresh build before publishing. No changes to card configuration or functionality.
+
 ## 0.3.1 — HACS support
 
 - Add HACS custom Dashboard repository support with a single self-contained bundle containing all eleven cards and editors.

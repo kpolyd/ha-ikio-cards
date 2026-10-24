@@ -5,23 +5,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { publishRelease } from "../publish-release.mjs";
 
-function api({
-  published = false,
-  conflictingTag = false,
-  failUpload = false,
-} = {}) {
+function api({ published = false, conflictingTag = false } = {}) {
   const calls = [];
   const missing = async () => {
     throw Object.assign(Error("Missing"), { status: 404 });
   };
   const record = (name) => async (payload) => {
     calls.push({ name, payload });
-    if (name === "upload" && failUpload) throw Error("Upload failed");
     return {
       data: {
         id: 7,
         assets: [],
-        html_url: "https://github.com/owner/repo/releases/tag/ikio-v0.3.1",
+        html_url: "https://github.com/owner/repo/releases/tag/ikio-v0.3.2",
       },
     };
   };
@@ -35,9 +30,9 @@ function api({
             ? async () => ({ data: { draft: false, html_url: "existing" } })
             : missing,
           createRelease: record("create"),
+          updateRelease: record("publish"),
           uploadReleaseAsset: record("upload"),
           deleteReleaseAsset: record("delete"),
-          updateRelease: record("publish"),
         },
         git: {
           getRef: conflictingTag
@@ -53,12 +48,15 @@ function api({
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), "ikio-release-"));
   for (const [name, value] of Object.entries({
-    "ikio/package.json": '{"version":"0.3.1"}',
+    "ikio/package.json": '{"version":"0.3.2"}',
     "ikio/CHANGELOG.md":
-      "# Changes\n\n## 0.3.1 — HACS\n\n- Add HACS support.\n\n## 0.3.0 — previous\n",
+      "# Changes\n\n## 0.3.2 — raw HACS\n\n- Avoid release redirects.\n\n## 0.3.1 — previous\n",
+    "hacs.json": '{"content_in_root":true,"filename":"ha-ikio-cards.js"}',
+    "ha-ikio-cards.js": "// bundle",
     "dist/ha-ikio-cards.js": "// bundle",
-    "release/ikio-v0.3.1.zip": "zip",
+    "licenses/NOTICE.txt": "Notice",
     "dist/licenses/NOTICE.txt": "Notice",
+    "licenses/esbuild-LICENSE.md": "License",
     "dist/licenses/esbuild-LICENSE.md": "License",
   })) {
     await mkdir(join(root, name, ".."), { recursive: true });
@@ -67,105 +65,123 @@ async function fixture() {
   return root;
 }
 const context = { repo: { owner: "owner", repo: "repo" }, sha: "verified" };
-test("release publishes only after every required asset uploads", async () => {
+async function run(options, check) {
   const root = await fixture();
-  const mock = api();
+  const mock = api(options);
   try {
-    await publishRelease({ ...mock, context, root });
-    assert.deepEqual(
-      mock.calls.map((c) => c.name),
-      ["create", "upload", "upload", "upload", "upload", "publish"],
-    );
-    assert.equal(mock.calls[0].payload.draft, true);
-    assert.equal(mock.calls[0].payload.target_commitish, "verified");
-    assert.equal(mock.calls[1].payload.name, "ha-ikio-cards.js");
-    assert.equal(mock.calls.at(-1).payload.draft, false);
+    await check(root, mock);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+}
+test("release uses checked tagged source and attaches no assets so HACS falls back to raw files", async () => {
+  await run({}, async (root, mock) => {
+    await publishRelease({ ...mock, context, root });
+    assert.deepEqual(
+      mock.calls.map((c) => c.name),
+      ["create", "publish"],
+    );
+    assert.equal(mock.calls[0].payload.draft, true);
+    assert.equal(mock.calls[0].payload.target_commitish, "verified");
+    assert.equal(mock.calls[0].payload.tag_name, "ikio-v0.3.2");
+    assert.equal(mock.calls.at(-1).payload.draft, false);
+    assert.match(mock.calls[0].payload.body, /raw.githubusercontent.com/);
+  });
 });
 test("published versions are never overwritten", async () => {
-  const root = await fixture();
-  const mock = api({ published: true });
-  try {
+  await run({ published: true }, async (root, mock) => {
     assert.equal(
       (await publishRelease({ ...mock, context, root })).skipped,
       true,
     );
     assert.deepEqual(mock.calls, []);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+  });
 });
 test("a tag for different source aborts without creating a release", async () => {
-  const root = await fixture();
-  const mock = api({ conflictingTag: true });
-  try {
+  await run({ conflictingTag: true }, async (root, mock) => {
     await assert.rejects(
       publishRelease({ ...mock, context, root }),
       /different source/,
     );
     assert.deepEqual(mock.calls, []);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+  });
 });
-test("asset failure leaves the release unpublished", async () => {
-  const root = await fixture();
-  const mock = api({ failUpload: true });
-  try {
+test("a stale committed bundle cannot be released", async () => {
+  await run({}, async (root, mock) => {
+    await writeFile(join(root, "ha-ikio-cards.js"), "// stale bundle");
     await assert.rejects(
       publishRelease({ ...mock, context, root }),
-      /Upload failed/,
+      /bundle is stale/,
     );
-    assert.ok(!mock.calls.some((c) => c.name === "publish"));
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+    assert.deepEqual(mock.calls, []);
+  });
 });
-
-test("a failed draft upload resumes on the same source without creating a duplicate", async () => {
-  const root = await fixture();
-  const mock = api();
-  mock.github.paginate = async () => [
-    {
-      id: 7,
-      tag_name: "ikio-v0.3.1",
-      draft: true,
-      target_commitish: "verified",
-      assets: [{ id: 99, name: "ha-ikio-cards.js" }],
-    },
-  ];
-  try {
+test("an asset-free draft resumes on the same source without creating a duplicate", async () => {
+  await run({}, async (root, mock) => {
+    mock.github.paginate = async () => [
+      {
+        id: 7,
+        tag_name: "ikio-v0.3.2",
+        draft: true,
+        target_commitish: "verified",
+        assets: [],
+      },
+    ];
     await publishRelease({ ...mock, context, root });
-    assert.equal(mock.calls[0].name, "delete");
-    assert.equal(mock.calls[0].payload.asset_id, 99);
-    assert.ok(!mock.calls.some((call) => call.name === "create"));
-    assert.equal(mock.calls.at(-1).name, "publish");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+    assert.deepEqual(
+      mock.calls.map((c) => c.name),
+      ["publish"],
+    );
+  });
 });
-
 test("an existing draft from different source cannot be overwritten", async () => {
-  const root = await fixture();
-  const mock = api();
-  mock.github.paginate = async () => [
-    {
-      id: 7,
-      tag_name: "ikio-v0.3.1",
-      draft: true,
-      target_commitish: "different",
-      assets: [],
-    },
-  ];
-  try {
+  await run({}, async (root, mock) => {
+    mock.github.paginate = async () => [
+      {
+        id: 7,
+        tag_name: "ikio-v0.3.2",
+        draft: true,
+        target_commitish: "different",
+        assets: [],
+      },
+    ];
     await assert.rejects(
       publishRelease({ ...mock, context, root }),
       /draft targets different source/,
     );
     assert.deepEqual(mock.calls, []);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+  });
+});
+test("a draft with assets is rejected because HACS would still use release redirects", async () => {
+  await run({}, async (root, mock) => {
+    mock.github.paginate = async () => [
+      {
+        id: 7,
+        tag_name: "ikio-v0.3.2",
+        draft: true,
+        target_commitish: "verified",
+        assets: [{ name: "source.zip" }],
+      },
+    ];
+    await assert.rejects(
+      publishRelease({ ...mock, context, root }),
+      /Draft has attached assets/,
+    );
+    assert.deepEqual(mock.calls, []);
+  });
+});
+test("publishing errors propagate without changing source tags or attaching assets", async () => {
+  await run({}, async (root, mock) => {
+    mock.github.rest.repos.updateRelease = async () => {
+      throw Error("GitHub publish failed");
+    };
+    await assert.rejects(
+      publishRelease({ ...mock, context, root }),
+      /GitHub publish failed/,
+    );
+    assert.deepEqual(
+      mock.calls.map((c) => c.name),
+      ["create"],
+    );
+  });
 });

@@ -20,7 +20,7 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 ## Installation
 
-Current collection version: **0.3.1**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
+Current collection version: **0.3.2**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
 ### HACS (recommended)
 
@@ -31,13 +31,13 @@ Current collection version: **0.3.1**. The source targets Home Assistant fronten
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All eleven cards and editors are included in one file, with one HACS version/update. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Existing `custom:ikio-...` configurations stay the same. Aethora configurations need the one-time namespace migration below.
+All eleven cards and editors are included in one file, with one HACS version/update. Starting with 0.3.2, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Existing `custom:ikio-...` configurations stay the same. Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 
 ### Manual installation
 
-Download `ha-ikio-cards.js` from the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.3.1` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
+Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.3.2` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
 
 See the [installation guide](docs/ikio/INSTALLATION.md), [Aethora migration guide](docs/ikio/MIGRATION.md), [design specification](docs/ikio/SPECIFICATION.md) and [validation status](docs/ikio/STATUS.md).
 
@@ -63,8 +63,8 @@ The collection version is stored in `ikio/package.json`. After changing it, run 
 
 ## Distribution and licensing
 
-`npm run build` builds the individual cards and the single-file HACS bundle at `dist/ha-ikio-cards.js`. `npm run package:ikio` creates a reproducible installation folder and ZIP under `release/`. After validation on `main`, CI publishes the current version as `ikio-vX.Y.Z` with the HACS bundle, ZIP and notices. Published releases/tags are never overwritten; increase the collection version to ship changes. Failed draft uploads remain unpublished and can be retried by rerunning CI on the same source commit.
+`npm run build` builds the individual cards and the single-file HACS bundle at `dist/ha-ikio-cards.js`. `npm run package:ikio` creates a reproducible installation folder and ZIP under `release/`. Run `npm run prepare:hacs` to update the tracked root bundle/notices, then commit them. CI rebuilds and checks that those files match source. After validation on `main`, CI publishes the current version as `ikio-vX.Y.Z` without attached assets, so HACS downloads the bundle from the selected tag through `raw.githubusercontent.com`. The ZIP remains available as the `ikio-cards` artifact of the successful CI run; theme and notices are also in the tagged source. Published releases/tags are never overwritten; increase the collection version to ship changes. Failed publication can be retried by rerunning CI on the same source commit.
 
-Ikio was previously developed as Aethora. Version 0.3.1 introduces the Ikio namespace and retains the implemented features and fixes from 0.2.3. The 3D model card, household configuration and private repository history are excluded.
+Ikio was previously developed as Aethora. Version 0.3.2 introduces the Ikio namespace and retains the implemented features and fixes from 0.2.3. The 3D model card, household configuration and private repository history are excluded.
 
 An original-source license has not yet been selected. Dependency notices are included in generated distributions and apply to their respective dependencies.

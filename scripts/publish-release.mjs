@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { validateHacsBundle } from "./check-hacs.mjs";
 
 async function optional(request) {
   try {
@@ -9,7 +10,7 @@ async function optional(request) {
   }
 }
 
-/** Called only after CI succeeds on main; draft assets are private until complete. */
+/** Publish only checked source; no attached assets, so HACS uses raw tagged files. */
 export async function publishRelease({
   github,
   context,
@@ -63,16 +64,12 @@ export async function publishRelease({
     .slice(1)
     .find((s) => s.startsWith(`${version} `));
   if (!section) throw Error("Current version is missing from the changelog");
-  const bundle = await readFile(`${root}/dist/ha-ikio-cards.js`);
-  const zip = await readFile(`${root}/release/${tag}.zip`);
-  const notice = await readFile(`${root}/dist/licenses/NOTICE.txt`);
-  const license = await readFile(`${root}/dist/licenses/esbuild-LICENSE.md`);
-  const assets = [
-    ["ha-ikio-cards.js", "application/javascript", bundle],
-    [`${tag}.zip`, "application/zip", zip],
-    ["NOTICE.txt", "text/plain", notice],
-    ["esbuild-LICENSE.md", "text/markdown", license],
-  ];
+  await validateHacsBundle(root);
+  // Any attached asset makes HACS 2.0.5 select the release-download path.
+  if (release?.assets?.length)
+    throw Error(
+      "Draft has attached assets; use a new version for raw-file distribution",
+    );
   if (!release)
     release = (
       await github.rest.repos.createRelease({
@@ -83,27 +80,9 @@ export async function publishRelease({
         name: `Ikio Cards ${version}`,
         draft: true,
         prerelease: false,
-        body: `${section.trim()}\n\n## Install through HACS\n\nAdd https://github.com/${owner}/${repo} as a custom Dashboard repository, then download Ikio Cards. The release asset ha-ikio-cards.js includes all eleven cards and their editors. Resource: /hacsfiles/${repo}/ha-ikio-cards.js (JavaScript module).\n\nThe ZIP also includes individual builds, theme, design docs, notices and reproducible source. Automated tests/build checks passed for this source. Native HA/device compatibility still requires live verification.\n`,
+        body: `${section.trim()}\n\n## Install through HACS\n\nAdd https://github.com/${owner}/${repo} as a custom Dashboard repository, then download Ikio Cards. The tracked ha-ikio-cards.js file includes all eleven cards and their editors. HACS downloads it from this release tag through raw.githubusercontent.com, avoiding the GitHub release-redirect header issue. Resource: /hacsfiles/${repo}/ha-ikio-cards.js (JavaScript module).\n\nDownload the bundle directly: https://raw.githubusercontent.com/${owner}/${repo}/${tag}/ha-ikio-cards.js . This release intentionally has no attached assets. The full ZIP is available from the successful CI run’s ikio-cards artifact; source, theme and dependency notices are also in the tagged repository. Automated tests/build checks passed for this source. Native HA/device compatibility still requires live verification.\n`,
       })
     ).data;
-  for (const [name, type, data] of assets) {
-    // Retry only unpublished draft assets, never overwrite a published release.
-    const existing = release.assets?.find((asset) => asset.name === name);
-    if (existing)
-      await github.rest.repos.deleteReleaseAsset({
-        owner,
-        repo,
-        asset_id: existing.id,
-      });
-    await github.rest.repos.uploadReleaseAsset({
-      owner,
-      repo,
-      release_id: release.id,
-      name,
-      data,
-      headers: { "content-type": type, "content-length": data.length },
-    });
-  }
   const published = await github.rest.repos.updateRelease({
     owner,
     repo,
