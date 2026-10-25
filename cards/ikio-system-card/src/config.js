@@ -26,8 +26,6 @@ const metrics = [
 ];
 export const fields = [
   ...metrics.map(([k, label, domain]) => entity(k + "_entity", label, domain)),
-  text("online_state", "Availability state meaning Online (default on)"),
-  choice("uptime_mode", "Uptime interpretation", ["duration", "timestamp"]),
 ];
 export const lists = [
   {

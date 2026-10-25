@@ -191,10 +191,7 @@ test("rings expose measured percentages, unknowns, thresholds and native details
     card.shadowRoot.querySelector("header").textContent,
     /48 °C.*Up for 3 days/,
   );
-  assert.equal(
-    card.shadowRoot.querySelector(".ikio-system-metadata").textContent,
-    "",
-  );
+  assert.equal(card.shadowRoot.querySelector(".ikio-system-metadata"), null);
   let id;
   card.addEventListener(
     "hass-more-info",
@@ -293,4 +290,87 @@ test("network history timeouts retain live rates and late replies do not restore
   resolve({ "sensor.rx": [{ lu: Date.now() / 1000, s: "100" }] });
   await settle();
   assert.deepEqual(card.network, {});
+});
+
+test("automatic uptime and availability replace both editor options, including legacy default configurations", async () => {
+  const { availabilityLabel, uptimeSeconds } = await import(
+    "../src/adapter.js"
+  );
+  const card = systemFixture(
+    { uptime_mode: "duration", online_state: "on" },
+    {
+      "sensor.uptime": {
+        state: new Date(Date.now() - 3 * 86400000).toISOString(),
+        attributes: { device_class: "timestamp" },
+      },
+      "binary_sensor.host": { state: "connected", attributes: {} },
+    },
+  );
+  assert.match(
+    card.shadowRoot.querySelector("header").textContent,
+    /Up for 3 days/,
+  );
+  assert.ok(card.shadowRoot.querySelector(".system-online-dot"));
+  assert.equal(
+    availabilityLabel({ state: "maintenance", attributes: {} }),
+    "maintenance",
+  );
+  assert.equal(
+    availabilityLabel({ state: "on", attributes: { device_class: "problem" } }),
+    "Offline",
+  );
+  assert.equal(
+    availabilityLabel({
+      state: "off",
+      attributes: { device_class: "problem" },
+    }),
+    "Online",
+  );
+  assert.equal(availabilityLabel({ state: "unavailable" }), "Unavailable");
+  assert.equal(uptimeSeconds({ state: "02:30:00", attributes: {} }), 9000);
+  assert.equal(uptimeSeconds({ state: "2 days", attributes: {} }), 172800);
+  assert.equal(uptimeSeconds({ state: "500", attributes: {} }), null);
+  const Card = customElements.get("ikio-system-card");
+  assert.equal("uptime_mode" in Card.getStubConfig(), false);
+  assert.equal("online_state" in Card.getStubConfig(), false);
+  const editor = await Card.getConfigElement();
+  editor.setConfig(card.config);
+  editor.hass = card.hass;
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const names = [...editor.shadowRoot.querySelectorAll("ha-form")].flatMap(
+    (form) => (form.schema || []).map((field) => field.name),
+  );
+  assert.ok(names.includes("uptime_entity"));
+  assert.equal(names.includes("online_state"), false);
+  assert.equal(names.includes("uptime_mode"), false);
+  editor.remove();
+  card.remove();
+});
+
+test("database stays available inside collapsed details without an extra overview row or an inflated service count", () => {
+  const card = systemFixture(
+    {
+      database_entity: "sensor.database",
+      services: [{ name: "Example", status_entity: "binary_sensor.service" }],
+    },
+    {
+      "sensor.database": {
+        state: "871.44",
+        attributes: { unit_of_measurement: "MB" },
+      },
+      "binary_sensor.service": { state: "on", attributes: {} },
+    },
+  );
+  const details = card.shadowRoot.querySelector("details");
+  assert.equal(details.open, false);
+  assert.match(details.querySelector("summary").textContent, /Services · 1/);
+  assert.equal(
+    details.querySelector("summary ha-icon").getAttribute("icon"),
+    "mdi:chevron-down",
+  );
+  const database = details.querySelector('[data-entity="sensor.database"]');
+  assert.match(database.textContent, /871.44 MB/);
+  assert.equal(card.shadowRoot.querySelector(".ikio-system-metadata"), null);
+  card.remove();
 });

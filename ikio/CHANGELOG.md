@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## 0.5.8 — System mock fidelity and automatic setup
+
+- Bring System proportions closer to the approved mock with responsive rings, a chevron footer and database details inside the collapsed section.
+- Detect System availability and uptime formats automatically; remove the two interpretation settings from the editor while accepting legacy configurations.
+
 ## 0.5.7 — Compact cards and system overview
 
 - Replace System usage bars with compact CPU/RAM/disk rings; show system temperature and adaptive uptime in the header. Replace standalone RX/TX values with a shared 30-minute Download/Upload history plot, explicit rate-unit conversion, batched bounded loading and missing-data gaps. Preserve thresholds, capacities, availability priority and native details.
