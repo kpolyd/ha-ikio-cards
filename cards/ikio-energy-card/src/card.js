@@ -44,7 +44,11 @@ export class Card extends HistoryCard {
       .ae-energy-tariffs>.ae-note{margin:0 0 3px}
       .ae-energy .ae-energy-tariffs .ae-reading{width:100%;min-height:24px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
       .ae-energy-tariffs .ae-value{min-width:0;text-align:right}
-      .ae-energy-bills{display:grid;gap:5px}
+      .ae-energy-bills{display:grid;gap:5px;text-align:right}
+      .ae-energy-bills .ae-reading{align-items:flex-end;text-align:right;width:100%}
+      .ae-energy-bills .ae-label,.ae-energy-bills .ae-value{text-align:right;width:100%}
+      .ae-energy-tariffs .ae-value{display:flex;justify-content:flex-end;align-items:baseline;gap:3px;flex-wrap:wrap}
+      .ae-energy-tariffs .ae-value small{font-size:11px;font-weight:400;color:var(--ae-muted)}
       .ae-energy .ae-grid .ae-device-reading{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:10px;align-content:center;align-items:center}
       .ae-device-reading>.ae-label{grid-column:1/-1}
       .ae-device-sparkline{height:18px;min-width:0;overflow:hidden;pointer-events:none}
@@ -80,6 +84,29 @@ export class Card extends HistoryCard {
         ].filter(Boolean),
       ),
     ];
+  }
+  tariffReading(label, entity, calculated) {
+    const value =
+      calculated === undefined
+        ? unitValue(this.state(entity), "energy")
+        : calculated;
+    const text = Number.isFinite(value)
+      ? new Intl.NumberFormat(
+          this.hass?.locale?.language || this.hass?.language,
+          {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          },
+        ).format(Math.abs(value) < 0.05 ? 0 : value)
+      : entity
+        ? energyText(this.hass, entity)
+        : "—";
+    const item = reading(label, text, entity);
+    if (Number.isFinite(value))
+      item
+        .querySelector(".ae-value")
+        .replaceChildren(el("span", text), el("small", "kWh"));
+    return item;
   }
   deviceReading(name, value, entity, points, start, end) {
     const item = reading(name, value, entity, "ae-device-reading");
@@ -144,30 +171,23 @@ export class Card extends HistoryCard {
         "aria-label",
         "Billing-cycle energy in kilowatt-hours",
       );
-      tariffs.append(note("Energy · kWh"));
-      const total = c.total_energy_entity
-        ? energyText(this.hass, c.total_energy_entity)
-        : formatNumber(
-            this.hass,
-            cycleTotal(
-              this.state(c.day_entity),
-              this.state(c.night_entity),
-              c.same_cycle,
-            ),
-          );
-      if (c.day_entity)
-        tariffs.append(
-          reading("Day", energyText(this.hass, c.day_entity), c.day_entity),
-        );
+      tariffs.append(note("Energy"));
+      if (c.day_entity) tariffs.append(this.tariffReading("Day", c.day_entity));
       if (c.night_entity)
-        tariffs.append(
-          reading(
-            "Night",
-            energyText(this.hass, c.night_entity),
-            c.night_entity,
-          ),
-        );
-      tariffs.append(reading("Total", total, c.total_energy_entity));
+        tariffs.append(this.tariffReading("Night", c.night_entity));
+      tariffs.append(
+        this.tariffReading(
+          "Total",
+          c.total_energy_entity,
+          c.total_energy_entity
+            ? undefined
+            : cycleTotal(
+                this.state(c.day_entity),
+                this.state(c.night_entity),
+                c.same_cycle,
+              ),
+        ),
+      );
       summary.append(tariffs);
       widths.push("1.1fr");
       if (!c.same_cycle && !c.total_energy_entity)

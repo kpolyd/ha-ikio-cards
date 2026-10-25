@@ -81,7 +81,6 @@ export class Card extends ControlCard {
     return {
       schema_version: 1,
       modes: ["home", "away"],
-      confirm_arm: true,
       allow_override: true,
       contacts: [],
       motion: [],
@@ -101,10 +100,16 @@ export class Card extends ControlCard {
   onConfig() {
     this.resetInput();
     this.lastAlarmState = undefined;
+    this.stopAlarmo();
+    this.alarmoSensors = [];
+    this.alarmoStatus = "idle";
+    this.failedSensors = [];
+    this.loadAlarmo();
   }
   onVisibility() {
     clearInterval(this.clock);
     if (!this.visible) {
+      this.stopAlarmo();
       this.resetInput();
       this.update();
     }
@@ -116,6 +121,7 @@ export class Card extends ControlCard {
       this.clock = setInterval(() => this.update(), 1000);
   }
   afterRender() {
+    this.loadAlarmo();
     this.entityIds = [
       ...new Set([
         ...this.entityIds,
@@ -133,18 +139,200 @@ export class Card extends ControlCard {
     }
   }
   onDisconnect() {
+    this.stopAlarmo();
     clearInterval(this.clock);
     this.resetInput();
+  }
+  stopAlarmo() {
+    this.alarmoRequest = (this.alarmoRequest || 0) + 1;
+    for (const unsubscribe of this.alarmoSubscriptions || []) unsubscribe();
+    this.alarmoSubscriptions = [];
+    this.alarmoConnection = null;
+    this.alarmoSubscribed = false;
+    this.alarmoLoading = false;
+    this.alarmoStatus = "idle";
+    clearInterval(this.alarmoRefresh);
+  }
+  async loadAlarmo(force = false) {
+    const connection = this.hass?.connection;
+    if (
+      !this.config?.entity ||
+      !this.hass?.callWS ||
+      !this.isConnected ||
+      !this.visible ||
+      this.preview
+    )
+      return;
+    if (
+      connection &&
+      this.alarmoConnection &&
+      connection !== this.alarmoConnection
+    )
+      this.stopAlarmo();
+    if (
+      this.alarmoLoading ||
+      (!force &&
+        this.alarmoStatus !== "idle" &&
+        this.alarmoConnection === connection)
+    )
+      return;
+    this.alarmoConnection = connection;
+    this.alarmoLoading = true;
+    this.subscribeAlarmo();
+    const request = (this.alarmoRequest = (this.alarmoRequest || 0) + 1);
+    const entity = this.config.entity;
+    const valid = () =>
+      request === this.alarmoRequest &&
+      this.config.entity === entity &&
+      this.isConnected &&
+      this.visible;
+    try {
+      const [entities, sensors] = await Promise.all([
+        this.hass.callWS({ type: "alarmo/entities" }),
+        this.hass.callWS({ type: "alarmo/sensors" }),
+      ]);
+      if (!valid()) return;
+      const panel = entities.find((item) => item.entity_id === entity);
+      if (!panel) {
+        this.alarmoSensors = [];
+        this.alarmoStatus = "not-alarmo";
+      } else {
+        this.alarmoArea = panel.area_id;
+        const areas = new Set(
+          entities
+            .filter((item) => String(item.area_id) !== "0")
+            .map((item) => String(item.area_id)),
+        );
+        this.alarmoSensors = Object.entries(sensors)
+          .filter(
+            ([id, sensor]) =>
+              id.startsWith("binary_sensor.") &&
+              sensor.enabled !== false &&
+              (String(panel.area_id) === "0"
+                ? areas.has(String(sensor.area))
+                : String(sensor.area) === String(panel.area_id)),
+          )
+          .map(([id, sensor]) => ({
+            entity: id,
+            kind:
+              sensor.type === "motion"
+                ? "motion"
+                : ["door", "window"].includes(sensor.type)
+                  ? "opening"
+                  : "sensor",
+            alarmo: sensor,
+          }));
+        this.alarmoStatus = "ready";
+      }
+      this.subscribeAlarmo();
+      clearInterval(this.alarmoRefresh);
+      this.alarmoRefresh = setInterval(() => this.loadAlarmo(true), 60000);
+    } catch {
+      if (!valid()) return;
+      this.alarmoStatus = "unavailable";
+    } finally {
+      if (valid()) {
+        this.alarmoLoading = false;
+        this.update();
+      }
+    }
+  }
+  subscribeAlarmo() {
+    const connection = this.hass?.connection;
+    if (!connection || this.alarmoSubscribed) return;
+    this.alarmoSubscribed = true;
+    const revision = this.revision;
+    const subscriptions = this.alarmoSubscriptions;
+    const register = async (promise) => {
+      try {
+        const unsubscribe = await promise;
+        if (
+          !this.isConnected ||
+          !this.visible ||
+          revision !== this.revision ||
+          subscriptions !== this.alarmoSubscriptions
+        )
+          unsubscribe();
+        else subscriptions.push(unsubscribe);
+      } catch {
+        /* State attributes remain a fallback when event access is unavailable. */
+      }
+    };
+    if (connection.subscribeEvents)
+      register(
+        connection.subscribeEvents(
+          (event) => this.alarmoFailure(event.data),
+          "alarmo_failed_to_arm",
+        ),
+      );
+    if (connection.subscribeMessage)
+      register(
+        connection.subscribeMessage(() => this.loadAlarmo(true), {
+          type: "alarmo_config_updated",
+        }),
+      );
+  }
+  alarmoFailure(data) {
+    if (
+      data?.entity_id !== this.config.entity ||
+      !this.pending.has(this.config.entity)
+    )
+      return;
+    const action = this.pending.get(this.config.entity);
+    clearTimeout(action.timer);
+    this.pending.delete(this.config.entity);
+    this.failedSensors = Array.isArray(data.sensors) ? data.sensors : [];
+    this.resetInput();
+    this.error.textContent =
+      {
+        open_sensors:
+          "Cannot arm: sensors are open. Close them or select Bypass open sensors.",
+        invalid_code: "Invalid or missing alarm code.",
+        not_allowed: "Alarmo did not allow this command.",
+      }[data.reason] || "Alarmo could not complete the command.";
+    this.update();
+  }
+  reconcile() {
+    super.reconcile();
+    const entity = this.config?.entity;
+    const state = this.state(entity);
+    if (
+      entity &&
+      this.pending.has(entity) &&
+      state?.state === "disarmed" &&
+      ids(state.attributes?.open_sensors).length &&
+      JSON.stringify(state.attributes.open_sensors) !== this.armOpenSnapshot
+    )
+      this.alarmoFailure({
+        entity_id: entity,
+        reason: "open_sensors",
+        sensors: ids(state.attributes.open_sensors),
+      });
+  }
+  sensorLabel(row) {
+    if (row.name) return row.name;
+    const label =
+      this.state(row.entity)?.attributes?.friendly_name ||
+      this.label(row.entity);
+    const deviceId = this.hass?.entities?.[row.entity]?.device_id;
+    const device = this.hass?.devices?.[deviceId];
+    const deviceName = device?.name_by_user || device?.name;
+    return deviceName && !label.toLowerCase().includes(deviceName.toLowerCase())
+      ? `${deviceName} ${label}`
+      : label;
   }
   sensorRows() {
     const c = this.config,
       s = this.state();
-    const rows = new Map();
+    const rows = new Map(
+      (this.alarmoSensors || []).map((row) => [row.entity, row]),
+    );
     for (const r of c.contacts || [])
       if (r.entity) rows.set(r.entity, { ...r, kind: "opening" });
     for (const r of c.motion || [])
       if (r.entity) rows.set(r.entity, { ...r, kind: "motion" });
     for (const id of [
+      ...(this.failedSensors || []),
       ...ids(s?.attributes?.open_sensors),
       ...ids(s?.attributes?.bypassed_sensors),
     ])
@@ -154,10 +342,15 @@ export class Card extends ControlCard {
   openIds() {
     return [
       ...new Set([
-        ...(this.config.contacts || [])
+        ...this.sensorRows()
           .filter((r) => this.state(r.entity)?.state === "on")
           .map((r) => r.entity),
-        ...ids(this.state()?.attributes?.open_sensors),
+        ...ids(this.state()?.attributes?.open_sensors).filter(
+          (id) => this.state(id)?.state !== "off",
+        ),
+        ...(this.failedSensors || []).filter(
+          (id) => this.state(id)?.state !== "off",
+        ),
       ]),
     ];
   }
@@ -181,12 +374,7 @@ export class Card extends ControlCard {
     if (!supported) return;
     this.pin = "";
     this.armIntent = mode;
-    if (
-      this.config.confirm_arm === false &&
-      !this.state()?.attributes?.code_arm_required &&
-      !this.bypass
-    )
-      return this.submitArm();
+    if (!this.state()?.attributes?.code_arm_required) return this.submitArm();
     this.update();
   }
   submitArm() {
@@ -199,7 +387,11 @@ export class Card extends ControlCard {
       return;
     if (this.state()?.attributes?.code_arm_required && !this.pin) return;
     const force = this.bypass && this.canBypass();
+    this.armOpenSnapshot = JSON.stringify(
+      this.state()?.attributes?.open_sensors || null,
+    );
     const code = this.pin;
+    this.failedSensors = [];
     this.resetInput();
     return this.send(
       this.config.entity,
@@ -306,7 +498,7 @@ export class Card extends ControlCard {
         }),
       );
     const submit = button(
-      arming ? "Confirm arm" : "Disarm",
+      arming ? `Arm ${this.armIntent.replaceAll("_", " ")}` : "Disarm",
       () => (arming ? this.submitArm() : this.disarm()),
       {
         disabled:
@@ -378,7 +570,12 @@ export class Card extends ControlCard {
       sensors.append(label);
     }
     const bypassed = new Set(ids(s?.attributes?.bypassed_sensors));
-    const reported = new Set(ids(s?.attributes?.open_sensors));
+    const reported = new Set(
+      [
+        ...ids(s?.attributes?.open_sensors),
+        ...(this.failedSensors || []),
+      ].filter((id) => this.state(id)?.state !== "off"),
+    );
     const rows = this.sensorRows();
     const alerts = rows.filter(
       (r) =>
@@ -423,19 +620,40 @@ export class Card extends ControlCard {
         ? `${unknown.length} sensor${unknown.length === 1 ? "" : "s"} unavailable`
         : "",
     ].filter(Boolean);
+    const sensorStatusKnown =
+      (rows.length > 0 || this.alarmoStatus === "ready") &&
+      this.alarmoStatus !== "unavailable";
     const summary = el(
       "div",
       undefined,
-      `security-sensor-summary${alerts.length ? "" : " clear"}`,
+      `security-sensor-summary${!alerts.length && sensorStatusKnown && rows.length ? " clear" : ""}`,
     );
+
     summary.append(
       icon(
-        alerts.length ? "mdi:alert-circle-outline" : "mdi:check-circle-outline",
+        alerts.length || !sensorStatusKnown
+          ? "mdi:alert-circle-outline"
+          : rows.length
+            ? "mdi:check-circle-outline"
+            : "mdi:information-outline",
       ),
       el(
         "span",
-        messages.join(" · ") ||
-          (rows.length ? "All selected sensors clear" : "No sensors selected"),
+        [
+          ...messages,
+          ...(this.alarmoStatus === "unavailable"
+            ? ["Alarmo sensor list unavailable"]
+            : []),
+        ].join(" · ") ||
+          (rows.length
+            ? "All monitored sensors clear"
+            : this.alarmoStatus === "ready"
+              ? "No sensors enabled in Alarmo for this panel"
+              : this.alarmoStatus === "unavailable"
+                ? "Alarmo sensor list unavailable"
+                : this.alarmoStatus === "not-alarmo"
+                  ? "No monitored sensors"
+                  : "Loading Alarmo sensors…"),
       ),
     );
     sensors.append(summary);
@@ -450,14 +668,11 @@ export class Card extends ControlCard {
               ? "motion detected"
               : "open";
         const chip = button(
-          r.name || this.label(r.entity),
+          this.sensorLabel(r),
           () => details(this, r.entity),
           { key: r.entity, entity: r.entity },
         );
-        chip.setAttribute(
-          "aria-label",
-          `${r.name || this.label(r.entity)}: ${suffix}`,
-        );
+        chip.setAttribute("aria-label", `${this.sensorLabel(r)}: ${suffix}`);
         const glyph = el("ha-state-icon");
         glyph.dataset.sensor = r.entity;
         glyph.setAttribute("aria-hidden", "true");

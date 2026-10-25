@@ -13,13 +13,12 @@ export const fields = [
     ["home", "away", "night", "vacation", "custom_bypass"],
     true,
   ),
-  bool("confirm_arm", "Review before arming"),
   bool("allow_override", "Show Alarmo open-sensor override"),
 ];
 export const lists = [
   {
     name: "contacts",
-    label: "Monitored openings",
+    label: "Extra openings (optional; Alarmo sensors are automatic)",
     fields: [
       entity("entity", "Contact", "binary_sensor", true),
       text("name", "Name"),
@@ -27,7 +26,7 @@ export const lists = [
   },
   {
     name: "motion",
-    label: "Current motion",
+    label: "Extra motion (optional; Alarmo sensors are automatic)",
     fields: [
       entity("entity", "Motion / occupancy", "binary_sensor", true),
       text("name", "Name"),
