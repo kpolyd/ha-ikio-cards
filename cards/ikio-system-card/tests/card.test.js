@@ -343,6 +343,7 @@ test("automatic uptime and availability replace both editor options, including l
     (form) => (form.schema || []).map((field) => field.name),
   );
   assert.ok(names.includes("uptime_entity"));
+  assert.equal(names.includes("availability_entity"), false);
   assert.equal(names.includes("online_state"), false);
   assert.equal(names.includes("uptime_mode"), false);
   editor.remove();

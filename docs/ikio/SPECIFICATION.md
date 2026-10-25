@@ -566,3 +566,9 @@ Remove online_state and uptime_mode from the visual editor and new stubs. Existi
 ## 44. Fixed System metric thresholds (0.5.8)
 
 Before the corrective release published, the owner requested removing Metric thresholds from configuration and always using warning 70/error 85. Remove the list and stub entries, ignore legacy threshold overrides, and use inclusive above limits for CPU/RAM/disk percentages and the selected numeric temperature (in its displayed unit). Keep missing values neutral, retain visible warning/error text and existing raw/out-of-range handling. Include this steering in the same 0.5.8 release. This supersedes configurable threshold rules in earlier sections.
+
+## 45. System network label and expanded details cleanup
+
+Remove the redundant Last 30 min heading above the network legend; retain the graph's −30 min and Now axis labels. The footer uses one native chevron in both collapsed and expanded states, suppressing the shared plus/minus decoration in both states. Do not repeat System details inside the expanded body. Database-only details show the reading directly beneath the summary; retain a separator before database information when services precede it.
+
+Remove the System Availability entity selector from the visual configuration. Preserve existing availability bindings for compatibility; new configurations do not need one. Keep the uptime selector and automatic uptime display.

@@ -167,7 +167,6 @@ export class Card extends ControlCard {
     const rows = this.networkRows();
     if (!rows.length) return null;
     const section = el("div", undefined, "system-network");
-    section.append(el("div", "Last 30 min", "system-network-heading"));
     const legend = el("div", undefined, "system-network-legend");
     for (const row of rows) {
       const entry = reading(
@@ -373,14 +372,13 @@ export class Card extends ControlCard {
     const serviceCount = services.length;
     if (c.database_entity) {
       const extra = group(
-        note("System details"),
         reading(
           "Database",
           valueText(this.hass, c.database_entity),
           c.database_entity,
         ),
       );
-      extra.classList.add("system-extra-details");
+      if (serviceCount) extra.classList.add("system-extra-details");
       services.push(extra);
     }
     if (services.length) {

@@ -1,10 +1,5 @@
 import { entity, text, validateConfig } from "@ikio/card-ui/schema-editor";
 const metrics = [
-  [
-    "availability",
-    "Availability",
-    ["binary_sensor", "sensor", "input_boolean"],
-  ],
   ["uptime", "Uptime", "sensor"],
   ["cpu", "CPU utilization", "sensor"],
   ["temperature", "System temperature", "sensor"],
