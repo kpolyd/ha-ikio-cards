@@ -230,7 +230,7 @@ test("constant energy history gets one guide; plain graphs do not gain guides or
   assert.ok(plain.querySelector(".ae-note"));
 });
 
-test("sparklines keep the main colour mapping while using independent height and a 1 px line", () => {
+test("sparklines keep the main colour mapping while using independent height and a 0.8 px line", () => {
   const firstY = (node) =>
     Number(
       node
@@ -296,7 +296,7 @@ test("sparklines keep the main colour mapping while using independent height and
         );
         assert.equal(
           small.querySelector("path").getAttribute("stroke-width"),
-          "1",
+          "0.8",
         );
         assert.equal(
           small.querySelector("path").getAttribute("vector-effect"),

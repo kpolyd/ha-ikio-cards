@@ -466,3 +466,16 @@ The owner authorized publishing the section 25 car-card follow-up. Release the s
 ## 27. Consistent Energy sparkline colours (0.5.2)
 
 Device and Untracked sparklines use the main graph's configured expected minimum/maximum colour thresholds and the identical full palette. The same wattage must therefore map to the same colour in every graph. This supersedes section 21's per-device colour normalization. Vertical scaling still uses each device's observed visible min/max, including constant-series handling, independently of colours. Use a 1 px non-scaling stroke for sparklines while preserving the main graph's 2 px stroke, row height, history batching, missing-data gaps and unit conversion. The owner authorized implementation and release as `ikio-v0.5.2`.
+
+## 28. Smaller Drive details (0.5.3)
+
+Reduce metric/status icons to 28 px, or 22 px on narrow cards. Remove the visible VIN label while retaining its accessible label and native details interaction. Reduce VIN font from 12 to 11 px. Reduce plate font from 16 to 15 px, or from 14 to 13 px on narrow cards, and tighten the plate/country padding to shrink the outlined visual. Preserve shared centre alignment. Keep the existing visual-editor `plate_country` setting: GR by default, custom text supported, empty omits the country section. Implementation is authorized; no follow-up release is requested yet.
+
+## 29. Finer device sparklines (0.5.3)
+
+Reduce only the device and Untracked sparkline stroke from 1 px to 0.8 px, retaining non-scaling strokes, shared colour thresholds and automatic vertical scaling. Keep the main graph line at 2 px. This supersedes section 27's sparkline width. No release is requested yet.
+
+
+## 30. Release 0.5.3
+
+The owner authorized publishing sections 28–29 together as `ikio-v0.5.3`, superseding their earlier publication restrictions. Retain asset-free HACS delivery and documented live-verification limits.

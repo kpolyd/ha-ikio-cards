@@ -620,7 +620,7 @@ test("a sensor URL can supply the car image and selecting it is available in the
   card.remove();
 });
 
-test("minimal plate preserves registration text, supports a country section, and keeps VIN labelled", () => {
+test("minimal plate preserves registration text and configurable country while the VIN label stays accessible", () => {
   const config = { license_plate: "DEMO 1234", vin_entity: "sensor.vin" };
   const card = driveFixture(config, {
     "sensor.vin": driveState("sensor.vin", "VNK12345678901234"),
@@ -635,10 +635,9 @@ test("minimal plate preserves registration text, supports a country section, and
     plate().querySelector(".ae-drive-plate-number").textContent,
     "DEMO 1234",
   );
-  assert.equal(
-    card.shadowRoot.querySelector(".ae-drive-vin .ae-label").textContent,
-    "VIN ·",
-  );
+  const vinLabel = card.shadowRoot.querySelector(".ae-drive-vin .ae-label");
+  assert.equal(vinLabel.textContent, "VIN");
+  assert.ok(vinLabel.classList.contains("sr"));
   card.setConfig({ ...config, plate_country: "de" });
   assert.equal(
     plate().querySelector(".ae-drive-plate-country").textContent,
