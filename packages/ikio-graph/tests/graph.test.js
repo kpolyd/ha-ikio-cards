@@ -229,3 +229,83 @@ test("constant energy history gets one guide; plain graphs do not gain guides or
   assert.equal(plain.querySelector(".ae-y-axis"), null);
   assert.ok(plain.querySelector(".ae-note"));
 });
+
+test("sparklines keep the main colour mapping while using independent height and a 1 px line", () => {
+  const firstY = (node) =>
+    Number(
+      node
+        .querySelector("path")
+        .getAttribute("d")
+        .match(/^M[^,]+,([^ ]+)/)[1],
+    );
+  const position = (node) => {
+    const gradient = node.querySelector("linearGradient");
+    return (
+      (firstY(node) - Number(gradient.getAttribute("y1"))) /
+      (Number(gradient.getAttribute("y2")) -
+        Number(gradient.getAttribute("y1")))
+    );
+  };
+  for (const [min, max] of [
+    [0, 3500],
+    [-100, 7000],
+    [10, 1000],
+  ]) {
+    for (const value of [0, 10, 700, 3500]) {
+      const main = mod.graph(
+        [
+          {
+            name: "Total",
+            points: [
+              { time: 1, value },
+              { time: 2, value: 4000 },
+            ],
+          },
+        ],
+        { min, max, axisLabels: true },
+      );
+      for (const constant of [false, true]) {
+        const small = mod.graph(
+          [
+            {
+              name: "Device",
+              points: [
+                { time: 1, value },
+                { time: 2, value: constant ? value : value + 1 },
+              ],
+            },
+          ],
+          { min, max, sparkline: true },
+        );
+        assert.ok(
+          Math.abs(position(main) - position(small)) < 1e-10,
+          "same watts must land at the same colour-gradient position",
+        );
+        assert.ok(
+          Math.abs(position(small) - (value - min) / (max - min)) < 1e-10,
+        );
+        assert.deepEqual(
+          [...small.querySelectorAll("stop")].map((n) => [
+            n.getAttribute("offset"),
+            n.getAttribute("stop-color"),
+          ]),
+          [...main.querySelectorAll("stop")].map((n) => [
+            n.getAttribute("offset"),
+            n.getAttribute("stop-color"),
+          ]),
+        );
+        assert.equal(
+          small.querySelector("path").getAttribute("stroke-width"),
+          "1",
+        );
+        assert.equal(
+          small.querySelector("path").getAttribute("vector-effect"),
+          "non-scaling-stroke",
+        );
+        assert.ok(
+          !small.querySelector("path").getAttribute("d").includes("NaN"),
+        );
+      }
+    }
+  }
+});

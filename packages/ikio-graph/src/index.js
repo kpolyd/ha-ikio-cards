@@ -252,12 +252,8 @@ export function graph(
     svg.append(guides);
   }
   series.forEach((s, index) => {
-    const rangeMin = sparkline ? low : (s.min ?? min),
-      rangeMax = sparkline
-        ? constant
-          ? high + padding
-          : high
-        : (s.max ?? max);
+    const rangeMin = s.min ?? min,
+      rangeMax = s.max ?? max;
     const id = `ae-gradient-${graphId}-${index}`;
     const gradient = svgNode("linearGradient", {
       id,
@@ -269,15 +265,9 @@ export function graph(
       spreadMethod: "pad",
       "color-interpolation": "sRGB",
     });
-    const palette = sparkline
-      ? stops.filter(([position]) => position <= 2200)
-      : stops;
-    for (const [position, colour] of palette)
+    for (const [position, colour] of stops)
       gradient.append(
-        svgNode("stop", {
-          offset: position / (sparkline ? 2200 : 3500),
-          "stop-color": colour,
-        }),
+        svgNode("stop", { offset: position / 3500, "stop-color": colour }),
       );
     defs.append(gradient);
     let d = "",
@@ -297,7 +287,7 @@ export function graph(
       "stroke-width": 2,
       "stroke-linecap": "round",
       ...(sparkline
-        ? { "vector-effect": "non-scaling-stroke", "stroke-width": 1.5 }
+        ? { "vector-effect": "non-scaling-stroke", "stroke-width": 1 }
         : {}),
     });
     if (index) path.setAttribute("stroke-dasharray", index % 2 ? "5 3" : "2 3");
