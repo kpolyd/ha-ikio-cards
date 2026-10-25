@@ -149,6 +149,7 @@ export function windowPoints(points, start, end) {
     inWindow.push({ ...inWindow.at(-1), time: end });
   return inWindow;
 }
+let graphSequence = 0;
 export function graph(
   series,
   {
@@ -161,6 +162,7 @@ export function graph(
     axisLabels = false,
     axisGuides = false,
     formatAxis,
+    sparkline = false,
   } = {},
 ) {
   series = series.map((s) => ({
@@ -170,15 +172,29 @@ export function graph(
   const data = series
     .flatMap((s) => downsample(s.points))
     .filter((p) => p.value !== null);
+  if (!data.length && sparkline) return el("span");
   if (!data.length)
     return note("No history available. Live readings remain available.");
   const low = Math.min(...data.map((p) => p.value)),
     high = Math.max(...data.map((p) => p.value));
   const constant = low === high;
   const padding = Math.max(Math.abs(low) * 0.01, 1);
-  const yMin = axisLabels ? (constant ? low - padding : low) : Math.min(0, low),
-    yMax =
-      axisLabels && constant ? high + padding : high === yMin ? yMin + 1 : high;
+  const yMin = sparkline
+      ? low
+      : axisLabels
+        ? constant
+          ? low - padding
+          : low
+        : Math.min(0, low),
+    yMax = sparkline
+      ? constant
+        ? high + padding
+        : high
+      : axisLabels && constant
+        ? high + padding
+        : high === yMin
+          ? yMin + 1
+          : high;
   const xMin = start ?? Math.min(...data.map((p) => p.time)),
     xMax = end ?? Math.max(...data.map((p) => p.time));
   const width = 360,
@@ -206,10 +222,11 @@ export function graph(
   const svg = svgNode("svg", {
     viewBox: `0 0 ${width} ${height}`,
     class: "ae-graph",
-    preserveAspectRatio: axisLabels ? "none" : "xMidYMid meet",
+    preserveAspectRatio: axisLabels || sparkline ? "none" : "xMidYMid meet",
     role: "img",
     "aria-label": `${series.map((s) => s.name).join(", ")} history, ${axisText(low, unit)} to ${axisText(high, unit)}`,
   });
+  const graphId = ++graphSequence;
   const defs = svgNode("defs");
   svg.append(defs);
   if (axisLabels && axisGuides) {
@@ -235,9 +252,13 @@ export function graph(
     svg.append(guides);
   }
   series.forEach((s, index) => {
-    const rangeMin = s.min ?? min,
-      rangeMax = s.max ?? max;
-    const id = `ae-gradient-${index}`;
+    const rangeMin = sparkline ? low : (s.min ?? min),
+      rangeMax = sparkline
+        ? constant
+          ? high + padding
+          : high
+        : (s.max ?? max);
+    const id = `ae-gradient-${graphId}-${index}`;
     const gradient = svgNode("linearGradient", {
       id,
       gradientUnits: "userSpaceOnUse",
@@ -248,9 +269,15 @@ export function graph(
       spreadMethod: "pad",
       "color-interpolation": "sRGB",
     });
-    for (const [position, colour] of stops)
+    const palette = sparkline
+      ? stops.filter(([position]) => position <= 2200)
+      : stops;
+    for (const [position, colour] of palette)
       gradient.append(
-        svgNode("stop", { offset: position / 3500, "stop-color": colour }),
+        svgNode("stop", {
+          offset: position / (sparkline ? 2200 : 3500),
+          "stop-color": colour,
+        }),
       );
     defs.append(gradient);
     let d = "",
@@ -269,6 +296,9 @@ export function graph(
       stroke: `url(#${id})`,
       "stroke-width": 2,
       "stroke-linecap": "round",
+      ...(sparkline
+        ? { "vector-effect": "non-scaling-stroke", "stroke-width": 1.5 }
+        : {}),
     });
     if (index) path.setAttribute("stroke-dasharray", index % 2 ? "5 3" : "2 3");
     svg.append(path);
@@ -288,6 +318,8 @@ export function graph(
     }
     plot.append(labels, svg);
     wrap.append(plot);
+  } else if (sparkline) {
+    wrap.append(svg);
   } else {
     wrap.append(svg);
     wrap.append(

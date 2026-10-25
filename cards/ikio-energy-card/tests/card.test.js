@@ -303,3 +303,85 @@ test("forecast validity messages remain visible in the quieter bill column", () 
   );
   card.remove();
 });
+
+test("device sparklines share one history request and auto-scale without colour configuration", () => {
+  const card = energyFixture(
+    {
+      power_entity: "sensor.total",
+      circuits: [{ power_entity: "sensor.tv" }],
+      untracked_entity: "sensor.rest",
+    },
+    {
+      "sensor.total": energySensor(80, "W"),
+      "sensor.tv": energySensor(7, "W"),
+      "sensor.rest": energySensor(73, "W"),
+    },
+  );
+  assert.deepEqual(card.historyEntities(), [
+    "sensor.total",
+    "sensor.tv",
+    "sensor.rest",
+  ]);
+  const now = Date.now() / 1000;
+  card.history = {
+    "sensor.tv": [
+      { lu: now - 100, s: "0.005", a: { unit_of_measurement: "kW" } },
+      { lu: now, s: "0.007" },
+    ],
+    "sensor.rest": [{ lu: now - 100, s: "0", a: { unit_of_measurement: "W" } }],
+  };
+  card.update();
+  const plots = card.shadowRoot.querySelectorAll(".ae-device-sparkline");
+  assert.equal(plots.length, 2);
+  assert.notEqual(
+    plots[0].querySelector("linearGradient").id,
+    plots[1].querySelector("linearGradient").id,
+  );
+  assert.match(
+    plots[0].querySelector("svg").getAttribute("aria-label"),
+    /5 W to 7 W/,
+  );
+  assert.equal(plots[0].querySelector(".ae-note"), null);
+  assert.equal(plots[0].querySelectorAll("[data-extremum]").length, 0);
+  assert.equal(
+    plots[0].querySelector("stop:last-child").getAttribute("stop-color"),
+    "#ff0000",
+  );
+  assert.ok(!plots[1].querySelector("path").getAttribute("d").includes("NaN"));
+  const gradient = plots[1].querySelector("linearGradient");
+  const pathY = Number(
+    plots[1]
+      .querySelector("path")
+      .getAttribute("d")
+      .match(/^M[^,]+,([\d.]+)/)[1],
+  );
+  assert.equal(Number(gradient.getAttribute("y1")), pathY);
+  card.remove();
+});
+
+test("computed Untracked history aligns asynchronous changes and preserves missing-data gaps", async () => {
+  const { untrackedHistory } = await import("../src/adapter.js");
+  assert.deepEqual(
+    untrackedHistory([
+      [
+        { time: 1, value: 100 },
+        { time: 3, value: 120 },
+      ],
+      [
+        { time: 2, value: 20 },
+        { time: 4, value: null },
+        { time: 5, value: 10 },
+      ],
+    ]),
+    [
+      { time: 1, value: null },
+      { time: 2, value: 80 },
+      { time: 3, value: 100 },
+      { time: 4, value: null },
+      { time: 5, value: 110 },
+    ],
+  );
+  assert.deepEqual(untrackedHistory([[{ time: 1, value: 100 }], []]), [
+    { time: 1, value: null },
+  ]);
+});

@@ -1,5 +1,15 @@
 # Ikio changelog
 
+## 0.5.0 — Device history, Alarmo controls and vehicle images
+
+- Add compact device power sparklines, including Untracked, with automatic observed min/max scaling and green-to-red colours. Batch device history with the main graph and preserve gaps and unit conversion.
+- Redesign Security with an Alarmo-style mode selector, a larger shield and prominent armed colours. Move compact sensor labels with native HA icons above the modes.
+- Keep the PIN pad inside the card and visible while armed, including bypassed, triggered and entry/exit-delay states. Use inline arming review and code entry without action popups.
+- Add an unchecked-by-default Alarmo bypass checkbox only when open sensors are present. Preserve required codes and exit delay, display confirmed bypass status, and clear transient codes/selections after use and lifecycle changes.
+- Remove Security presence rows and their editor section; existing configuration is accepted but those rows are no longer displayed.
+- Match Drive secure-state colours to Security. Add an optional image upload/local URL and compact license-plate text and VIN sensor rows between the title and image. Preserve exact VIN text and native sensor details.
+- Rebuild the synchronized HACS bundle and keep asset-free release delivery.
+
 ## 0.4.0 — Compact mobile controls
 
 - Compact Drive into two rows with icons for range/fuel/odometer and locks/doors/windows.

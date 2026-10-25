@@ -69,42 +69,251 @@ test("force-arm data preserves code and never implies skipping exit delay", asyn
     false,
   );
 });
-test("Alarmo override is explicit, requires confirmation and shows bypass status", async () => {
+
+const panelId = "alarm_control_panel.home";
+const sensorId = "binary_sensor.window";
+const panel = (state, attributes = {}) => ({
+  entity_id: panelId,
+  state,
+  attributes: { supported_features: 3, ...attributes },
+});
+function fixture(
+  state = "disarmed",
+  attributes = {},
+  config = {},
+  extraStates = {},
+) {
   const card = document.createElement("ikio-security-card");
-  document.body.append(card);
   card.setConfig({
-    entity: "alarm_control_panel.home",
-    contacts: [{ entity: "binary_sensor.window" }],
-    allow_override: true,
+    entity: panelId,
+    contacts: [{ entity: sensorId }],
+    ...config,
   });
   const calls = [];
   card.hass = {
     states: {
-      "alarm_control_panel.home": {
-        entity_id: "alarm_control_panel.home",
-        state: "disarmed",
-        attributes: { supported_features: 3, code_arm_required: false },
-      },
-      "binary_sensor.window": {
-        entity_id: "binary_sensor.window",
+      [panelId]: panel(state, attributes),
+      [sensorId]: {
+        entity_id: sensorId,
         state: "on",
-        attributes: { friendly_name: "Kitchen window" },
+        attributes: {
+          friendly_name: "Kitchen window",
+          icon: "mdi:window-open",
+        },
       },
+      ...extraStates,
     },
     services: { alarmo: { arm: {} } },
-    callService: async (...a) => calls.push(a),
+    callService: async (...args) => calls.push(args),
   };
-  const override = [...card.shadowRoot.querySelectorAll("button")].find(
-    (n) => n.textContent === "Arm away anyway",
-  );
-  override.click();
+  document.body.append(card);
+  return { card, calls };
+}
+function press(card, key) {
+  card.shadowRoot.querySelector(`[data-key="${key}"]`).click();
+}
+function transition(card, state, attributes = {}) {
+  card.hass = {
+    ...card.hass,
+    states: { ...card.hass.states, [panelId]: panel(state, attributes) },
+  };
+}
+function checkBypass(card) {
+  const input = card.shadowRoot.querySelector("[type=checkbox]");
+  input.checked = true;
+  input.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+}
+test("bypass defaults off, sits above alerts and modes, and confirms inside the card", async () => {
+  const { card, calls } = fixture();
+  const checkbox = card.shadowRoot.querySelector("[type=checkbox]");
+  assert.equal(checkbox.checked, false);
+  const sensors = card.shadowRoot.querySelector(".security-sensors");
+  assert.ok(sensors.firstElementChild.contains(checkbox));
+  assert.ok(sensors.nextElementSibling.classList.contains("security-modes"));
+  checkBypass(card);
+  press(card, "mode-away");
   assert.equal(calls.length, 0);
-  const confirm = [
-    ...card.shadowRoot.querySelector("dialog").querySelectorAll("button"),
-  ].find((n) => n.textContent === "Confirm");
-  confirm.click();
+  assert.equal(card.shadowRoot.querySelector("dialog"), null);
+  assert.match(
+    card.shadowRoot.querySelector(".security-pin").textContent,
+    /bypassed.*exit delay/,
+  );
+  press(card, "submit-alarm");
   await Promise.resolve();
   assert.equal(calls[0][0], "alarmo");
-  assert.equal(calls[0][2].force, true);
+  assert.deepEqual(calls[0][2], {
+    entity_id: panelId,
+    mode: "away",
+    force: true,
+  });
+  assert.equal(card.bypass, false);
+  card.remove();
+});
+test("ordinary arming never forces sensors and required arming codes use inline keypad", async () => {
+  const { card, calls } = fixture("disarmed", {
+    code_arm_required: true,
+    code_format: "number",
+  });
+  press(card, "mode-home");
+  assert.equal(
+    card.shadowRoot.querySelector("[data-key=submit-alarm]").disabled,
+    true,
+  );
+  for (const digit of [1, 2, 3, 4]) press(card, `pin-${digit}`);
+  press(card, "submit-alarm");
+  await Promise.resolve();
+  assert.equal(calls[0][0], "alarm_control_panel");
+  assert.equal(calls[0][1], "alarm_arm_home");
+  assert.equal(calls[0][2].code, "1234");
+  assert.equal(calls[0][2].force, undefined);
+  assert.equal(card.pin, "");
+  card.remove();
+});
+test("armed bypass status shows chips with HA state icons, no presence, and persistent PIN pad", async () => {
+  const { card, calls } = fixture(
+    "armed_away",
+    { code_format: "number", bypassed_sensors: [sensorId] },
+    { persons: [{ entity: "person.example" }] },
+    {
+      "person.example": {
+        state: "home",
+        attributes: { friendly_name: "Hidden person" },
+      },
+    },
+  );
+  assert.match(card.shadowRoot.textContent, /1 sensor bypassed/);
+  assert.doesNotMatch(card.shadowRoot.textContent, /Hidden person/);
+  assert.equal(card.shadowRoot.querySelector("[type=checkbox]"), null);
+  const glyph = card.shadowRoot.querySelector("ha-state-icon");
+  assert.equal(glyph.stateObj, card.hass.states[sensorId]);
+  assert.equal(glyph.hass, card.hass);
+  assert.ok(card.shadowRoot.querySelector(".security-pin"));
+  const submit = card.shadowRoot.querySelector("[data-key=submit-alarm]");
+  assert.equal(submit.disabled, true);
+  assert.equal(calls.length, 0);
+  for (const digit of [4, 3, 2, 1]) press(card, `pin-${digit}`);
+  press(card, "pin-Delete");
+  press(card, "pin-1");
+  press(card, "submit-alarm");
+  await Promise.resolve();
+  assert.equal(calls[0][1], "alarm_disarm");
+  assert.equal(calls[0][2].code, "4321");
+  assert.ok(
+    card.shadowRoot.querySelector(".security-pin"),
+    "keep pad until backend confirms disarming",
+  );
+  assert.equal(card.pin, "");
+  transition(card, "disarmed");
+  assert.equal(card.shadowRoot.querySelector(".security-pin"), null);
+  card.remove();
+});
+test("bypass appears only for open sensors with Alarmo and resets when openings close", () => {
+  const { card } = fixture();
+  checkBypass(card);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "off" },
+    },
+  };
+  assert.equal(card.shadowRoot.querySelector("[type=checkbox]"), null);
+  assert.equal(card.bypass, false);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "unavailable" },
+    },
+  };
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /unavailable/,
+  );
+  assert.equal(card.shadowRoot.querySelector("[type=checkbox]"), null);
+  card.remove();
+});
+test("reported open sensors and active motion stay compact; sensor icon refreshes with state", () => {
+  const motionId = "binary_sensor.motion";
+  const { card } = fixture(
+    "disarmed",
+    { open_sensors: { [sensorId]: "Kitchen window" } },
+    { motion: [{ entity: motionId }] },
+    {
+      [motionId]: {
+        entity_id: motionId,
+        state: "on",
+        attributes: { icon: "mdi:motion-sensor" },
+      },
+    },
+  );
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /1 opening open.*1 motion active/,
+  );
+  assert.equal(
+    card.shadowRoot.querySelectorAll(".security-chips button").length,
+    2,
+  );
+  let id;
+  card.addEventListener(
+    "hass-more-info",
+    (event) => (id = event.detail.entityId),
+  );
+  card.shadowRoot.querySelector(".security-chips button").click();
+  assert.equal(id, sensorId);
+  const previous = card.shadowRoot.querySelector("ha-state-icon");
+  const changed = {
+    ...card.hass.states[sensorId],
+    attributes: { icon: "mdi:door-open" },
+  };
+  card.hass = {
+    ...card.hass,
+    states: { ...card.hass.states, [sensorId]: changed },
+  };
+  assert.equal(previous.stateObj, changed);
+  card.remove();
+});
+test("state changes, visibility, configuration and disconnect clear PIN and bypass selection", () => {
+  const { card } = fixture("armed_home", { code_format: "number" });
+  press(card, "pin-1");
+  transition(card, "triggered", { code_format: "number" });
+  assert.equal(card.pin, "");
+  assert.ok(card.shadowRoot.querySelector(".security-pin"));
+  press(card, "pin-2");
+  card.visible = false;
+  card.onVisibility();
+  assert.equal(card.pin, "");
+  assert.equal(card.shadowRoot.querySelector("input[type=password]").value, "");
+  card.visible = true;
+  press(card, "pin-3");
+  card.setConfig({ entity: panelId });
+  assert.equal(card.pin, "");
+  press(card, "pin-4");
+  card.remove();
+  assert.equal(card.pin, "");
+  assert.equal(card.shadowRoot.querySelector("input[type=password]").value, "");
+});
+test("preview and unavailable alarm cannot issue services, and failures remain inline", async () => {
+  const { card, calls } = fixture("armed_away", { code_format: "number" });
+  card.preview = true;
+  press(card, "pin-1");
+  await card.disarm();
+  assert.equal(calls.length, 0);
+  card.preview = false;
+  transition(card, "unavailable");
+  assert.equal(card.shadowRoot.querySelector(".security-pin"), null);
+  transition(card, "armed_away", { code_format: "number" });
+  card.hass = {
+    ...card.hass,
+    callService: async () => {
+      throw Error("Invalid code");
+    },
+  };
+  press(card, "pin-1");
+  await card.disarm();
+  assert.match(card.error.textContent, /Invalid code/);
+  assert.equal(card.pin, "");
+  assert.ok(card.shadowRoot.querySelector(".security-pin"));
   card.remove();
 });

@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.3.2**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.0**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.3.2` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-drive-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.0` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-drive-card.js`. Use only one route.
 
 Add card → Ikio Drive. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -14,6 +14,10 @@ Add card → Ikio Drive. Configure all fields through the visual editor. No YAML
 
 | Field | Setting |
 |---|---|
+| image | Optional native image upload |
+| image_url | Optional image URL or /local/ path |
+| license_plate | Optional license plate text |
+| vin_entity | Optional VIN sensor |
 | fuel_entity | Fuel level |
 | fuel_capacity | Fuel capacity (same volume unit as fuel sensor) |
 | range_entity | Remaining range |
@@ -57,8 +61,16 @@ If a source entity itself is unavailable, the card cannot recover its state; che
 
 The feature branch uses two three-column rows: range/fuel/odometer above locks/doors/windows. All six readings have native HA MDI icons and remain labelled. Parking moves into the header; location age and the unboxed maps link share the footer. Optional metric bindings do not leave empty columns. There is no separate fuel progress row: when a compatible fuel volume and capacity are supplied, the Fuel value shows the calculated percentage; otherwise it preserves the sensor's units.
 
-Secure states use muted mint, Open/Unlocked amber, Jammed soft red, and Unknown/Unavailable/Not configured grey. Locking/Unlocking use the shared blue accent and a clock icon. Text always identifies the state; colour is supplementary. Unknown/unavailable inputs never appear secure, and the existing lock/binary-sensor interpretation is unchanged.
+Secure states use the security card’s brighter green, Open/Unlocked amber, Jammed soft red, and Unknown/Unavailable/Not configured grey. Locking/Unlocking use the shared blue accent and a clock icon. Text always identifies the state; colour is supplementary. Unknown/unavailable inputs never appear secure, and the existing lock/binary-sensor interpretation is unchanged.
 
 Metric and status controls open native HA entity details on tap or hold; the card sends no vehicle commands. An aggregate alert opens the member responsible for that state, rather than an unrelated secure member. Existing buttons retain focus during normal status updates. Invalid coordinates disable the maps link, and absent timestamps remain explicit.
 
-These changes are unreleased; the shared collection version remains 0.3.2.
+These changes ship in collection version 0.5.0.
+
+## Car image and identifiers
+
+The header places the title and parking label on the left, optional license plate and VIN in two compact rows in the middle, and the optional car image on the right. Enter the plate as text and select the VIN sensor in the visual editor. VIN identifiers preserve their exact text, including leading zeroes, and open native sensor details on tap/hold. Unavailable VIN data remains explicit. Long identifiers wrap on narrow cards.
+
+Use **Car image** to upload an image through Home Assistant, or **Car image URL** for a local `/local/` path or HTTP(S) URL. If both are set, the uploaded image takes precedence. Transparent cutouts work best. Images fit inside the compact header without cropping. Media-source images are resolved through Home Assistant, refreshed while visible and cleaned up on disconnect. Missing images show an inline message without hiding the readings. No household image or identifier is embedded in the collection.
+
+Green matches the Security card for locked/closed states, with amber for unlocked/open, red for jammed, blue for locking/unlocking and grey for unknown/unavailable. Metrics remain in their compact three-column row, separated by subtle vertical dividers; status and location footer use the same arrangement as the approved mockup.

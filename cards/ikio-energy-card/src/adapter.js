@@ -54,3 +54,26 @@ export function energyText(hass, entity) {
   if (value !== null) return formatNumber(hass, value);
   return available(state) ? "Incompatible unit" : valueText(hass, entity);
 }
+
+// Merge asynchronous sensor changes, carrying the latest known reading forward.
+// Missing inputs produce gaps rather than fabricated zero consumption.
+export function untrackedHistory(series) {
+  const events = series
+    .flatMap((points, index) => points.map((point) => ({ ...point, index })))
+    .sort((a, b) => a.time - b.time);
+  const values = series.map(() => null);
+  const result = [];
+  for (let i = 0; i < events.length; ) {
+    const time = events[i].time;
+    while (i < events.length && events[i].time === time) {
+      values[events[i].index] = events[i].value;
+      i++;
+    }
+    let value = values.some((v) => v === null)
+      ? null
+      : values[0] - values.slice(1).reduce((sum, v) => sum + v, 0);
+    if (value < 0 && value >= -1) value = 0;
+    result.push({ time, value });
+  }
+  return result;
+}
