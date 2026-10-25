@@ -496,3 +496,18 @@ Right-align estimated bill and forecast labels and amounts within their existing
 ## 33. Sparse device history (0.5.4)
 
 For device and Untracked sparklines, hold each recorded sample until the next timestamp and step to the new recorded value. Do not draw diagonal interpolation across unchanged periods with sparse recordings. Keep gaps for missing/unavailable samples and do not invent an initial zero. Preserve shared value colours, 0.8 px strokes and existing main/standalone graph paths. Include this rendering correction in the authorized 0.5.4 release.
+
+## 34. Security discovery lifecycle and smaller shield (unreleased)
+
+Reduce the status shield from 38 to 32 px within the unchanged 58 px circle. Retain automatic Alarmo discovery: its read-only entities/sensors endpoints identify enabled sensors belonging to the selected panel; live sensor values come from HA states. Do not substitute all household binary sensors or require manual configuration.
+
+Keep the discovered list and its status in card memory across visibility changes and temporary disconnects. Restore subscriptions and refresh timers on return, immediately render current HA states, and restart interrupted initial discovery without waiting for another HA state update. Refresh stale discovery in the background; discard cached membership on panel/configuration or connection changes. Bound discovery requests to five seconds, report unavailable status instead of indefinite loading, retry through periodic refresh, ignore late replies and clean up cancelled request timers. Unknown/discovery failure must never imply a green all-clear. Live countdown/ring and coral delay colours remain proposals, outside this change. No commit or release has been requested.
+
+
+## 35. Live Security countdown and release 0.5.5
+
+Implement the approved countdown mock with the smaller 32 px shield: show remaining seconds beside the status and a shrinking ring around the shield within the existing header dimensions. Use coral #f08072 for arming/entry-delay icon, status, seconds and ring, with a darker coral #b7473b on the light appearance. Keep sensor warnings amber, confirmed armed states green and triggered states in the error colour. Respect reduced-motion preferences; avoid announcing each second through a live region. Remove the redundant configured-delay note.
+
+Use the selected panel's read-only alarmo/countdown response (delay and remaining), tick locally against a deadline once per second, and resynchronize every 15 seconds while visible and on return or a new delay state. Do not restart a full configured delay on card opening. Bound requests to five seconds, ignore stale responses, clear requests/timers on hiding, configuration, disconnect or delay-state changes, and retain the PIN pad and native alarm controls. Missing/invalid timing data shows the actual state without fabricated seconds or a progress arc. A zero timer does not imply armed: only backend state confirmation changes the card to green. Validate with simulated HA state and websocket responses; no real alarm operations are authorized for testing.
+
+The owner authorized implementing and releasing this section with section 34 as ikio-v0.5.5, superseding its proposal/publication restrictions. Preserve synchronized versions and asset-free HACS release delivery.

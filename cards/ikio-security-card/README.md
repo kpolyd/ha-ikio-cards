@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.5.4**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.5**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.4` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-security-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.5` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-security-card.js`. Use only one route.
 
 Add card → Ikio Security. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -51,3 +51,10 @@ Select the Alarmo panel; no sensor list is required in this card. Read-only `ala
 Home/Away now arm immediately when no code is required. Checking **Bypass open sensors** is the explicit bypass choice; tapping a mode submits that choice without an additional confirmation screen. A required code still opens the inline PIN pad and needs submission; normal exit delays remain. Legacy `confirm_arm` settings are accepted but no longer add a review step. Alarmo failure events display the rejection reason and cancel the pending timeout immediately. Fresh blocking-sensor attributes provide fallback feedback if events are unavailable. Discovery failures and an empty configuration never show a green all-clear.
 
 API references: [Alarmo websocket handlers](https://github.com/nielsfaber/alarmo/blob/main/custom_components/alarmo/websockets.py), [failure events](https://github.com/nielsfaber/alarmo/blob/main/custom_components/alarmo/event.py).
+
+Discovery is retained in memory while the card is hidden; returning immediately renders current HA sensor states and restores subscriptions. An interrupted initial load restarts on return. Discovery requests time out after five seconds and show an unavailable warning instead of indefinite loading; periodic refresh retries failures. An unavailable list never implies that every sensor is clear. The status shield is 32 px inside the unchanged 58 px circle.
+
+
+## Live countdown (0.5.5)
+
+During exit/entry delay the header shows remaining seconds and a shrinking coral ring around the smaller shield. Open-sensor warnings remain amber; the armed state turns green only after confirmation from Alarmo. Timing comes from `alarmo/countdown`, with local one-second ticks and a background resync every 15 seconds. Returning to the card resyncs the actual remaining time. If timing is unavailable the state and PIN controls remain usable without invented seconds. The static configured-delay note is removed. Reduced-motion settings disable ring transitions.

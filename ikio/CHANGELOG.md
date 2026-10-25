@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.5.5 — Live alarm countdown and reliable sensor loading
+
+- Show a live exit/entry countdown and shrinking progress ring synchronized with Alarmo. Use coral for delay indicators, preserve amber open-sensor warnings and green confirmed armed states. Keep the inline PIN pad and wait for backend state confirmation when the timer expires.
+- Reduce the Security header shield to 32 px within the existing circle.
+- Preserve discovered Alarmo sensors when hiding the card, restart interrupted discovery on return, and restore subscriptions without waiting for a sensor update. Time out unanswered discovery after five seconds and retry in the background instead of leaving the loading message indefinitely.
+
 ## 0.5.4 — Automatic Alarmo sensors and clearer Energy totals
 
 - Draw device sparklines as held values with steps at recorded updates, preventing sparse history from fabricating gradual ramps. Preserve missing-data gaps.

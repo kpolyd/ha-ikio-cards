@@ -1,6 +1,6 @@
 # Installing Ikio Cards
 
-All eleven cards share the Ikio colour tokens, typography, spacing, controls and interaction helpers. Each is independently registered and has a full visual editor. The shared collection version is 0.5.4; this is not yet a live-device-verified release.
+All eleven cards share the Ikio colour tokens, typography, spacing, controls and interaction helpers. Each is independently registered and has a full visual editor. The shared collection version is 0.5.5; this is not yet a live-device-verified release.
 
 ## HACS
 
@@ -16,8 +16,8 @@ The repository must be added as a custom repository; it is not in the default ca
 ## Manual builds
 
 1. From the repository root use the pinned Node version, then `npm ci`, `npm run build` and `npm run package:ikio`.
-2. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from `release/ikio-v0.5.4/` to `/config/www/ikio/`. Keep `source/` and design documents outside `www`. Preserve all card folders and their `chunks/` subdirectories.
-3. In Home Assistant Settings → Dashboards → Resources, add `/local/ikio/ikio.js?v=0.5.4` as a **JavaScript module**. Advanced Mode may be needed to expose resource management.
+2. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from `release/ikio-v0.5.5/` to `/config/www/ikio/`. Keep `source/` and design documents outside `www`. Preserve all card folders and their `chunks/` subdirectories.
+3. In Home Assistant Settings → Dashboards → Resources, add `/local/ikio/ikio.js?v=0.5.5` as a **JavaScript module**. Advanced Mode may be needed to expose resource management.
 4. Edit the dashboard → Add card → search **Ikio**. Select a card, then choose entities and settings in its visual editor. No manual card YAML is needed.
 5. Every card offers Ikio dark, Ikio light or Follow Home Assistant appearance. For a consistent collection, choose the same setting for all cards. The optional `themes/ikio.yaml` can also be installed through your existing HA theme-loading setup; it is not required by any card. The global theme is optional and is not installed by the HACS Dashboard package.
 
