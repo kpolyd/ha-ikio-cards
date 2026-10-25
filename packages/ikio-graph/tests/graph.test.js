@@ -309,3 +309,40 @@ test("sparklines keep the main colour mapping while using independent height and
     }
   }
 });
+
+test("sparse device history holds its recorded value until the next timestamp instead of drawing a ramp", () => {
+  const series = [
+    {
+      name: "Device",
+      points: [
+        { time: 0, value: 0 },
+        { time: 90, value: 3910 },
+      ],
+    },
+  ];
+  const node = mod.graph(series, { sparkline: true, start: 0, end: 100 });
+  const path = node.querySelector("path").getAttribute("d");
+  assert.ok(path.startsWith("M8,80 H317.6 V8 "), path);
+  assert.ok(path.includes("H352 V8"), path);
+  assert.equal(path.includes("L"), false);
+  const main = mod.graph(series, { start: 0, end: 100 });
+  assert.ok(main.querySelector("path").getAttribute("d").includes("L"));
+  const gap = mod.graph(
+    [
+      {
+        name: "Device",
+        points: [
+          { time: 0, value: 0 },
+          { time: 50, value: null },
+          { time: 90, value: 3910 },
+        ],
+      },
+    ],
+    { sparkline: true, start: 0, end: 100 },
+  );
+  assert.equal(
+    gap.querySelector("path").getAttribute("d").split("M").length,
+    3,
+  );
+  assert.ok(!gap.querySelector("path").getAttribute("d").includes("H317.6"));
+});

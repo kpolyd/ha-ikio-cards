@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.5.3**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.4**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.3` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-security-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.4` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-security-card.js`. Use only one route.
 
 Add card → Ikio Security. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -16,7 +16,6 @@ Add card → Ikio Security. Configure all fields through the visual editor. No Y
 |---|---|
 | entity | Alarm panel (required to operate) |
 | modes | Arming modes |
-| confirm_arm | Review before arming |
 | allow_override | Show Alarmo open-sensor override |
 
 ### Monitored openings
@@ -44,3 +43,11 @@ The circular status icon and segmented mode selector follow the Alarmo layout. A
 When disarmed and open sensors are present, Alarmo's optional **Bypass open sensors** checkbox appears above the warning. It defaults off and resets after an arming attempt or alarm state change. It is available only when Alarmo's arm service is present and overrides are enabled. An inline review names the affected sensors before submitting forced arming; required codes and normal exit delay still apply. Confirmed bypasses are displayed from the panel's `bypassed_sensors` attribute, rather than inferred from the checkbox.
 
 The masked PIN field and numeric keypad remain visible while armed, including armed-with-bypasses, triggered, and entry/exit delay states. Enter the code and press **Disarm**; merely selecting Disarmed focuses the field. Text codes can also be entered with the keyboard. Code-free panels allow disarming without a PIN. Arming reviews and required arming codes also appear inside the card. No action dialog is used. Codes are cleared after submission, state/configuration changes, hiding, and disconnect; they are never saved in configuration. Backend errors remain inline and the keypad stays visible until the panel confirms disarming.
+
+## Automatic Alarmo sensors and direct arming (0.5.4)
+
+Select the Alarmo panel; no sensor list is required in this card. Read-only `alarmo/entities` and `alarmo/sensors` requests discover its enabled sensors, scoped to the selected area or all areas for the master panel. HA state changes keep their status and native icons current. Alarmo configuration updates refresh the list, with a periodic fallback and lifecycle cleanup. Sensor labels include full friendly/device names so multiple devices are not all called Opening. Optional manual rows remain as extra/fallback bindings.
+
+Home/Away now arm immediately when no code is required. Checking **Bypass open sensors** is the explicit bypass choice; tapping a mode submits that choice without an additional confirmation screen. A required code still opens the inline PIN pad and needs submission; normal exit delays remain. Legacy `confirm_arm` settings are accepted but no longer add a review step. Alarmo failure events display the rejection reason and cancel the pending timeout immediately. Fresh blocking-sensor attributes provide fallback feedback if events are unavailable. Discovery failures and an empty configuration never show a green all-clear.
+
+API references: [Alarmo websocket handlers](https://github.com/nielsfaber/alarmo/blob/main/custom_components/alarmo/websockets.py), [failure events](https://github.com/nielsfaber/alarmo/blob/main/custom_components/alarmo/event.py).

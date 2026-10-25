@@ -1,5 +1,15 @@
 # Ikio changelog
 
+## 0.5.4 — Automatic Alarmo sensors and clearer Energy totals
+
+- Draw device sparklines as held values with steps at recorded updates, preventing sparse history from fabricating gradual ramps. Preserve missing-data gaps.
+
+- Discover enabled sensors from Alarmo automatically for the selected area/master, with full friendly/device names, live HA icons, configuration updates and lifecycle cleanup. Optional card sensor rows remain extras/fallback.
+- Arm Home/Away in one tap when no PIN is required. The bypass checkbox supplies explicit consent without a separate confirmation screen; required PINs and exit delays remain.
+- Show Alarmo rejection reasons immediately and cancel the pending timeout. Treat failed/empty sensor discovery as unknown, never a green all-clear.
+- Reduce Drive metric/status icons further to 24 px, or 20 px on narrow cards.
+- Right-align estimated bill/forecast labels and values. Display Day/Night/Total energy to one decimal with a small kWh suffix on each value, retaining full calculation precision.
+
 ## 0.5.3 — Finer graphs and smaller vehicle details
 
 - Reduce device and Untracked sparkline strokes from 1 px to 0.8 px, retaining the main graph line, shared colour thresholds and automatic vertical scaling.

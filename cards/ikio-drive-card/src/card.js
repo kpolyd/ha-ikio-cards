@@ -68,8 +68,8 @@ export class Card extends ControlCard {
       .ae-drive-statuses{border-top:1px solid var(--ae-border);padding-top:7px}
       .ae-drive .ae-drive-statuses .ae-value{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;min-width:0}
       .ae-drive-statuses .ae-value span{min-width:0;overflow-wrap:anywhere}
-      .ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{display:grid;grid-template-columns:28px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-content:center}
-      .ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:28px;grid-column:1;grid-row:1/3;align-self:center}
+      .ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{display:grid;grid-template-columns:24px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-content:center}
+      .ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:24px;grid-column:1;grid-row:1/3;align-self:center}
       .ae-drive-metrics .ae-label,.ae-drive-statuses .ae-label{grid-column:2;grid-row:1;font-size:11px;font-weight:400;min-width:0}
       .ae-drive-metrics .ae-value,.ae-drive-statuses .ae-value{grid-column:2;grid-row:2;min-width:0}
       .ae-drive .ae-drive-statuses .ae-value{font-size:14px}
@@ -82,7 +82,7 @@ export class Card extends ControlCard {
       .ae-drive-footer{border-top:1px solid var(--ae-border);padding-top:6px;display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;min-width:0}
       .ae-drive-footer .ae-note{margin:0;font-size:12px}
       .ae-drive-footer .ae-location-link{font-size:12px;padding:2px 0;overflow-wrap:anywhere}
-      @container(max-width:350px){.ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{grid-template-columns:22px minmax(0,1fr);column-gap:5px}.ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:22px}.ae-drive-plate-number{font-size:13px;padding:2px 3px;letter-spacing:.5px}.ae-drive-metrics,.ae-drive-statuses{gap:6px}.ae-drive .ae-drive-metrics .ae-value{font-size:16px}}
+      @container(max-width:350px){.ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{grid-template-columns:20px minmax(0,1fr);column-gap:5px}.ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:20px}.ae-drive-plate-number{font-size:13px;padding:2px 3px;letter-spacing:.5px}.ae-drive-metrics,.ae-drive-statuses{gap:6px}.ae-drive .ae-drive-metrics .ae-value{font-size:16px}}
     `,
       ),
     );

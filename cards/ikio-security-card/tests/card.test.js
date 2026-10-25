@@ -123,7 +123,7 @@ function checkBypass(card) {
   input.checked = true;
   input.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
 }
-test("bypass defaults off, sits above alerts and modes, and confirms inside the card", async () => {
+test("bypass defaults off and checkbox consent permits one-tap arming without extra confirmation", async () => {
   const { card, calls } = fixture();
   const checkbox = card.shadowRoot.querySelector("[type=checkbox]");
   assert.equal(checkbox.checked, false);
@@ -132,14 +132,10 @@ test("bypass defaults off, sits above alerts and modes, and confirms inside the 
   assert.ok(sensors.nextElementSibling.classList.contains("security-modes"));
   checkBypass(card);
   press(card, "mode-away");
-  assert.equal(calls.length, 0);
-  assert.equal(card.shadowRoot.querySelector("dialog"), null);
-  assert.match(
-    card.shadowRoot.querySelector(".security-pin").textContent,
-    /bypassed.*exit delay/,
-  );
-  press(card, "submit-alarm");
   await Promise.resolve();
+  assert.equal(calls.length, 1);
+  assert.equal(card.shadowRoot.querySelector("dialog"), null);
+  assert.equal(card.shadowRoot.querySelector(".security-pin"), null);
   assert.equal(calls[0][0], "alarmo");
   assert.deepEqual(calls[0][2], {
     entity_id: panelId,
@@ -316,4 +312,261 @@ test("preview and unavailable alarm cannot issue services, and failures remain i
   assert.equal(card.pin, "");
   assert.ok(card.shadowRoot.querySelector(".security-pin"));
   card.remove();
+});
+
+async function alarmoFixture({
+  area = "one",
+  sensors = {},
+  entities,
+  attributes = {},
+  states = {},
+  failure,
+} = {}) {
+  const { card, calls } = fixture(
+    "disarmed",
+    attributes,
+    { contacts: [], motion: [], confirm_arm: true },
+    states,
+  );
+  const callbacks = {},
+    unsubscribed = [];
+  const connection = {
+    subscribeEvents: async (callback, type) => {
+      callbacks[type] = callback;
+      return () => unsubscribed.push(type);
+    },
+    subscribeMessage: async (callback, message) => {
+      callbacks[message.type] = callback;
+      return () => unsubscribed.push(message.type);
+    },
+  };
+  const requests = [];
+  card.hass = {
+    ...card.hass,
+    connection,
+    formatEntityName: () => "Opening",
+    callWS: async (message) => {
+      requests.push(message.type);
+      if (failure) throw Error("No access");
+      return message.type === "alarmo/entities"
+        ? entities || [{ entity_id: panelId, area_id: area }]
+        : sensors;
+    },
+  };
+  card.visible = true;
+  await card.loadAlarmo();
+  await Promise.resolve();
+  return { card, calls, callbacks, unsubscribed, requests };
+}
+test("Alarmo automatically supplies enabled area sensors, full names, icons and live states without card lists", async () => {
+  const motionId = "binary_sensor.hall";
+  const { card, requests, unsubscribed } = await alarmoFixture({
+    sensors: {
+      [sensorId]: { area: "one", enabled: true, type: "window" },
+      [motionId]: { area: "one", enabled: true, type: "motion" },
+      "binary_sensor.other": { area: "two", enabled: true, type: "window" },
+      "binary_sensor.disabled": { area: "one", enabled: false, type: "window" },
+    },
+    states: {
+      [motionId]: {
+        entity_id: motionId,
+        state: "on",
+        attributes: { friendly_name: "Hall motion", icon: "mdi:motion-sensor" },
+      },
+    },
+  });
+  assert.equal(card.alarmoStatus, "ready");
+  assert.deepEqual(
+    card.sensorRows().map((r) => r.entity),
+    [sensorId, motionId],
+  );
+  assert.ok(card.entityIds.includes(motionId));
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /1 opening open.*1 motion active/,
+  );
+  const chips = card.shadowRoot.querySelectorAll(".security-chips button");
+  assert.equal(chips[0].textContent, "Kitchen window");
+  assert.equal(chips[1].textContent, "Hall motion");
+  assert.equal(
+    chips[0].querySelector("ha-state-icon").stateObj,
+    card.hass.states[sensorId],
+  );
+  card.update();
+  assert.deepEqual(requests, ["alarmo/entities", "alarmo/sensors"]);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "off" },
+      [motionId]: { ...card.hass.states[motionId], state: "off" },
+    },
+  };
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /All monitored sensors clear/,
+  );
+  assert.equal(card.shadowRoot.querySelector("[type=checkbox]"), null);
+  card.remove();
+  assert.deepEqual(unsubscribed.sort(), [
+    "alarmo_config_updated",
+    "alarmo_failed_to_arm",
+  ]);
+});
+test("master Alarmo discovers sensors across configured areas while excluding disabled and unrelated sensors", async () => {
+  const { card } = await alarmoFixture({
+    area: 0,
+    entities: [
+      { entity_id: panelId, area_id: 0 },
+      { entity_id: "alarm_control_panel.a", area_id: "one" },
+      { entity_id: "alarm_control_panel.b", area_id: "two" },
+    ],
+    sensors: {
+      [sensorId]: { area: "one", type: "window", enabled: true },
+      "binary_sensor.second": { area: "two", type: "motion", enabled: true },
+      "binary_sensor.foreign": { area: "three", enabled: true },
+      "binary_sensor.disabled": { area: "one", enabled: false },
+    },
+  });
+  assert.deepEqual(
+    card.sensorRows().map((r) => r.entity),
+    [sensorId, "binary_sensor.second"],
+  );
+  card.remove();
+});
+test("Home/Away arms in one tap even for older configs with confirm_arm true; bypass is never implicit", async () => {
+  const { card, calls } = fixture("disarmed", {}, { confirm_arm: true });
+  await card.arm("away");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][1], "alarm_arm_away");
+  assert.equal(calls[0][2].force, undefined);
+  assert.equal(card.shadowRoot.querySelector(".security-pin"), null);
+  card.remove();
+});
+test("Alarmo rejection clears the pending timeout immediately and keeps failure feedback inline", async () => {
+  const { card, callbacks, calls } = await alarmoFixture({
+    sensors: { [sensorId]: { area: "one", enabled: true, type: "window" } },
+  });
+  await card.arm("home");
+  assert.equal(calls.length, 1);
+  assert.ok(card.pending.has(panelId));
+  callbacks.alarmo_failed_to_arm({
+    data: { entity_id: "alarm_control_panel.other", reason: "invalid_code" },
+  });
+  assert.ok(card.pending.has(panelId));
+  callbacks.alarmo_failed_to_arm({
+    data: { entity_id: panelId, reason: "open_sensors", sensors: [sensorId] },
+  });
+  assert.equal(card.pending.has(panelId), false);
+  assert.match(card.error.textContent, /Cannot arm: sensors are open/);
+  assert.equal(card.shadowRoot.querySelector("dialog"), null);
+  checkBypass(card);
+  await card.arm("home");
+  assert.equal(calls[1][0], "alarmo");
+  assert.equal(calls[1][2].force, true);
+  callbacks.alarmo_failed_to_arm({
+    data: { entity_id: panelId, reason: "invalid_code" },
+  });
+  assert.equal(card.pending.size, 0);
+  assert.match(card.error.textContent, /Invalid or missing/);
+  card.remove();
+});
+test("failed sensor discovery never shows a green all-clear or requests manual sensor setup", async () => {
+  const { card } = await alarmoFixture({ failure: true });
+  const summary = card.shadowRoot.querySelector(".security-sensor-summary");
+  assert.match(summary.textContent, /Alarmo sensor list unavailable/);
+  assert.equal(summary.classList.contains("clear"), false);
+  assert.doesNotMatch(
+    summary.textContent,
+    /No sensors selected|All monitored sensors clear/,
+  );
+  card.remove();
+});
+test("fresh open_sensors failures are detected without events and closed sensors do not stay falsely open", async () => {
+  const { card } = fixture("disarmed", {}, { contacts: [] });
+  await card.arm("away");
+  transition(card, "disarmed", { open_sensors: { [sensorId]: "on" } });
+  assert.equal(card.pending.size, 0);
+  assert.match(card.error.textContent, /Cannot arm/);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "off" },
+    },
+  };
+  assert.equal(card.shadowRoot.querySelector("[type=checkbox]"), null);
+  assert.equal(
+    card.shadowRoot.querySelectorAll(".security-chips button").length,
+    0,
+  );
+  card.remove();
+});
+
+test("Alarmo configuration updates reload sensors and device names disambiguate generic Opening labels", async () => {
+  const sensors = {
+    [sensorId]: { area: "one", enabled: true, type: "window" },
+  };
+  const { card, callbacks, requests } = await alarmoFixture({ sensors });
+  card.hass = {
+    ...card.hass,
+    entities: { [sensorId]: { device_id: "window_device" } },
+    devices: { window_device: { name_by_user: "Kitchen window" } },
+    states: {
+      ...card.hass.states,
+      [sensorId]: {
+        ...card.hass.states[sensorId],
+        attributes: { friendly_name: "Opening" },
+      },
+    },
+  };
+  assert.match(
+    card.shadowRoot.querySelector(".security-chips").textContent,
+    /Kitchen window Opening/,
+  );
+  sensors[sensorId].enabled = false;
+  callbacks.alarmo_config_updated();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(requests.length, 4);
+  assert.equal(card.sensorRows().length, 0);
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /No sensors enabled in Alarmo/,
+  );
+  assert.equal(
+    card.shadowRoot
+      .querySelector(".security-sensor-summary")
+      .classList.contains("clear"),
+    false,
+  );
+  card.remove();
+});
+test("sensor loading ignores stale results after disconnect and removes late event subscriptions", async () => {
+  const { card } = fixture("disarmed", {}, { contacts: [] });
+  let resolveSensors, resolveEntities, resolveSubscription;
+  let unsubscribed = 0;
+  card.hass = {
+    ...card.hass,
+    connection: {
+      subscribeEvents: () =>
+        new Promise((resolve) => (resolveSubscription = resolve)),
+    },
+    callWS: (message) =>
+      new Promise((resolve) => {
+        if (message.type === "alarmo/entities") resolveEntities = resolve;
+        else resolveSensors = resolve;
+      }),
+  };
+  card.visible = true;
+  const loading = card.loadAlarmo();
+  card.remove();
+  resolveEntities([{ entity_id: panelId, area_id: "one" }]);
+  resolveSensors({
+    [sensorId]: { area: "one", enabled: true, type: "window" },
+  });
+  resolveSubscription(() => unsubscribed++);
+  await loading;
+  await Promise.resolve();
+  assert.equal(card.alarmoSensors.length, 0);
+  assert.equal(unsubscribed, 1);
 });

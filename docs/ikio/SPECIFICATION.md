@@ -479,3 +479,20 @@ Reduce only the device and Untracked sparkline stroke from 1 px to 0.8 px, retai
 ## 30. Release 0.5.3
 
 The owner authorized publishing sections 28–29 together as `ikio-v0.5.3`, superseding their earlier publication restrictions. Retain asset-free HACS delivery and documented live-verification limits.
+
+## 31. Automatic Alarmo sensors, direct arming and smaller Drive icons (0.5.4)
+
+Discover enabled sensors from read-only `alarmo/entities` and `alarmo/sensors` requests, scoped to the selected Alarmo area or the master's known areas. Do not require card sensor configuration. Retain optional manual rows as extras/fallback. Update from HA states, subscribe to Alarmo configuration changes, periodically refresh and clean up subscriptions/timers/late requests on configuration, hiding, disconnect or connection changes. Prefer full friendly/device names rather than abbreviated generic entity labels; retain native HA state icons. No sensors or failed discovery must not look like a green all-clear.
+
+Home/Away arms with one tap when no code is required. The unchecked-by-default bypass checkbox supplies explicit bypass consent, followed by one mode tap; remove the separate arming review and ignore legacy `confirm_arm` values. Remove that editor field. Required codes still use the inline PIN pad and an Arm action; preserve exit delay and backend authority. Listen for this panel's `alarmo_failed_to_arm` event to clear pending timers and display the real rejection reason immediately. Detect fresh blocking-sensor attributes as an event fallback. Never mark a command successful on a failure or send device actions while testing.
+
+Reduce Drive metric/status icons to 24 px, or 20 px on narrow cards, retaining labels, values and touch targets. These fixes are authorized; no release is requested yet.
+
+
+## 32. Energy billing alignment and per-value units (0.5.4)
+
+Right-align estimated bill and forecast labels and amounts within their existing column. Show Energy as the column heading; show Day/Night/Total with exactly one decimal and a smaller muted kWh suffix per numeric value. Convert source units and calculate totals before rounding; preserve currency precision, missing/incompatible-data messages and billing-cycle safeguards. The owner authorized implementing and releasing these changes together with section 31 as `ikio-v0.5.4`, superseding its earlier publication restriction. Retain asset-free HACS releases and documented live-verification limits.
+
+## 33. Sparse device history (0.5.4)
+
+For device and Untracked sparklines, hold each recorded sample until the next timestamp and step to the new recorded value. Do not draw diagonal interpolation across unchanged periods with sparse recordings. Keep gaps for missing/unavailable samples and do not invent an initial zero. Preserve shared value colours, 0.8 px strokes and existing main/standalone graph paths. Include this rendering correction in the authorized 0.5.4 release.

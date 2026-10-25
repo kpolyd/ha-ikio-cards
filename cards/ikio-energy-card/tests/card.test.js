@@ -194,7 +194,7 @@ test("three-column summary leads with integer watts and retains energy/cost prec
   assert.match(columns[0].textContent, /Current power160W/);
   assert.match(
     columns[1].textContent,
-    /Energy · kWhDay11.86Night7.11Total18.97/,
+    /EnergyDay11.9kWhNight7.1kWhTotal19.0kWh/,
   );
   assert.match(columns[2].textContent, /Estimated bill30.09 €Forecast60.6 €/);
   assert.equal(card.hass.states["sensor.power"].state, "0.16049");
@@ -416,5 +416,39 @@ test("device and Untracked graphs inherit configured main-graph colour threshold
         Number(gradient.getAttribute("y1")));
     assert.ok(Math.abs(ratio - 1000 / 7000) < 1e-10);
   }
+  card.remove();
+});
+
+test("each tariff value shows one decimal and its own kWh suffix without rounding the calculated total inputs", () => {
+  const states = {
+    "sensor.day": energySensor(1040, "Wh"),
+    "sensor.night": energySensor(1.04, "kWh"),
+    "sensor.power": energySensor(80, "W"),
+  };
+  const card = energyFixture(
+    {
+      power_entity: "sensor.power",
+      day_entity: "sensor.day",
+      night_entity: "sensor.night",
+      same_cycle: true,
+    },
+    states,
+  );
+  const values = [
+    ...card.shadowRoot.querySelectorAll(".ae-energy-tariffs .ae-value"),
+  ];
+  assert.deepEqual(
+    values.map((n) => n.textContent),
+    ["1.0kWh", "1.0kWh", "2.1kWh"],
+  );
+  assert.ok(
+    values.every((n) => n.querySelector("small").textContent === "kWh"),
+  );
+  assert.equal(card.hass.states["sensor.day"].state, "1040");
+  card.hass = { ...card.hass, locale: { language: "el" } };
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-energy-tariffs .ae-value").textContent,
+    "1,0kWh",
+  );
   card.remove();
 });

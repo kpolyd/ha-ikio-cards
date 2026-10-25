@@ -277,7 +277,10 @@ export function graph(
         previous = false;
         continue;
       }
-      d += `${previous ? "L" : "M"}${x(point.time)},${y(point.value)} `;
+      d +=
+        previous && sparkline
+          ? `H${x(point.time)} V${y(point.value)} `
+          : `${previous ? "L" : "M"}${x(point.time)},${y(point.value)} `;
       previous = true;
     }
     const path = svgNode("path", {
