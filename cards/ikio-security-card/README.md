@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.5.5**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.6**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.5` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-security-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.6` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-security-card.js`. Use only one route.
 
 Add card → Ikio Security. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -58,3 +58,5 @@ Discovery is retained in memory while the card is hidden; returning immediately 
 ## Live countdown (0.5.5)
 
 During exit/entry delay the header shows remaining seconds and a shrinking coral ring around the smaller shield. Open-sensor warnings remain amber; the armed state turns green only after confirmation from Alarmo. Timing comes from `alarmo/countdown`, with local one-second ticks and a background resync every 15 seconds. Returning to the card resyncs the actual remaining time. If timing is unavailable the state and PIN controls remain usable without invented seconds. The static configured-delay note is removed. Reduced-motion settings disable ring transitions.
+
+Sensor names and icons are collapsed by default. Tap the sensor count/status row to expand or collapse the details. Alert counts and the bypass checkbox remain visible, and the PIN pad stays independent of the disclosure. Expansion persists during live updates and resets after all alerts clear or the card is reconfigured.

@@ -826,3 +826,74 @@ test("countdown timeout and invalid responses never invent time and do not block
   assert.equal(card.shadowRoot.querySelector(".security-countdown"), null);
   card.remove();
 });
+
+test("sensor details collapse by default, toggle with the summary and retain live counts and bypass access", () => {
+  const { card, calls } = fixture();
+  const summary = card.shadowRoot.querySelector(
+    "button.security-sensor-summary",
+  );
+  const chips = card.shadowRoot.querySelector(".security-chips");
+  assert.equal(summary.getAttribute("aria-expanded"), "false");
+  assert.equal(summary.getAttribute("aria-controls"), chips.id);
+  assert.equal(chips.hidden, true);
+  assert.match(summary.textContent, /1 opening open/);
+  assert.ok(card.shadowRoot.querySelector("[type=checkbox]"));
+  summary.focus();
+  summary.click();
+  assert.equal(chips.hidden, false);
+  assert.equal(summary.getAttribute("aria-expanded"), "true");
+  assert.equal(card.shadowRoot.activeElement, summary);
+  assert.ok(chips.querySelector("ha-state-icon"));
+  card.update();
+  assert.equal(
+    chips.hidden,
+    false,
+    "normal rendering must not collapse an expanded list",
+  );
+  assert.equal(calls.length, 0, "expanding is not an alarm command");
+  summary.click();
+  assert.equal(chips.hidden, true);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "off" },
+    },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector("button.security-sensor-summary"),
+    null,
+  );
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /All monitored sensors clear/,
+  );
+  assert.equal(card.shadowRoot.querySelector(".security-chips"), null);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "on" },
+    },
+  };
+  assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, true);
+  card.remove();
+});
+
+test("armed bypass details are collapsible while their count and the PIN pad remain visible", () => {
+  const { card } = fixture("armed_away", {
+    bypassed_sensors: [sensorId],
+    code_format: "number",
+  });
+  const summary = card.shadowRoot.querySelector(
+    "button.security-sensor-summary",
+  );
+  assert.match(summary.textContent, /1 sensor bypassed/);
+  assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, true);
+  assert.ok(card.shadowRoot.querySelector(".security-pin"));
+  summary.click();
+  assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, false);
+  card.setConfig({ entity: panelId, contacts: [{ entity: sensorId }] });
+  assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, true);
+  card.remove();
+});

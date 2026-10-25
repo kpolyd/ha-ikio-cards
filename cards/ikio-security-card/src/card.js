@@ -68,7 +68,10 @@ export class Card extends ControlCard {
       .security-sensor-summary{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ae-warning)}
       .security-sensor-summary ha-icon{--mdc-icon-size:17px;flex:none}
       .security-sensor-summary.clear{color:var(--security-green)}
+      button.security-sensor-summary{width:100%;min-height:44px;border:0;padding:0;background:transparent;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+      .security-sensor-chevron{margin-left:auto}
       .security-chips{display:flex;flex-wrap:wrap;gap:0 12px}
+      .security-chips[hidden]{display:none}
       .security-chips button{display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;padding:0;border:0;background:transparent;color:var(--ae-warning);font:inherit;font-size:12px;text-align:left;overflow-wrap:anywhere}
       .security-chips ha-state-icon{--mdc-icon-size:17px;flex:none}
       .security-pin{border-top:1px solid var(--ae-border);padding-top:14px;display:grid;gap:10px}
@@ -105,6 +108,7 @@ export class Card extends ControlCard {
     this.armIntent = null;
   }
   onConfig() {
+    this.sensorsExpanded = false;
     this.stopCountdown();
     this.resetInput();
     this.lastAlarmState = undefined;
@@ -778,11 +782,22 @@ export class Card extends ControlCard {
     const sensorStatusKnown =
       (rows.length > 0 || this.alarmoStatus === "ready") &&
       this.alarmoStatus !== "unavailable";
+    if (!alerts.length) this.sensorsExpanded = false;
     const summary = el(
-      "div",
+      alerts.length ? "button" : "div",
       undefined,
       `security-sensor-summary${!alerts.length && sensorStatusKnown && rows.length ? " clear" : ""}`,
     );
+    if (alerts.length) {
+      summary.type = "button";
+      summary.dataset.key = "toggle-sensors";
+      summary.setAttribute("aria-expanded", String(this.sensorsExpanded));
+      summary.setAttribute("aria-controls", "security-sensor-details");
+      event(summary, "click", () => {
+        this.sensorsExpanded = !this.sensorsExpanded;
+        this.update();
+      });
+    }
 
     summary.append(
       icon(
@@ -813,9 +828,18 @@ export class Card extends ControlCard {
                     : "Loading Alarmo sensors…"),
       ),
     );
+    if (alerts.length) {
+      const chevron = icon(
+        this.sensorsExpanded ? "mdi:chevron-up" : "mdi:chevron-down",
+      );
+      chevron.classList.add("security-sensor-chevron");
+      summary.append(chevron);
+    }
     sensors.append(summary);
     if (alerts.length) {
       const chips = el("div", undefined, "security-chips");
+      chips.id = "security-sensor-details";
+      chips.hidden = !this.sensorsExpanded;
       for (const r of alerts) {
         const suffix = bypassed.has(r.entity)
           ? "bypassed"

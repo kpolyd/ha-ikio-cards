@@ -1,5 +1,9 @@
 # Ikio changelog
 
+## 0.5.6 — Collapsible alarm sensor details
+
+- Collapse Security sensor details by default. Tap the count/status summary to expand or collapse sensor names and HA icons; keep live alert counts, bypass consent and the PIN pad visible.
+
 ## 0.5.5 — Live alarm countdown and reliable sensor loading
 
 - Show a live exit/entry countdown and shrinking progress ring synchronized with Alarmo. Use coral for delay indicators, preserve amber open-sensor warnings and green confirmed armed states. Keep the inline PIN pad and wait for backend state confirmation when the timer expires.
