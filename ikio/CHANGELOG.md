@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.5.9 — System details cleanup
+
+- Remove the redundant Last 30 min heading above network readings, retaining the graph axis labels.
+- Fix expanded System details: keep a single chevron, remove the duplicate heading and omit the extra divider for database-only details.
+- Remove the Availability entity selector from the System editor, preserving existing bindings for compatibility.
+
 ## 0.5.8 — System mock fidelity and automatic setup
 
 - Remove configurable metric thresholds. System warning/error limits are fixed at 70/85 and take precedence over old threshold configurations.
