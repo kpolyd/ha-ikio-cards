@@ -1,4 +1,10 @@
 import {
+  installRefinement,
+  refine,
+  requestReview,
+  reviewView,
+} from "@ikio/card-ui";
+import {
   ControlCard,
   group,
   row,
@@ -13,6 +19,10 @@ import {
 import { validate } from "./config.js";
 export class Card extends ControlCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+  }
   static getStubConfig() {
     return { schema_version: 1, timed_runs: [] };
   }
@@ -55,21 +65,23 @@ export class Card extends ControlCard {
         stateText(this.hass, c.entity),
       ),
     );
-    result.append(
-      row(
-        ...["power", "energy"]
-          .filter((k) => c[k + "_entity"])
-          .map((k) =>
-            reading(
-              k === "power" ? "Power" : "Energy",
-              valueText(this.hass, c[k + "_entity"]),
-              c[k + "_entity"],
-            ),
+    refine(result, "mdi:power-plug-outline");
+    const measurements = row(
+      ...["power", "energy"]
+        .filter((k) => c[k + "_entity"])
+        .map((k) =>
+          reading(
+            k === "power" ? "Power" : "Energy",
+            valueText(this.hass, c[k + "_entity"]),
+            c[k + "_entity"],
           ),
-      ),
+        ),
     );
+    result.append(measurements);
     const actions = row();
-    result.append(actions);
+    const actionBar = row(actions);
+    actionBar.classList.add("ikio-action-bar");
+    result.append(actionBar);
     for (const run of c.timed_runs || []) {
       if (!run.start_script) continue;
       actions.append(
@@ -86,22 +98,25 @@ export class Card extends ControlCard {
           timer?.state === "active" && Number.isFinite(finish)
             ? `${Math.max(0, Math.ceil((finish - Date.now()) / 60000))} min remaining`
             : stateText(this.hass, run.timer_entity);
-        result.append(reading(run.label || "Timer", value, run.timer_entity));
+        measurements.append(
+          reading(run.label || "Timer", value, run.timer_entity),
+        );
       }
     }
-    actions.append(
+    const manual = row();
+    manual.append(
       button(
         this.state()?.state === "on" ? "Turn off" : "Turn on",
         () => {
           if (c.confirm_manual_on && this.state()?.state !== "on")
-            this.dialog(
+            requestReview(
+              this,
+              c.entity,
               "Turn on appliance",
-              [
-                note(
-                  "Manual operation does not schedule an automatic shutoff.",
-                ),
-              ],
-              () => this.toggle(c.entity),
+              "Manual operation does not schedule an automatic shutoff.",
+              () => {
+                if (this.state()?.state !== "on") this.toggle(c.entity);
+              },
             );
           else this.toggle(c.entity);
         },
@@ -109,16 +124,21 @@ export class Card extends ControlCard {
       ),
     );
     if (c.stop_script)
-      actions.append(
+      manual.append(
         button("Stop run", () => this.action(c.stop_script, "Stop run"), {
           disabled: this.blocked(c.stop_script),
         }),
       );
+    if (actions.children.length) {
+      actions.setAttribute("aria-label", "Timed runs");
+      actions.firstElementChild?.classList.add("ikio-primary");
+    }
+    actionBar.append(manual);
+    if (this.review && this.state()?.state === "on") this.review = undefined;
+    if (this.review) result.append(reviewView(this));
     if (c.timed_runs?.length)
       result.append(
-        note(
-          "Timed shutoff runs in Home Assistant. Manual off does not cancel a backend schedule.",
-        ),
+        note("Turning off manually does not cancel a scheduled timed run."),
       );
     return result;
   }

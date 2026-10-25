@@ -1,3 +1,4 @@
+import { installRefinement, refine, disclosure } from "@ikio/card-ui";
 import {
   ControlCard,
   group,
@@ -15,6 +16,10 @@ import { validate } from "./config.js";
 import { primary } from "./adapter.js";
 export class Card extends ControlCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+  }
   static getStubConfig() {
     return { schema_version: 1, maintenance: [], missions: [] };
   }
@@ -40,6 +45,7 @@ export class Card extends ControlCard {
         [stateText(this.hass, c.entity), battery].filter(Boolean).join(" · "),
       ),
     );
+    refine(result, "mdi:robot-vacuum");
     const action = primary(s),
       controls = [];
     if (action)
@@ -91,25 +97,40 @@ export class Card extends ControlCard {
           ),
       );
       suction.querySelector("select").disabled = this.blocked(c.entity);
-      controls.push(suction);
+      result.append(suction);
     }
-    result.append(row(...controls));
+    const actionRow = row(...controls);
+    if (action) {
+      const primaryControl = actionRow.firstElementChild;
+      primaryControl.classList.remove("ae-icon");
+      primaryControl.classList.add("ikio-primary", "ikio-labelled-action");
+      primaryControl.append(el("span", action.label));
+    }
+    const taskRow = row(actionRow);
+    taskRow.classList.add("ikio-cleaning-controls");
+    const suction = result.querySelector(".ae-select");
+    if (suction) taskRow.append(suction);
+    result.insertBefore(taskRow, result.children[1] || null);
     if (c.status_entity)
       result.append(note(valueText(this.hass, c.status_entity)));
     if (a.error) result.append(note(String(a.error), "ae-warn"));
     if (c.maintenance?.length || c.missions?.length) {
-      const extras = el("details");
-      extras.append(el("summary", "Maintenance and missions"));
+      const extras = disclosure(
+        this,
+        "cleaning-extras",
+        "Maintenance and missions",
+      );
+      const body = extras.querySelector(".ikio-disclosure-body");
       for (const item of c.maintenance || [])
         if (item.entity)
-          extras.append(
+          body.append(
             note(
               `${item.name || this.label(item.entity)}: ${valueText(this.hass, item.entity)}`,
             ),
           );
       for (const item of c.missions || [])
         if (item.entity)
-          extras.append(
+          body.append(
             button(
               item.label || this.label(item.entity),
               () => this.action(item.entity, item.label),

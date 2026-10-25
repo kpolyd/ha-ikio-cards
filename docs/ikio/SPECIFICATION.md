@@ -520,3 +520,38 @@ Collapse individual alert sensor names/icons by default behind the live sensor s
 ## 37. Release 0.5.6
 
 The owner authorized committing, merging and releasing section 36 as ikio-v0.5.6, superseding its publication restriction. Retain synchronized versions, asset-free HACS delivery and live-verification limits.
+
+
+## 38. Softer Drive green and smaller readings (unreleased)
+
+Reduce Drive metric/status icons from 24 to 22 px, or 20 to 18 px at narrow widths, and resize their grid columns to match. Reduce range/fuel/odometer values from 19 to 18 px, or 16 to 15 px at narrow widths; units from 12 to 11 px; status values from 14 to 13 px. Keep readable supporting labels at 11 px and retain 44 px native-details targets. Header, plate and VIN sizing remain unchanged.
+
+Use Ikio’s existing temperature/accent mint #a4e4b8 for secure locked/closed text and icons, replacing #6ef0a6 in Drive only. Use matching palette green #28613e in light mode and continue honoring the HA success colour in HA appearance. Preserve warning/error/pending/unknown colours and status aggregation. Security colours do not change. The owner authorized committing these changes on the feature branch; do not merge or release yet.
+
+## 39. Design approach and review of remaining cards
+
+The owner identified Light, Energy, Drive/Car and Security as approved reference designs to preserve, including the committed unreleased Drive refinement. Record the established preferences in DESIGN_APPROACH.md, use UI UX Pro Max as an advisory review reference and add this guidance to AGENTS.md for future work. DESIGN_REVIEW.md records source-informed findings and proposed directions for Comfort, Media, Cleaning, Appliance, System, Camera and Graph. These proposals do not authorize changing the four reference cards or automatically applying generic skill defaults. Review and document first; no remaining-card runtime redesign, version bump, merge or release is included in this work.
+
+## 40. Remaining-card redesign implementation and mocks (unreleased)
+
+The owner authorized implementing the findings and redesigned layouts for Comfort, Media, Cleaning, Appliance, System, Camera and Graph, with a mock for each. This supersedes section 39's proposal-only implementation scope. Preserve the four approved reference cards and committed Drive refinements; no merge or release requested.
+
+Use opt-in `.ikio-refined` presentation so the approved cards receive no new styles. Add visible select labels, compact icon/name/status headers, primary-action emphasis and persistent native disclosures. Comfort distinguishes room/humidity/fridge and separates advanced settings; Media ranks title/artist and transport, keeping source/volume accessible and extra controls disclosed; Cleaning gives its state-dependent primary action a visible label and keeps maintenance/missions disclosed. Appliance keeps direct timed-run scripts and replaces configured manual-on modal consent with inline review. System groups utilization values/bars/capacities, puts secondary host readings after resources, discloses services and uses inline restart review. Camera keeps explicit on-demand streaming, groups its open action/automation and bounds helper loading to eight seconds with late-response cleanup. Graph adds line-pattern samples to a compact legend without changing shared plot mathematics or Energy rendering.
+
+Keep existing capability gates, units, timer/script semantics, manual-off schedule warning, missing-data states and native entity interactions. No real device operations are used for testing. `dev/previews/redesign.html` and `redesign.js` supply simulated fixtures; `node scripts/build-redesign-preview.mjs [output.html]` builds a self-contained seven-card preview. Preview icon stand-ins use attributed MDI SVGs; no preview fixture or third-party icon assets enter the runtime bundle. The generated gallery is a mock, not a claim of live HA compatibility.
+
+## 41. Compactness correction after mock review (unreleased)
+
+The owner rejected the first seven-card mock set as too spacious and restated that compactness must preserve readability and functionality. Revise the opt-in layouts using 16 px headers/18 px header icons, 6 px section gaps and inline visible field labels. Keep 11–12 px supporting labels, ordinary value sizes, wrapping, semantic colours, all existing capabilities and 44 px touch targets. Never force shorter cards with clipped content or fixed heights.
+
+Group Comfort's primary mode/target controls in a wrapping task row, use short unambiguous measurement labels and show activity in the header instead of a duplicate line. Group Media's volume/source and power/extras into wrapping rows; Cleaning's main action/suction into one wrapping group; Appliance's power/energy/timer readings and distinct run/manual control groups into shared rows. Put System utilization in a compact three-column strip with supporting reading pairs. Remove Camera's large decorative placeholder and pair capture/automation information. Label a single Graph hero with its series name rather than repeating the same reading in a legend. Reflow groups at narrow widths; preserve direct controls and collapsed secondary settings. Keep the four approved reference cards unchanged. Update the seven-card mock gallery; no release is requested.
+
+## 42. Approved System rings/header/network and release 0.5.7
+
+Implement the approved compact System mock: 48 px CPU/RAM/disk usage rings with measured percentages centred, muted tracks, soft mint arcs and labels/capacities below. Unknown has a dash and no arc; clamp only the drawn fraction for out-of-range measurements and retain their warning/raw value. Configured threshold levels control ring warning/error colours; never introduce fixed severity limits.
+
+Move the configured general system temperature to a small thermometer/value target in the header, independently of CPU. Replace Online with adaptive Up for X days/hours/minutes/seconds when a valid numeric duration with an explicit supported unit or start timestamp is supplied. Remove the duplicate uptime/temperature rows; offline/unavailable availability takes priority. Do not infer online state from uptime alone. Preserve native details for both readings and responsive header wrapping.
+
+Use the existing network RX/TX bindings as Download/Upload live readings beside solid blue/dashed mint samples and a shallow shared 30-minute history graph. Normalize byte/bit and SI/binary rate units to bytes per second for the common zero-based scale; preserve source units in live labels and gaps for unavailable/unsupported historical states. Do not reinterpret totals as rates. Batch both sensors, bound history loading to five seconds, deduplicate between renders, refresh each minute while visible and discard stale replies on configuration/connection/hide/disconnect. Loading/empty/failure states retain live speeds; no synthetic history. Keep database readings, capacity math, thresholds, native details and inline service consent.
+
+The owner authorized releasing all accumulated branch changes together as ikio-v0.5.7: committed Drive sizing/green refinement, design guidelines, seven compact card redesigns, mocks and this System implementation. Supersede earlier no-release restrictions for this release. Keep Light, Energy and Security unchanged, retain the approved Drive changes, synchronize all package versions and preserve asset-free HACS delivery. DOM tests do not claim fresh browser geometry/native-HA verification.

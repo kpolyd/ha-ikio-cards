@@ -95,3 +95,48 @@ test("media capabilities gate icons and zero volume remains valid", async () => 
   assert.ok(card.shadowRoot.querySelector('[aria-label="Play"] ha-icon'));
   card.remove();
 });
+
+test("source and volume stay directly accessible while extra controls are disclosed", () => {
+  const card = document.createElement("ikio-media-card");
+  card.setConfig({
+    entity: "media_player.test",
+    backlight_entity: "light.test",
+  });
+  const calls = [];
+  card.hass = {
+    states: {
+      "media_player.test": {
+        state: "playing",
+        attributes: {
+          supported_features: 1 | 4 | 2048,
+          volume_level: 0.4,
+          source: "Music",
+          source_list: ["Music", "TV"],
+          media_title: "Example",
+          media_artist: "Artist",
+        },
+      },
+      "light.test": { state: "on", attributes: {} },
+    },
+    callService: async (...args) => calls.push(args),
+  };
+  document.body.append(card);
+  const details = card.shadowRoot.querySelector("details");
+  assert.equal(details.open, false);
+  assert.equal(
+    card.shadowRoot.querySelector("select").closest("details"),
+    null,
+  );
+  assert.equal(card.shadowRoot.querySelector("input").closest("details"), null);
+  assert.match(details.textContent, /TV glow/);
+  details.open = true;
+  details.dispatchEvent(new dom.window.Event("toggle"));
+  card.update();
+  assert.equal(details.open, true);
+  assert.equal(calls.length, 0);
+  assert.match(
+    card.shadowRoot.querySelector(".ikio-track").textContent,
+    /Example/,
+  );
+  card.remove();
+});

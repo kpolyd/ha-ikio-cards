@@ -1,8 +1,13 @@
+import { installRefinement, refine } from "@ikio/card-ui";
 import { HistoryCard } from "@ikio/graph";
-import { group, title, reading, row, valueText, note } from "@ikio/card-ui";
+import { group, title, reading, row, valueText, note, el } from "@ikio/card-ui";
 import { validate } from "./config.js";
 export class Card extends HistoryCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+  }
   static getStubConfig() {
     return {
       schema_version: 1,
@@ -32,7 +37,7 @@ export class Card extends HistoryCard {
       ),
       rows.length === 1
         ? reading(
-            "",
+            rows[0].name || this.label(rows[0].entity),
             valueText(this.hass, rows[0].entity),
             rows[0].entity,
             "ae-hero",
@@ -40,16 +45,27 @@ export class Card extends HistoryCard {
         : null,
       this.historyView(rows),
     );
-    if (this.config.show_legend !== false) {
-      const legend = row(
-        ...rows.map((r, i) =>
+    refine(result, "mdi:chart-line");
+    if (this.config.show_legend !== false && rows.length > 1) {
+      const legend = el("div", undefined, "ikio-legend");
+      rows.forEach((r, i) => {
+        const entry = el("div", undefined, "ikio-legend-entry");
+        const sample = el(
+          "span",
+          undefined,
+          `ikio-line-sample ${i ? (i % 2 ? "dashed" : "dotted") : ""}`,
+        );
+        sample.setAttribute("aria-hidden", "true");
+        entry.append(
+          sample,
           reading(
-            `${i + 1}. ${r.name || this.label(r.entity)}`,
+            r.name || this.label(r.entity),
             valueText(this.hass, r.entity),
             r.entity,
           ),
-        ),
-      );
+        );
+        legend.append(entry);
+      });
       result.append(legend);
     }
     return result;

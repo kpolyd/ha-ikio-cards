@@ -1,4 +1,12 @@
 import {
+  installRefinement,
+  glyph,
+  refine,
+  disclosure,
+  requestReview,
+  reviewView,
+} from "@ikio/card-ui";
+import {
   ControlCard,
   group,
   title,
@@ -12,11 +20,24 @@ import {
   el,
   stateText,
   available,
+  details,
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
-import { utilization, threshold } from "./adapter.js";
+import {
+  utilization,
+  threshold,
+  uptimeSeconds,
+  uptimeLabel,
+  rateFactor,
+} from "./adapter.js";
+import { systemStyles, ringReading, networkPlot } from "./views.js";
 export class Card extends ControlCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+    this.shadowRoot.append(el("style", systemStyles));
+  }
   static getStubConfig() {
     return {
       schema_version: 1,
@@ -30,13 +51,172 @@ export class Card extends ControlCard {
     await import("./editor.js");
     return document.createElement("ikio-system-card-editor");
   }
+  onConfig() {
+    this.stopNetwork();
+    this.network = {};
+    this.networkError = "";
+    this.networkConnection = undefined;
+    this.onVisibility();
+  }
   onVisibility() {
     clearInterval(this.clock);
-    if (this.isConnected && this.visible)
-      this.clock = setInterval(() => this.update(), 60000);
+    if (!this.visible) this.stopNetwork();
+    if (this.isConnected && this.visible) {
+      this.loadNetwork();
+      this.clock = setInterval(() => {
+        this.loadNetwork();
+        this.update();
+      }, 60000);
+    }
   }
   onDisconnect() {
     clearInterval(this.clock);
+    this.stopNetwork();
+  }
+  afterRender() {
+    this.loadNetwork();
+  }
+  networkRows() {
+    return [
+      ["network_rx", "Download"],
+      ["network_tx", "Upload"],
+    ]
+      .filter(([key]) => this.config?.[key + "_entity"])
+      .map(([key, label]) => ({
+        key,
+        label,
+        entity: this.config[key + "_entity"],
+        unit: this.state(this.config[key + "_entity"])?.attributes
+          ?.unit_of_measurement,
+      }));
+  }
+  stopNetwork() {
+    this.networkRequest = (this.networkRequest || 0) + 1;
+    this.cancelNetwork?.();
+    this.cancelNetwork = undefined;
+    this.networkLoading = false;
+    this.networkChecked = undefined;
+  }
+  async loadNetwork() {
+    const rows = this.networkRows().filter(
+      (row) => rateFactor(row.unit) !== null,
+    );
+    if (
+      !rows.length ||
+      !this.hass?.callWS ||
+      !this.visible ||
+      !this.isConnected ||
+      this.preview
+    )
+      return;
+    const connection = this.hass.connection;
+    if (this.networkConnection && this.networkConnection !== connection) {
+      this.stopNetwork();
+      this.network = {};
+      this.networkError = "";
+    }
+    this.networkConnection = connection;
+    if (
+      this.networkLoading ||
+      (this.networkChecked !== undefined &&
+        Date.now() - this.networkChecked < 60000)
+    )
+      return;
+    this.networkLoading = true;
+    const request = (this.networkRequest = (this.networkRequest || 0) + 1);
+    const revision = this.revision;
+    const valid = () =>
+      request === this.networkRequest &&
+      revision === this.revision &&
+      this.visible &&
+      this.isConnected &&
+      !this.preview &&
+      this.hass?.connection === connection;
+    let timer;
+    const cancelled = new Promise((_, reject) => {
+      this.cancelNetwork = () => reject(new Error("Cancelled"));
+      timer = setTimeout(() => reject(new Error("History timed out")), 5000);
+    });
+    const now = Date.now();
+    try {
+      const data = await Promise.race([
+        this.hass.callWS({
+          type: "history/history_during_period",
+          start_time: new Date(now - 1800000).toISOString(),
+          end_time: new Date(now).toISOString(),
+          entity_ids: [...new Set(rows.map((row) => row.entity))],
+          minimal_response: true,
+          no_attributes: false,
+        }),
+        cancelled,
+      ]);
+      if (!valid()) return;
+      this.network = data;
+      this.networkError = "";
+    } catch {
+      if (valid())
+        this.networkError =
+          "Network history unavailable. Live speeds remain visible.";
+    } finally {
+      clearTimeout(timer);
+      if (valid()) {
+        this.networkLoading = false;
+        this.cancelNetwork = undefined;
+        this.networkChecked = Date.now();
+        this.update();
+      }
+    }
+  }
+  networkView() {
+    const rows = this.networkRows();
+    if (!rows.length) return null;
+    const section = el("div", undefined, "system-network");
+    section.append(el("div", "Last 30 min", "system-network-heading"));
+    const legend = el("div", undefined, "system-network-legend");
+    for (const row of rows) {
+      const entry = reading(
+        row.label,
+        valueText(this.hass, row.entity),
+        row.entity,
+      );
+      const key = el(
+        "span",
+        undefined,
+        `system-network-key ${row.key === "network_tx" ? "upload" : ""}`,
+      );
+      key.setAttribute("aria-hidden", "true");
+      entry.prepend(key);
+      legend.append(entry);
+    }
+    section.append(legend);
+    const compatible = rows.filter((row) => rateFactor(row.unit) !== null);
+    const plot = networkPlot(compatible, this.network, Date.now(), this.hass);
+    if (plot) {
+      section.append(plot);
+      const times = el("div", undefined, "system-network-times");
+      times.append(el("span", "−30 min"), el("span", "Now"));
+      section.append(times);
+    } else
+      section.append(
+        note(
+          this.networkLoading
+            ? "Loading network history…"
+            : this.networkError ||
+                (this.hass?.callWS
+                  ? "No network history yet"
+                  : "Network history unavailable"),
+        ),
+      );
+    if (plot && this.networkError) section.append(note(this.networkError));
+    for (const row of rows)
+      if (rateFactor(row.unit) === null)
+        section.append(
+          note(
+            `${row.label}: select a rate sensor (for example MB/s or Mbit/s).`,
+            "ae-warn",
+          ),
+        );
+    return section;
   }
   render() {
     const c = this.config;
@@ -50,30 +230,56 @@ export class Card extends ControlCard {
           : "Offline"
         : stateText(this.hass, c.availability_entity)
       : undefined;
-    const result = group(
-      title(this, c.name || "System", c.availability_entity, status),
+    const seconds = uptimeSeconds(this.state(c.uptime_entity), c.uptime_mode);
+    const uptime = uptimeLabel(
+      seconds,
+      this.hass?.locale?.language || this.hass?.language || "en",
     );
-    const metrics = row();
-    if (c.temperature_entity)
-      metrics.append(
-        reading(
-          "Temperature",
-          valueText(this.hass, c.temperature_entity),
-          c.temperature_entity,
-        ),
+    const headline = status === "Online" ? uptime || status : status || uptime;
+    const result = group(
+      title(this, c.name || "System", c.availability_entity),
+    );
+    refine(result, "mdi:server-outline");
+    result.classList.add("ikio-system");
+    const header = result.querySelector("header"),
+      meta = el("div", undefined, "system-header-meta");
+    if (c.temperature_entity) {
+      const temperature = button(
+        valueText(this.hass, c.temperature_entity),
+        () => details(this, c.temperature_entity),
+        { entity: c.temperature_entity, key: "header-temperature" },
       );
-    if (c.uptime_entity) {
-      let uptime = valueText(this.hass, c.uptime_entity);
-      if (c.uptime_mode === "timestamp") {
-        const start = Date.parse(this.state(c.uptime_entity)?.state);
-        uptime =
-          Number.isFinite(start) && start <= Date.now()
-            ? `${formatNumber(this.hass, (Date.now() - start) / 3600000, 1)} hours`
-            : "Unknown";
-      }
-      metrics.append(reading("Uptime", uptime, c.uptime_entity));
+      temperature.setAttribute(
+        "aria-label",
+        `System temperature: ${valueText(this.hass, c.temperature_entity)}`,
+      );
+      temperature.prepend(glyph("mdi:thermometer"));
+      meta.append(temperature);
     }
-    result.append(metrics);
+    if (headline) {
+      const statusNode = el("div", undefined, "system-status");
+      if (status === "Online") {
+        const dot = el("span", undefined, "system-online-dot");
+        dot.setAttribute("aria-hidden", "true");
+        statusNode.append(dot);
+      }
+      if (uptime && headline === uptime) {
+        const uptimeButton = button(
+          headline,
+          () => details(this, c.uptime_entity),
+          { entity: c.uptime_entity, key: "header-uptime" },
+        );
+        uptimeButton.setAttribute("aria-label", `Uptime: ${headline}`);
+        statusNode.append(uptimeButton);
+      } else statusNode.append(el("span", headline));
+      meta.append(statusNode);
+    }
+    header.append(meta);
+    const metrics = row();
+    metrics.classList.add("ikio-system-metadata");
+    const measured = { temperature: numeric(this.state(c.temperature_entity)) };
+    const resources = el("div", undefined, "ikio-resources");
+    result.append(resources);
     for (const metric of ["cpu", "ram", "disk"]) {
       const id =
         c[(metric === "cpu" ? "cpu" : metric + "_percent") + "_entity"];
@@ -93,60 +299,52 @@ export class Card extends ControlCard {
             metric !== "cpu" && c[metric + "_used_entity"]
               ? `${valueText(this.hass, c[metric + "_used_entity"])} / ${valueText(this.hass, c[metric + "_total_entity"])}`
               : "";
-        result.append(
-          reading(
+        const resource = group();
+        resource.classList.add("ikio-resource");
+        resources.append(resource);
+        const key = metric === "cpu" ? "cpu" : metric + "_percent";
+        measured[key] = percent;
+        const levels = (c.thresholds || [])
+          .filter((rule) => rule.metric === key)
+          .map((rule) => threshold(percent, rule));
+        const level = levels.includes("critical")
+          ? "critical"
+          : levels.includes("warning")
+            ? "warning"
+            : "";
+        resource.append(
+          ringReading(
             label,
-            [
-              capacity,
-              percent === null ? "" : `${formatNumber(this.hass, percent, 1)}%`,
-            ]
-              .filter(Boolean)
-              .join(" · ") || valueText(this.hass, id),
+            percent,
             id || c[metric + "_used_entity"],
+            level,
+            this.hass,
           ),
         );
-        if (percent !== null) {
-          const progress = el("progress", undefined, "ae-progress");
-          progress.max = 100;
-          progress.value = Math.max(0, Math.min(100, percent));
-          progress.setAttribute("aria-label", `${label} ${percent}%`);
-          result.append(progress);
-          if (percent < 0 || percent > 100)
-            result.append(
-              note(`${label} measurement outside 0–100%`, "ae-warn"),
-            );
-        }
+        if (capacity) resource.append(note(capacity));
+        if (percent !== null && (percent < 0 || percent > 100))
+          resource.append(
+            note(`${label} measurement outside 0–100%`, "ae-warn"),
+          );
       }
     }
-    for (const [key, label] of [
-      ["database", "Database"],
-      ["network_rx", "Network RX"],
-      ["network_tx", "Network TX"],
-    ])
+    result.append(metrics);
+    for (const [key, label] of [["database", "Database"]])
       if (c[key + "_entity"]) {
         const state = this.state(c[key + "_entity"]),
           unit = state?.attributes?.unit_of_measurement || "";
-        result.append(
+        metrics.append(
           reading(
             label,
             valueText(this.hass, c[key + "_entity"]),
             c[key + "_entity"],
           ),
         );
-        if (
-          key.startsWith("network") &&
-          available(state) &&
-          !/(\/s|bps|bit\/s)$/i.test(unit)
-        )
-          result.append(
-            note(
-              `${label}: selected entity is not a recognized rate sensor.`,
-              "ae-warn",
-            ),
-          );
       }
+    const network = this.networkView();
+    if (network) result.append(network);
     for (const rule of c.thresholds || []) {
-      const value = numeric(this.state(c[rule.metric + "_entity"])),
+      const value = measured[rule.metric] ?? null,
         level = threshold(value, rule);
       if (level)
         result.append(
@@ -156,8 +354,10 @@ export class Card extends ControlCard {
           ),
         );
     }
+    const services = [];
     for (const service of c.services || []) {
       const block = group(note(service.name || "Service"));
+      block.classList.add("ikio-service");
       if (service.status_entity)
         block.append(
           reading(
@@ -182,10 +382,16 @@ export class Card extends ControlCard {
           button(
             "Restart",
             () =>
-              this.action(
+              requestReview(
+                this,
                 service.restart_action,
                 `Restart ${service.name || "service"}`,
-                true,
+                "The service may be temporarily unavailable while restarting.",
+                () =>
+                  this.action(
+                    service.restart_action,
+                    `Restart ${service.name || "service"}`,
+                  ),
               ),
             {
               icon: "mdi:restart",
@@ -193,8 +399,18 @@ export class Card extends ControlCard {
             },
           ),
         );
-      result.append(block);
+      services.push(block);
     }
+    if (services.length)
+      result.append(
+        disclosure(
+          this,
+          "system-services",
+          `Services · ${services.length}`,
+          ...services,
+        ),
+      );
+    if (this.review) result.append(reviewView(this));
     return result;
   }
 }

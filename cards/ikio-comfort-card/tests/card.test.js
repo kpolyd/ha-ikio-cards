@@ -92,3 +92,31 @@ test("device selection sends no command and range targets keep the other bound",
   assert.equal(calls[0][2].target_temp_low, 19);
   card.remove();
 });
+
+test("room readings survive unavailable devices and fridge remains separately identified", () => {
+  const card = document.createElement("ikio-comfort-card");
+  card.setConfig({
+    temperature_entity: "sensor.room",
+    fridge_entity: "sensor.fridge",
+    climate_entity: "climate.ac",
+  });
+  card.hass = {
+    states: {
+      "sensor.room": { state: "23", attributes: { unit_of_measurement: "°C" } },
+      "sensor.fridge": {
+        state: "4",
+        attributes: { unit_of_measurement: "°C" },
+      },
+      "climate.ac": { state: "unavailable", attributes: {} },
+    },
+  };
+  document.body.append(card);
+  assert.match(card.shadowRoot.textContent, /23 °C/);
+  assert.match(
+    card.shadowRoot.querySelector(".ikio-fridge").textContent,
+    /Fridge4 °C/,
+  );
+  assert.match(card.shadowRoot.textContent, /Device unavailable/);
+  assert.equal(card.shadowRoot.querySelector("input"), null);
+  card.remove();
+});

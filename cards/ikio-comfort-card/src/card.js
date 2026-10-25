@@ -1,3 +1,4 @@
+import { installRefinement, refine, disclosure, glyph } from "@ikio/card-ui";
 import {
   ControlCard,
   group,
@@ -16,6 +17,10 @@ import {
 import { validate } from "./config.js";
 export class Card extends ControlCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+  }
   static getStubConfig() {
     return { schema_version: 1 };
   }
@@ -85,13 +90,14 @@ export class Card extends ControlCard {
         this,
         c.name || "Room comfort",
         id,
-        id ? stateText(this.hass, id) : undefined,
+        id ? a.hvac_action || stateText(this.hass, id) : undefined,
       ),
     );
+    refine(result, "mdi:home-thermometer-outline");
     const readings = row(
       ...[
-        ["temperature", "Room temperature"],
-        ["humidity", "Room humidity"],
+        ["temperature", "Temperature"],
+        ["humidity", "Humidity"],
         ["fridge", "Fridge"],
       ]
         .filter(([k]) => c[k + "_entity"])
@@ -104,6 +110,16 @@ export class Card extends ControlCard {
           ),
         ),
     );
+    readings.classList.add("ikio-metrics");
+    if (c.fridge_entity) {
+      const fridge = [...readings.children].find(
+        (node) => node.dataset.entity === c.fridge_entity,
+      );
+      if (fridge) {
+        fridge.classList.add("ikio-fridge");
+        fridge.querySelector(".ae-label").prepend(glyph("mdi:fridge-outline"));
+      }
+    }
     result.append(readings);
     if (!devices.length) {
       if (!readings.children.length)
@@ -114,34 +130,39 @@ export class Card extends ControlCard {
         );
       return result;
     }
-    if (devices.length > 1)
-      result.append(
-        row(
-          ...devices.map((k) => {
-            const b = button(
-              k === "climate"
-                ? "Air conditioner"
-                : k === "humidifier"
-                  ? "Dehumidifier"
-                  : "Fan",
-              () => {
-                this.active = k;
-                this.update();
-              },
-            );
-            b.setAttribute("aria-pressed", String(k === domain));
-            return b;
-          }),
-        ),
+    if (devices.length > 1) {
+      const tabs = row(
+        ...devices.map((k) => {
+          const b = button(
+            k === "climate"
+              ? "Air conditioner"
+              : k === "humidifier"
+                ? "Dehumidifier"
+                : "Fan",
+            () => {
+              this.active = k;
+              this.update();
+            },
+          );
+          b.setAttribute("aria-pressed", String(k === domain));
+          return b;
+        }),
       );
+      tabs.classList.add("ikio-device-tabs");
+      tabs.setAttribute("role", "group");
+      tabs.setAttribute("aria-label", "Comfort device");
+      result.append(tabs);
+    }
     if (!available(s)) {
       result.append(
         note("Device unavailable. Valid room readings remain visible."),
       );
       return result;
     }
+    const advanced = [];
     if (domain === "climate") {
-      if (a.hvac_action) result.append(note(`Activity: ${a.hvac_action}`));
+      const mainControls = row();
+      mainControls.classList.add("ikio-comfort-controls");
       if (a.hvac_modes?.length) {
         const modes = select("HVAC mode", a.hvac_modes, s.state, (v) =>
           this.send(
@@ -153,7 +174,7 @@ export class Card extends ControlCard {
           ),
         );
         modes.querySelector("select").disabled = this.blocked(id);
-        result.append(modes);
+        mainControls.append(modes);
       }
       if (features(s, 2) && s.state === "heat_cool") {
         const lo = this.target(
@@ -180,12 +201,12 @@ export class Card extends ControlCard {
           "set_temperature",
           { target_temp_low: a.target_temp_low },
         );
-        if (lo) result.append(lo);
-        if (hi) result.append(hi);
+        if (lo) mainControls.append(lo);
+        if (hi) mainControls.append(hi);
       } else if (features(s, 1)) {
         const target = this.target(
           id,
-          "Target temperature",
+          "Target",
           a.temperature,
           a.min_temp,
           a.max_temp,
@@ -193,7 +214,7 @@ export class Card extends ControlCard {
           "climate",
           "temperature",
         );
-        if (target) result.append(target);
+        if (target) mainControls.append(target);
       }
       for (const [flag, label, values, key, service] of [
         [8, "Fan mode", "fan_modes", "fan_mode", "set_fan_mode"],
@@ -208,7 +229,7 @@ export class Card extends ControlCard {
         ],
       ])
         if (features(s, flag) && a[values]?.length)
-          result.append(
+          advanced.push(
             this.controlSelect(
               id,
               label,
@@ -219,6 +240,7 @@ export class Card extends ControlCard {
               key,
             ),
           );
+      result.append(mainControls);
     } else if (domain === "humidifier") {
       result.append(
         button(
@@ -240,7 +262,7 @@ export class Card extends ControlCard {
       );
       if (target) result.append(target);
       if (features(s, 1) && a.available_modes?.length)
-        result.append(
+        advanced.push(
           this.controlSelect(
             id,
             "Mode",
@@ -274,7 +296,7 @@ export class Card extends ControlCard {
         if (speed) result.append(speed);
       }
       if (features(s, 8) && a.preset_modes?.length)
-        result.append(
+        advanced.push(
           this.controlSelect(
             id,
             "Preset",
@@ -286,7 +308,7 @@ export class Card extends ControlCard {
           ),
         );
       if (features(s, 2))
-        result.append(
+        advanced.push(
           button(
             a.oscillating ? "Stop oscillation" : "Oscillate",
             () =>
@@ -301,7 +323,7 @@ export class Card extends ControlCard {
           ),
         );
       if (features(s, 4))
-        result.append(
+        advanced.push(
           this.controlSelect(
             id,
             "Direction",
@@ -313,10 +335,10 @@ export class Card extends ControlCard {
           ),
         );
     }
-    const settings = row();
-    for (const control of [...result.children])
-      if (control.matches(".ae-select,.ae-button")) settings.append(control);
-    if (settings.children.length) result.append(settings);
+    if (advanced.length)
+      result.append(
+        disclosure(this, "comfort-settings", "Device settings", ...advanced),
+      );
     if (c[domain + "_power_entity"])
       result.append(
         reading(

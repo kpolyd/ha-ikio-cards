@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.5.6**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.7**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.6` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-drive-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.7` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-drive-card.js`. Use only one route.
 
 Add card → Ikio Drive. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -93,3 +93,6 @@ Metric and status icons sit to the left of their label/value pair at 32 px, scal
 Metric/status icons are slightly smaller: 28 px normally and 22 px on narrow cards. The VIN displays only its value at 11 px; its accessible label and native details target remain. Plate text is 15 px normally and 13 px on narrow cards, with reduced padding around the plate and country section. Plate and VIN remain centred. **Plate country code** in the visual editor controls GR: enter another code or leave it empty to hide that section.
 
 Version 0.5.4 reduces metric/status icons further to 24 px, or 20 px on narrow cards.
+
+
+The next visual refinement uses softer palette mint (`#A4E4B8`) for locked/closed text and icons, with `#28613E` in light mode and HA’s success colour in HA appearance. Metric/status icons are 22 px (18 px on narrow cards); metric values are 18 px (15 px narrow), units 11 px and status values 13 px. Supporting labels stay 11 px and entity targets remain 44 px.

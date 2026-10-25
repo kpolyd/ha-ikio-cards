@@ -1,5 +1,17 @@
 # Ikio changelog
 
+## 0.5.7 — Compact cards and system overview
+
+- Replace System usage bars with compact CPU/RAM/disk rings; show system temperature and adaptive uptime in the header. Replace standalone RX/TX values with a shared 30-minute Download/Upload history plot, explicit rate-unit conversion, batched bounded loading and missing-data gaps. Preserve thresholds, capacities, availability priority and native details.
+
+- Tighten the seven redesigned cards after mock feedback: group readings/controls, reduce header and section overhead, use inline field labels, remove the oversized camera placeholder and duplicate single-series legend, and retain readable text and touch targets.
+
+- Redesign Comfort, Media, Cleaning, Appliance, System, Camera and Graph using opt-in styles, visible settings labels, clearer hierarchy and inline disclosures. Keep Light, Energy, Drive and Security unchanged.
+- Replace Appliance manual-on and System restart dialogs with inline consent; bound Camera live-view loading and ignore late requests. Add interactive mocks for all seven cards.
+
+- Document Ikio's design approach, protected reference cards and a source-informed review of the remaining seven cards. Add advisory UI UX Pro Max guidance to the contributor workflow; no remaining-card redesign is implemented yet.
+- Make Drive metric/status icons and values slightly smaller. Use the palette’s softer mint green for locked/closed status text and icons, with a matching darker green in light mode.
+
 ## 0.5.6 — Collapsible alarm sensor details
 
 - Collapse Security sensor details by default. Tap the count/status summary to expand or collapse sensor names and HA icons; keep live alert counts, bypass consent and the PIN pad visible.

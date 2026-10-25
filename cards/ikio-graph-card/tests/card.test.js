@@ -55,3 +55,28 @@ test("every schema field and repeating list has a visual editor and preserves HA
   assert.equal(editor.shadowRoot.querySelector("ha-form").data.name, "Changed");
   editor.remove();
 });
+
+test("multi-series legend labels remain associated with distinct line patterns and exact units", () => {
+  const card = document.createElement("ikio-graph-card");
+  card.setConfig({
+    entities: [
+      { entity: "sensor.one", name: "First" },
+      { entity: "sensor.two", name: "Second" },
+    ],
+  });
+  card.hass = {
+    states: {
+      "sensor.one": { state: "12", attributes: { unit_of_measurement: "W" } },
+      "sensor.two": { state: "34", attributes: { unit_of_measurement: "W" } },
+    },
+  };
+  document.body.append(card);
+  const entries = card.shadowRoot.querySelectorAll(".ikio-legend-entry");
+  assert.equal(entries.length, 2);
+  assert.match(entries[0].textContent, /First12 W/);
+  assert.match(entries[1].textContent, /Second34 W/);
+  assert.ok(entries[1].querySelector(".dashed"));
+  card.setConfig({ entities: [{ entity: "sensor.one" }], show_legend: false });
+  assert.equal(card.shadowRoot.querySelector(".ikio-legend"), null);
+  card.remove();
+});
