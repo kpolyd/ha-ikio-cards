@@ -23,7 +23,7 @@ import {
 import { validate } from "./config.js";
 import {
   utilization,
-  threshold,
+  metricLevel,
   uptimeSeconds,
   uptimeLabel,
   rateFactor,
@@ -41,7 +41,6 @@ export class Card extends ControlCard {
     return {
       schema_version: 1,
       services: [],
-      thresholds: [],
     };
   }
   static async getConfigElement() {
@@ -295,14 +294,7 @@ export class Card extends ControlCard {
         resources.append(resource);
         const key = metric === "cpu" ? "cpu" : metric + "_percent";
         measured[key] = percent;
-        const levels = (c.thresholds || [])
-          .filter((rule) => rule.metric === key)
-          .map((rule) => threshold(percent, rule));
-        const level = levels.includes("critical")
-          ? "critical"
-          : levels.includes("warning")
-            ? "warning"
-            : "";
+        const level = metricLevel(percent);
         resource.append(
           ringReading(
             label,
@@ -321,14 +313,13 @@ export class Card extends ControlCard {
     }
     const network = this.networkView();
     if (network) result.append(network);
-    for (const rule of c.thresholds || []) {
-      const value = measured[rule.metric] ?? null,
-        level = threshold(value, rule);
+    for (const [metric, value] of Object.entries(measured)) {
+      const level = metricLevel(value);
       if (level)
         result.append(
           note(
-            `${rule.metric}: ${level} threshold reached (${formatNumber(this.hass, value)})`,
-            "ae-warn",
+            `${metric}: ${level === "critical" ? "error" : "warning"} threshold reached (${formatNumber(this.hass, value)})`,
+            level === "critical" ? "system-error-note" : "ae-warn",
           ),
         );
     }

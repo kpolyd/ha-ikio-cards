@@ -173,6 +173,7 @@ test("rings expose measured percentages, unknowns, thresholds and native details
   const card = systemFixture(
     { thresholds: [{ metric: "cpu", warning: 10, critical: 90 }] },
     {
+      "sensor.cpu": { state: "70", attributes: { unit_of_measurement: "%" } },
       "sensor.ram": {
         state: "unavailable",
         attributes: { unit_of_measurement: "%" },
@@ -372,5 +373,45 @@ test("database stays available inside collapsed details without an extra overvie
   const database = details.querySelector('[data-entity="sensor.database"]');
   assert.match(database.textContent, /871.44 MB/);
   assert.equal(card.shadowRoot.querySelector(".ikio-system-metadata"), null);
+  card.remove();
+});
+
+test("fixed 70/85 thresholds apply at their boundaries and override legacy settings", async () => {
+  const { metricLevel } = await import("../src/adapter.js");
+  assert.equal(metricLevel(69.9), "");
+  assert.equal(metricLevel(70), "warning");
+  assert.equal(metricLevel(84.9), "warning");
+  assert.equal(metricLevel(85), "critical");
+  assert.equal(metricLevel(null), "");
+  const card = systemFixture(
+    { thresholds: [{ metric: "cpu", warning: 1, critical: 2 }] },
+    { "sensor.cpu": { state: "70", attributes: { unit_of_measurement: "%" } } },
+  );
+  assert.ok(card.shadowRoot.querySelector(".system-ring.warning"));
+  assert.equal(card.shadowRoot.querySelector(".system-ring.critical"), null);
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "sensor.cpu": { state: "85", attributes: { unit_of_measurement: "%" } },
+    },
+  };
+  assert.ok(card.shadowRoot.querySelector(".system-ring.critical"));
+  assert.match(
+    card.shadowRoot.querySelector(".system-error-note").textContent,
+    /error threshold/,
+  );
+  const Card = customElements.get("ikio-system-card");
+  assert.equal("thresholds" in Card.getStubConfig(), false);
+  const editor = await Card.getConfigElement();
+  editor.setConfig(card.config);
+  editor.hass = card.hass;
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.doesNotMatch(
+    editor.shadowRoot.textContent,
+    /Metric thresholds|Warning threshold|Critical threshold|Threshold direction/,
+  );
+  editor.remove();
   card.remove();
 });

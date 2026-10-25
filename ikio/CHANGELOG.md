@@ -2,6 +2,8 @@
 
 ## 0.5.8 — System mock fidelity and automatic setup
 
+- Remove configurable metric thresholds. System warning/error limits are fixed at 70/85 and take precedence over old threshold configurations.
+
 - Bring System proportions closer to the approved mock with responsive rings, a chevron footer and database details inside the collapsed section.
 - Detect System availability and uptime formats automatically; remove the two interpretation settings from the editor while accepting legacy configurations.
 

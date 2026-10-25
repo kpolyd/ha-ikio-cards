@@ -42,6 +42,7 @@ export const systemStyles = `
 .ikio-system .system-footer>summary:after{content:none}
 .ikio-system .system-footer>summary>ha-icon{--mdc-icon-size:18px;flex:none}
 .ikio-system .system-footer[open]>summary>ha-icon{transform:rotate(180deg)}
+.ikio-system .system-error-note{color:var(--ae-error)}
 .ikio-system .system-extra-details{border-top:1px solid var(--ae-border);padding-top:6px}
 @container(max-width:310px){.ikio-system .system-header-meta{max-width:145px;gap:0 6px}.ikio-system>header>.ae-title,.ikio-system>header>h2{font-size:15px}}
 `;

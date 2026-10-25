@@ -166,3 +166,6 @@ export function availabilityLabel(state) {
     return "Offline";
   return String(state.state) || "Unknown";
 }
+
+export const metricThresholds = Object.freeze({ warning: 70, critical: 85 });
+export const metricLevel = (value) => threshold(value, metricThresholds);
