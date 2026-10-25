@@ -570,3 +570,259 @@ test("sensor loading ignores stale results after disconnect and removes late eve
   assert.equal(card.alarmoSensors.length, 0);
   assert.equal(unsubscribed, 1);
 });
+
+test("returning to a visible card retains discovery and updates sensors directly from HA", async () => {
+  const { card, requests, callbacks } = await alarmoFixture({
+    sensors: { [sensorId]: { area: "one", enabled: true, type: "window" } },
+  });
+  card.visible = false;
+  card.onVisibility();
+  assert.equal(card.alarmoRefresh, undefined);
+  assert.equal(card.alarmoStatus, "ready");
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      [sensorId]: { ...card.hass.states[sensorId], state: "off" },
+    },
+  };
+  card.visible = true;
+  card.onVisibility();
+  await Promise.resolve();
+  assert.equal(
+    requests.length,
+    2,
+    "reuse discovery instead of blocking on another request",
+  );
+  assert.match(card.shadowRoot.textContent, /All monitored sensors clear/);
+  assert.doesNotMatch(card.shadowRoot.textContent, /Loading Alarmo/);
+  assert.ok(card.alarmoRefresh);
+  callbacks.alarmo_config_updated();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(requests.length, 4, "configuration subscription is restored");
+  card.remove();
+});
+
+test("discovery interrupted by hiding restarts immediately on return and ignores its late result", async () => {
+  const { card } = fixture("disarmed", {}, { contacts: [] });
+  let oldEntities, oldSensors;
+  const connection = {};
+  card.hass = {
+    ...card.hass,
+    connection,
+    callWS: (message) =>
+      new Promise((resolve) => {
+        if (message.type === "alarmo/entities") oldEntities = resolve;
+        else oldSensors = resolve;
+      }),
+  };
+  card.visible = true;
+  card.loadAlarmo();
+  card.visible = false;
+  card.onVisibility();
+  let requests = 0;
+  card.hass = {
+    ...card.hass,
+    callWS: async (message) => {
+      requests++;
+      return message.type === "alarmo/entities"
+        ? [{ entity_id: panelId, area_id: "one" }]
+        : { [sensorId]: { area: "one", type: "window" } };
+    },
+  };
+  card.visible = true;
+  card.onVisibility();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(requests, 2);
+  assert.equal(card.alarmoStatus, "ready");
+  oldEntities([]);
+  oldSensors({});
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.deepEqual(
+    card.sensorRows().map((r) => r.entity),
+    [sensorId],
+  );
+  card.remove();
+});
+
+test("unanswered discovery times out, keeps controls usable and retries without a loading loop", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const { card, calls } = fixture("disarmed", {}, { contacts: [] });
+  let lateEntities;
+  card.hass = {
+    ...card.hass,
+    connection: {},
+    callWS: (message) =>
+      new Promise((resolve) => {
+        if (message.type === "alarmo/entities") lateEntities = resolve;
+      }),
+  };
+  card.visible = true;
+  const loading = card.loadAlarmo();
+  t.mock.timers.tick(5000);
+  await loading;
+  assert.equal(card.alarmoLoading, false);
+  assert.equal(card.alarmoStatus, "unavailable");
+  assert.match(card.shadowRoot.textContent, /Alarmo sensor list unavailable/);
+  assert.doesNotMatch(
+    card.shadowRoot.textContent,
+    /Loading Alarmo|All monitored sensors clear/,
+  );
+  await card.arm("home");
+  assert.equal(calls.length, 1, "discovery never blocks arming");
+  card.hass = {
+    ...card.hass,
+    callWS: async (message) =>
+      message.type === "alarmo/entities"
+        ? [{ entity_id: panelId, area_id: "one" }]
+        : { [sensorId]: { area: "one", type: "window" } },
+  };
+  await card.loadAlarmo(true);
+  lateEntities([]);
+  await Promise.resolve();
+  assert.equal(card.alarmoStatus, "ready");
+  assert.deepEqual(
+    card.sensorRows().map((r) => r.entity),
+    [sensorId],
+  );
+  card.remove();
+});
+
+const settle = () => new Promise(setImmediate);
+function countdownFixture(response) {
+  const { card, calls } = fixture("arming", {
+    delay: 30,
+    code_format: "number",
+  });
+  const requests = [];
+  card.hass = {
+    ...card.hass,
+    connection: {},
+    callWS: async (message) => {
+      requests.push(message);
+      if (message.type === "alarmo/countdown") return response();
+      return message.type === "alarmo/entities"
+        ? [{ entity_id: panelId, area_id: "one" }]
+        : { [sensorId]: { area: "one", enabled: true, type: "window" } };
+    },
+  };
+  card.visible = true;
+  card.update();
+  return { card, calls, requests };
+}
+
+test("countdown uses backend remaining time, ticks locally, preserves PIN focus and awaits armed confirmation", async (t) => {
+  t.mock.timers.enable({ apis: ["Date", "setInterval", "setTimeout"] });
+  const end = Date.now() + 18000;
+  const { card, calls, requests } = countdownFixture(() => ({
+    delay: 30,
+    remaining: Math.max(0, (end - Date.now()) / 1000),
+  }));
+  await settle();
+  assert.equal(
+    card.shadowRoot.querySelector(".security-state").textContent,
+    "Arming · 18 s",
+  );
+  const arc = card.shadowRoot.querySelector(".security-countdown-arc");
+  assert.equal(arc.getAttribute("stroke-dasharray"), "60 100");
+  assert.equal(arc.namespaceURI, "http://www.w3.org/2000/svg");
+  assert.doesNotMatch(card.shadowRoot.textContent, /configured delay/);
+  assert.ok(card.shadowRoot.querySelector(".security-delay"));
+  assert.match(
+    card.shadowRoot.querySelector(".security-sensor-summary").textContent,
+    /1 opening open/,
+  );
+  const input = card.shadowRoot.querySelector("input[type=password]");
+  input.focus();
+  input.value = "12";
+  input.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  t.mock.timers.tick(3000);
+  assert.equal(
+    card.shadowRoot.querySelector(".security-seconds").textContent,
+    " · 15 s",
+  );
+  assert.equal(card.shadowRoot.querySelector(".security-countdown-arc"), arc);
+  assert.equal(arc.getAttribute("stroke-dasharray"), "50 100");
+  assert.equal(card.shadowRoot.activeElement, input);
+  assert.equal(input.value, "12");
+  assert.equal(requests.filter((r) => r.type === "alarmo/countdown").length, 1);
+  t.mock.timers.tick(15000);
+  await settle();
+  assert.equal(
+    card.shadowRoot.querySelector(".security-seconds").textContent,
+    " · 0 s",
+  );
+  assert.equal(
+    card.state().state,
+    "arming",
+    "timer expiry must not claim that the panel is armed",
+  );
+  assert.equal(calls.length, 0);
+  transition(card, "armed_away", { code_format: "number" });
+  assert.ok(card.shadowRoot.querySelector(".security-armed"));
+  assert.equal(card.shadowRoot.querySelector(".security-seconds"), null);
+  assert.equal(card.shadowRoot.querySelector("svg"), null);
+  assert.equal(card.clock, undefined);
+  assert.ok(card.shadowRoot.querySelector(".security-pin"));
+  card.remove();
+});
+
+test("reopening during exit delay resynchronizes remaining time and entry delay gets a new countdown", async () => {
+  let remaining = 18;
+  const { card, requests } = countdownFixture(() => ({ delay: 30, remaining }));
+  await settle();
+  card.visible = false;
+  card.onVisibility();
+  assert.equal(card.clock, undefined);
+  assert.equal(card.countdown, undefined);
+  remaining = 7;
+  card.visible = true;
+  card.onVisibility();
+  await settle();
+  assert.equal(
+    card.shadowRoot.querySelector(".security-seconds").textContent,
+    " · 7 s",
+  );
+  assert.equal(requests.filter((r) => r.type === "alarmo/countdown").length, 2);
+  remaining = 25;
+  transition(card, "pending", { code_format: "number" });
+  await settle();
+  assert.equal(
+    card.shadowRoot.querySelector(".security-state").textContent,
+    "Entry delay · 25 s",
+  );
+  card.remove();
+  assert.equal(card.clock, undefined);
+});
+
+test("countdown timeout and invalid responses never invent time and do not block disarming", async (t) => {
+  t.mock.timers.enable({ apis: ["Date", "setInterval", "setTimeout"] });
+  let resolveLate;
+  let response = () =>
+    new Promise((resolve) => {
+      resolveLate = resolve;
+    });
+  const { card, calls } = countdownFixture(() => response());
+  t.mock.timers.tick(5000);
+  await settle();
+  assert.equal(card.countdownLoading, false);
+  assert.equal(card.shadowRoot.querySelector(".security-seconds"), null);
+  assert.equal(
+    card.shadowRoot.querySelector(".security-state").textContent,
+    "Arming",
+  );
+  response = () => ({ delay: "30", remaining: 29 });
+  t.mock.timers.tick(15000);
+  await settle();
+  assert.equal(card.shadowRoot.querySelector(".security-seconds"), null);
+  for (const digit of [1, 2, 3, 4]) press(card, `pin-${digit}`);
+  await card.disarm();
+  assert.equal(calls[0][1], "alarm_disarm");
+  transition(card, "disarmed");
+  resolveLate({ delay: 30, remaining: 30 });
+  await settle();
+  assert.equal(card.countdown, undefined);
+  assert.equal(card.clock, undefined);
+  assert.equal(card.shadowRoot.querySelector(".security-countdown"), null);
+  card.remove();
+});

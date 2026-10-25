@@ -38,18 +38,25 @@ export class Card extends ControlCard {
       el(
         "style",
         `
-      .ae-security{gap:10px;--security-green:#6ef0a6;--security-selected:#367a56;--security-selected-text:#edfff4}
-      :host([appearance=light]) .ae-security{--security-green:#247147;--security-selected:#367a56}
+      .ae-security{gap:10px;--security-green:#6ef0a6;--security-selected:#367a56;--security-selected-text:#edfff4;--security-coral:#f08072}
+      :host([appearance=light]) .ae-security{--security-green:#247147;--security-selected:#367a56;--security-coral:#b7473b}
       :host([appearance=ha]) .ae-security{--security-green:var(--success-color,#247147)}
       .security-header{display:flex;align-items:center;gap:15px;padding:5px 2px 8px}
       .security-emblem{display:grid;place-items:center;width:58px;height:58px;flex:none;border:2px solid var(--ae-muted);border-radius:50%;color:var(--ae-muted);background:transparent;padding:0;font:inherit}
-      .security-emblem ha-icon{--mdc-icon-size:38px}
+      .security-emblem ha-icon{--mdc-icon-size:32px}
       .security-header h2{font-size:20px;font-weight:500;margin:0 0 7px;overflow-wrap:anywhere}
       .security-state{font-size:15px;color:var(--ae-muted)}
       .security-armed .security-emblem{color:var(--security-green);border-color:var(--security-green);background:color-mix(in srgb,var(--security-green) 14%,var(--ae-surface))}
       .security-armed .security-state{color:var(--security-green)}
       .security-alert .security-emblem,.security-alert .security-state{color:var(--ae-error);border-color:var(--ae-error)}
-      .security-delay .security-emblem,.security-delay .security-state{color:var(--ae-warning);border-color:var(--ae-warning)}
+      .security-delay .security-emblem,.security-delay .security-state{color:var(--security-coral);border-color:var(--security-coral)}
+      .security-emblem.security-countdown{position:relative;border-color:transparent}
+      .security-countdown svg{position:absolute;inset:-2px;width:58px;height:58px;pointer-events:none;transform:rotate(-90deg)}
+      .security-countdown circle{fill:none;stroke-width:2}
+      .security-countdown-track{stroke:var(--ae-border)}
+      .security-countdown-arc{stroke:currentColor;stroke-linecap:round;transition:stroke-dasharray 1s linear}
+      .security-seconds{font-weight:600;font-variant-numeric:tabular-nums}
+      @media(prefers-reduced-motion:reduce){.security-countdown-arc{transition:none}}
       .security-modes{display:grid;grid-template-columns:repeat(var(--mode-count),minmax(0,1fr));gap:4px;padding:4px;background:var(--ae-well);border-radius:15px}
       .security-modes .ae-button{min-width:0;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;background:transparent;font:inherit;color:var(--ae-muted);padding:8px 3px;overflow-wrap:anywhere}
       .security-modes .ae-button[aria-pressed=true]{background:color-mix(in srgb,var(--ae-muted) 35%,var(--ae-well));color:var(--ae-text)}
@@ -98,27 +105,28 @@ export class Card extends ControlCard {
     this.armIntent = null;
   }
   onConfig() {
+    this.stopCountdown();
     this.resetInput();
     this.lastAlarmState = undefined;
     this.stopAlarmo();
+    this.alarmoConnection = null;
+    this.alarmoChecked = undefined;
     this.alarmoSensors = [];
     this.alarmoStatus = "idle";
     this.failedSensors = [];
     this.loadAlarmo();
   }
   onVisibility() {
-    clearInterval(this.clock);
     if (!this.visible) {
+      this.stopCountdown();
       this.stopAlarmo();
       this.resetInput();
       this.update();
     }
-    if (
-      this.isConnected &&
-      this.visible &&
-      ["arming", "pending"].includes(this.state()?.state)
-    )
-      this.clock = setInterval(() => this.update(), 1000);
+    if (this.isConnected && this.visible) {
+      this.loadAlarmo();
+      this.update();
+    }
   }
   afterRender() {
     this.loadAlarmo();
@@ -132,26 +140,126 @@ export class Card extends ControlCard {
       glyph.hass = this.hass;
       glyph.stateObj = this.state(glyph.dataset.sensor);
     }
-    const delay = ["arming", "pending"].includes(this.state()?.state);
-    if (delay !== this.clockDelay) {
-      this.clockDelay = delay;
-      this.onVisibility();
-    }
+    this.syncCountdown();
   }
   onDisconnect() {
     this.stopAlarmo();
-    clearInterval(this.clock);
+    this.stopCountdown();
     this.resetInput();
+  }
+  delayKey() {
+    const state = this.state();
+    return ["arming", "pending"].includes(state?.state)
+      ? JSON.stringify([this.config.entity, state.state, state.last_changed])
+      : undefined;
+  }
+  stopCountdown() {
+    this.countdownRequest = (this.countdownRequest || 0) + 1;
+    this.cancelCountdown?.();
+    this.cancelCountdown = undefined;
+    clearInterval(this.clock);
+    this.clock = undefined;
+    this.countdownKey = undefined;
+    this.countdown = undefined;
+    this.countdownLoading = false;
+    this.countdownChecked = undefined;
+  }
+  countdownValue() {
+    if (
+      this.countdownKey !== this.delayKey() ||
+      this.countdownConnection !== this.hass?.connection ||
+      !this.countdown
+    )
+      return;
+    return {
+      seconds: Math.ceil(Math.max(0, this.countdown.end - Date.now()) / 1000),
+      fraction: Math.max(
+        0,
+        Math.min(
+          1,
+          (this.countdown.end - Date.now()) / (this.countdown.delay * 1000),
+        ),
+      ),
+    };
+  }
+  async syncCountdown() {
+    const key = this.delayKey();
+    if (!key || !this.isConnected || !this.visible || this.preview) {
+      this.stopCountdown();
+      return;
+    }
+    if (
+      key !== this.countdownKey ||
+      this.countdownConnection !== this.hass?.connection
+    ) {
+      this.stopCountdown();
+      this.countdownKey = key;
+      this.countdownConnection = this.hass?.connection;
+    }
+    this.clock ??= setInterval(() => this.update(), 1000);
+    if (
+      !this.hass?.callWS ||
+      this.countdownLoading ||
+      (this.countdownChecked !== undefined &&
+        Date.now() - this.countdownChecked < 15000)
+    )
+      return;
+    this.countdownLoading = true;
+    const request = (this.countdownRequest = (this.countdownRequest || 0) + 1);
+    const valid = () =>
+      request === this.countdownRequest &&
+      key === this.delayKey() &&
+      this.isConnected &&
+      this.visible &&
+      !this.preview &&
+      this.countdownConnection === this.hass?.connection;
+    let timer;
+    const cancelled = new Promise((_, reject) => {
+      this.cancelCountdown = () => reject(new Error("Countdown cancelled"));
+      timer = setTimeout(() => reject(new Error("Countdown timed out")), 5000);
+    });
+    try {
+      const data = await Promise.race([
+        this.hass.callWS({
+          type: "alarmo/countdown",
+          entity_id: this.config.entity,
+        }),
+        cancelled,
+      ]);
+      if (!valid()) return;
+      if (
+        !Number.isFinite(data?.delay) ||
+        data.delay <= 0 ||
+        !Number.isFinite(data.remaining)
+      )
+        throw new Error("Countdown unavailable");
+      this.countdown = {
+        delay: data.delay,
+        end:
+          Date.now() + Math.max(0, Math.min(data.delay, data.remaining)) * 1000,
+      };
+    } catch {
+      // Keep the backend state and PIN pad when a countdown is unavailable.
+    } finally {
+      clearTimeout(timer);
+      if (valid()) {
+        this.countdownLoading = false;
+        this.cancelCountdown = undefined;
+        this.countdownChecked = Date.now();
+        this.update();
+      }
+    }
   }
   stopAlarmo() {
     this.alarmoRequest = (this.alarmoRequest || 0) + 1;
+    this.cancelAlarmoLoad?.();
+    this.cancelAlarmoLoad = undefined;
     for (const unsubscribe of this.alarmoSubscriptions || []) unsubscribe();
     this.alarmoSubscriptions = [];
-    this.alarmoConnection = null;
     this.alarmoSubscribed = false;
     this.alarmoLoading = false;
-    this.alarmoStatus = "idle";
     clearInterval(this.alarmoRefresh);
+    this.alarmoRefresh = undefined;
   }
   async loadAlarmo(force = false) {
     const connection = this.hass?.connection;
@@ -167,18 +275,24 @@ export class Card extends ControlCard {
       connection &&
       this.alarmoConnection &&
       connection !== this.alarmoConnection
-    )
+    ) {
       this.stopAlarmo();
+      this.alarmoSensors = [];
+      this.alarmoStatus = "idle";
+      this.alarmoChecked = undefined;
+    }
+    this.subscribeAlarmo();
+    this.alarmoRefresh ??= setInterval(() => this.loadAlarmo(true), 60000);
     if (
       this.alarmoLoading ||
       (!force &&
         this.alarmoStatus !== "idle" &&
-        this.alarmoConnection === connection)
+        this.alarmoConnection === connection &&
+        Date.now() - this.alarmoChecked < 60000)
     )
       return;
     this.alarmoConnection = connection;
     this.alarmoLoading = true;
-    this.subscribeAlarmo();
     const request = (this.alarmoRequest = (this.alarmoRequest || 0) + 1);
     const entity = this.config.entity;
     const valid = () =>
@@ -186,10 +300,18 @@ export class Card extends ControlCard {
       this.config.entity === entity &&
       this.isConnected &&
       this.visible;
+    let timer;
+    const cancelled = new Promise((_, reject) => {
+      this.cancelAlarmoLoad = () => reject(new Error("Discovery cancelled"));
+      timer = setTimeout(() => reject(new Error("Discovery timed out")), 5000);
+    });
     try {
-      const [entities, sensors] = await Promise.all([
-        this.hass.callWS({ type: "alarmo/entities" }),
-        this.hass.callWS({ type: "alarmo/sensors" }),
+      const [entities, sensors] = await Promise.race([
+        Promise.all([
+          this.hass.callWS({ type: "alarmo/entities" }),
+          this.hass.callWS({ type: "alarmo/sensors" }),
+        ]),
+        cancelled,
       ]);
       if (!valid()) return;
       const panel = entities.find((item) => item.entity_id === entity);
@@ -225,13 +347,14 @@ export class Card extends ControlCard {
         this.alarmoStatus = "ready";
       }
       this.subscribeAlarmo();
-      clearInterval(this.alarmoRefresh);
-      this.alarmoRefresh = setInterval(() => this.loadAlarmo(true), 60000);
     } catch {
       if (!valid()) return;
       this.alarmoStatus = "unavailable";
     } finally {
+      clearTimeout(timer);
       if (valid()) {
+        this.cancelAlarmoLoad = undefined;
+        this.alarmoChecked = Date.now();
         this.alarmoLoading = false;
         this.update();
       }
@@ -538,6 +661,32 @@ export class Card extends ControlCard {
       entity: c.entity,
     });
     emblem.className = "security-emblem";
+    const countdown = this.countdownValue();
+    if (countdown) {
+      emblem.classList.add("security-countdown");
+      const ns = "http://www.w3.org/2000/svg";
+      const ring = document.createElementNS(ns, "svg");
+      ring.setAttribute("viewBox", "0 0 60 60");
+      ring.setAttribute("aria-hidden", "true");
+      for (const name of ["track", "arc"]) {
+        const circle = document.createElementNS(ns, "circle");
+        for (const [attr, value] of Object.entries({
+          cx: 30,
+          cy: 30,
+          r: 28,
+          pathLength: 100,
+        }))
+          circle.setAttribute(attr, String(value));
+        circle.setAttribute("class", `security-countdown-${name}`);
+        if (name === "arc")
+          circle.setAttribute(
+            "stroke-dasharray",
+            `${countdown.fraction * 100} 100`,
+          );
+        ring.append(circle);
+      }
+      emblem.append(ring);
+    }
     const heading = el("div");
     const status =
       (s && this.hass?.formatEntityState?.(s)) ||
@@ -550,8 +699,14 @@ export class Card extends ControlCard {
         triggered: "Alarm triggered",
       }[s?.state] ||
       stateText(this.hass, c.entity);
-    const statusNode = el("div", status, "security-state");
-    statusNode.setAttribute("aria-live", "polite");
+    const statusNode = el("div", undefined, "security-state");
+    const statusLabel = el("span", status);
+    statusLabel.setAttribute("aria-live", "polite");
+    statusNode.append(statusLabel);
+    if (countdown)
+      statusNode.append(
+        el("span", ` · ${countdown.seconds} s`, "security-seconds"),
+      );
     heading.append(el("h2", c.name || "Home security"), statusNode);
     header.append(emblem, heading);
     result.append(header);
@@ -651,9 +806,11 @@ export class Card extends ControlCard {
               ? "No sensors enabled in Alarmo for this panel"
               : this.alarmoStatus === "unavailable"
                 ? "Alarmo sensor list unavailable"
-                : this.alarmoStatus === "not-alarmo"
-                  ? "No monitored sensors"
-                  : "Loading Alarmo sensors…"),
+                : !this.hass?.callWS
+                  ? "Alarmo sensor list unavailable"
+                  : this.alarmoStatus === "not-alarmo"
+                    ? "No monitored sensors"
+                    : "Loading Alarmo sensors…"),
       ),
     );
     sensors.append(summary);
@@ -721,13 +878,6 @@ export class Card extends ControlCard {
       selector.append(key);
     }
     result.append(selector);
-    if (s?.attributes?.delay && ["arming", "pending"].includes(s.state))
-      result.append(
-        note(
-          `${status}: configured delay ${s.attributes.delay} seconds`,
-          "ae-warn",
-        ),
-      );
     if (live && s.state !== "disarmed") result.append(this.pinView());
     else if (live && this.armIntent) result.append(this.pinView(true));
     return result;
