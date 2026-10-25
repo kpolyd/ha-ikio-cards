@@ -1,10 +1,4 @@
-import {
-  entity,
-  text,
-  choice,
-  number,
-  validateConfig,
-} from "@ikio/card-ui/schema-editor";
+import { entity, text, validateConfig } from "@ikio/card-ui/schema-editor";
 const metrics = [
   [
     "availability",
@@ -26,25 +20,8 @@ const metrics = [
 ];
 export const fields = [
   ...metrics.map(([k, label, domain]) => entity(k + "_entity", label, domain)),
-  text("online_state", "Availability state meaning Online (default on)"),
-  choice("uptime_mode", "Uptime interpretation", ["duration", "timestamp"]),
 ];
 export const lists = [
-  {
-    name: "thresholds",
-    label: "Metric thresholds",
-    fields: [
-      choice("metric", "Metric", [
-        "cpu",
-        "temperature",
-        "ram_percent",
-        "disk_percent",
-      ]),
-      number("warning", "Warning threshold", -1000, 1e9, 0.1),
-      number("critical", "Critical threshold", -1000, 1e9, 0.1),
-      choice("direction", "Threshold direction", ["above", "below"]),
-    ],
-  },
   {
     name: "services",
     label: "Service status and controls",

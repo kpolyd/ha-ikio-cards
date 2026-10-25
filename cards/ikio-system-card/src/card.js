@@ -10,7 +10,6 @@ import {
   ControlCard,
   group,
   title,
-  row,
   reading,
   note,
   button,
@@ -19,16 +18,16 @@ import {
   formatNumber,
   el,
   stateText,
-  available,
   details,
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
 import {
   utilization,
-  threshold,
+  metricLevel,
   uptimeSeconds,
   uptimeLabel,
   rateFactor,
+  availabilityLabel,
 } from "./adapter.js";
 import { systemStyles, ringReading, networkPlot } from "./views.js";
 export class Card extends ControlCard {
@@ -41,10 +40,7 @@ export class Card extends ControlCard {
   static getStubConfig() {
     return {
       schema_version: 1,
-      online_state: "on",
-      uptime_mode: "duration",
       services: [],
-      thresholds: [],
     };
   }
   static async getConfigElement() {
@@ -224,20 +220,16 @@ export class Card extends ControlCard {
       return note("Choose system metrics in the visual editor.");
     const availability = this.state(c.availability_entity);
     const status = c.availability_entity
-      ? available(availability)
-        ? availability.state === (c.online_state || "on")
-          ? "Online"
-          : "Offline"
-        : stateText(this.hass, c.availability_entity)
+      ? availabilityLabel(availability)
       : undefined;
-    const seconds = uptimeSeconds(this.state(c.uptime_entity), c.uptime_mode);
+    const seconds = uptimeSeconds(this.state(c.uptime_entity));
     const uptime = uptimeLabel(
       seconds,
       this.hass?.locale?.language || this.hass?.language || "en",
     );
     const headline = status === "Online" ? uptime || status : status || uptime;
     const result = group(
-      title(this, c.name || "System", c.availability_entity),
+      title(this, c.name || "Home server", c.availability_entity),
     );
     refine(result, "mdi:server-outline");
     result.classList.add("ikio-system");
@@ -275,8 +267,6 @@ export class Card extends ControlCard {
       meta.append(statusNode);
     }
     header.append(meta);
-    const metrics = row();
-    metrics.classList.add("ikio-system-metadata");
     const measured = { temperature: numeric(this.state(c.temperature_entity)) };
     const resources = el("div", undefined, "ikio-resources");
     result.append(resources);
@@ -294,7 +284,7 @@ export class Card extends ControlCard {
               this.state(c[metric + "_total_entity"]),
             );
       if (id || c[metric + "_used_entity"] || c[metric + "_total_entity"]) {
-        const label = metric.toUpperCase(),
+        const label = metric === "disk" ? "Disk" : metric.toUpperCase(),
           capacity =
             metric !== "cpu" && c[metric + "_used_entity"]
               ? `${valueText(this.hass, c[metric + "_used_entity"])} / ${valueText(this.hass, c[metric + "_total_entity"])}`
@@ -304,14 +294,7 @@ export class Card extends ControlCard {
         resources.append(resource);
         const key = metric === "cpu" ? "cpu" : metric + "_percent";
         measured[key] = percent;
-        const levels = (c.thresholds || [])
-          .filter((rule) => rule.metric === key)
-          .map((rule) => threshold(percent, rule));
-        const level = levels.includes("critical")
-          ? "critical"
-          : levels.includes("warning")
-            ? "warning"
-            : "";
+        const level = metricLevel(percent);
         resource.append(
           ringReading(
             label,
@@ -328,29 +311,15 @@ export class Card extends ControlCard {
           );
       }
     }
-    result.append(metrics);
-    for (const [key, label] of [["database", "Database"]])
-      if (c[key + "_entity"]) {
-        const state = this.state(c[key + "_entity"]),
-          unit = state?.attributes?.unit_of_measurement || "";
-        metrics.append(
-          reading(
-            label,
-            valueText(this.hass, c[key + "_entity"]),
-            c[key + "_entity"],
-          ),
-        );
-      }
     const network = this.networkView();
     if (network) result.append(network);
-    for (const rule of c.thresholds || []) {
-      const value = measured[rule.metric] ?? null,
-        level = threshold(value, rule);
+    for (const [metric, value] of Object.entries(measured)) {
+      const level = metricLevel(value);
       if (level)
         result.append(
           note(
-            `${rule.metric}: ${level} threshold reached (${formatNumber(this.hass, value)})`,
-            "ae-warn",
+            `${metric}: ${level === "critical" ? "error" : "warning"} threshold reached (${formatNumber(this.hass, value)})`,
+            level === "critical" ? "system-error-note" : "ae-warn",
           ),
         );
     }
@@ -401,15 +370,30 @@ export class Card extends ControlCard {
         );
       services.push(block);
     }
-    if (services.length)
-      result.append(
-        disclosure(
-          this,
-          "system-services",
-          `Services · ${services.length}`,
-          ...services,
+    const serviceCount = services.length;
+    if (c.database_entity) {
+      const extra = group(
+        note("System details"),
+        reading(
+          "Database",
+          valueText(this.hass, c.database_entity),
+          c.database_entity,
         ),
       );
+      extra.classList.add("system-extra-details");
+      services.push(extra);
+    }
+    if (services.length) {
+      const footer = disclosure(
+        this,
+        "system-services",
+        serviceCount ? `Services · ${serviceCount}` : "System details",
+        ...services,
+      );
+      footer.classList.add("system-footer");
+      footer.querySelector("summary").append(glyph("mdi:chevron-down"));
+      result.append(footer);
+    }
     if (this.review) result.append(reviewView(this));
     return result;
   }

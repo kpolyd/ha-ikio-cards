@@ -8,6 +8,7 @@ const svgNode = (tag, attrs = {}) => {
   return node;
 };
 export const systemStyles = `
+.ikio-system{--system-ring-size:clamp(48px,16cqw,76px)}
 .ikio-system>header{grid-template-columns:18px minmax(0,1fr) auto}
 .ikio-system .system-header-meta{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:0 8px;max-width:190px;font-size:11px;color:var(--ae-muted)}
 .ikio-system .system-header-meta button{min-height:44px;min-width:44px;background:none;border:0;padding:0;display:flex;align-items:center;gap:4px;color:inherit;font:inherit}
@@ -16,17 +17,18 @@ export const systemStyles = `
 .ikio-system .system-online-dot{width:6px;height:6px;border-radius:50%;background:var(--ae-temperature);flex:none}
 .ikio-system .ikio-resources{grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:8px}
 .ikio-system .ikio-resource{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center}
-.ikio-system .ikio-resources .ikio-resource>.system-ring-reading{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;min-height:64px;width:100%}
-.ikio-system .system-ring{width:48px;height:48px;display:grid;place-items:center;position:relative;flex:none;color:var(--ae-temperature)}
+.ikio-system .ikio-resources .ikio-resource>.system-ring-reading{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;min-height:0;width:100%}
+.ikio-system .system-ring{width:var(--system-ring-size);height:var(--system-ring-size);display:grid;place-items:center;position:relative;flex:none;color:var(--ae-temperature)}
 .ikio-system .system-ring.warning{color:var(--ae-warning)}
 .ikio-system .system-ring.critical{color:var(--ae-error)}
 .ikio-system .system-ring.unknown{color:var(--ae-muted)}
-.ikio-system .system-ring svg{position:absolute;inset:0;width:48px;height:48px;transform:rotate(-90deg)}
-.ikio-system .system-ring-track{fill:none;stroke:var(--ae-border);stroke-width:2.5}
-.ikio-system .system-ring-arc{fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round}
-.ikio-system .system-ring-value{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ae-text)}
+.ikio-system .system-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ikio-system .system-ring-reading>.ae-label{font-size:12px}
+.ikio-system .system-ring-track{fill:none;stroke:var(--ae-border);stroke-width:4}
+.ikio-system .system-ring-arc{fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round}
+.ikio-system .system-ring-value{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ae-text)}
 .ikio-system .ikio-resource>.ae-note{margin:0;font-size:11px;overflow-wrap:anywhere}
-.ikio-system .system-network{display:grid;gap:3px}
+.ikio-system .system-network{display:grid;gap:0}
 .ikio-system .system-network-heading{font-size:11px;text-align:end;color:var(--ae-muted)}
 .ikio-system .system-network-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}
 .ikio-system .system-network-legend .ae-reading{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;padding:0}
@@ -36,6 +38,12 @@ export const systemStyles = `
 .ikio-system .system-network-key.upload{border-top:2px dashed var(--ae-temperature)}
 .ikio-system .system-network-plot{display:block;width:100%;height:32px;overflow:visible}
 .ikio-system .system-network-times{display:flex;justify-content:space-between;color:var(--ae-muted);font-size:11px}
+.ikio-system .system-footer>summary{font-size:13px;font-weight:500;color:var(--ae-text)}
+.ikio-system .system-footer>summary:after{content:none}
+.ikio-system .system-footer>summary>ha-icon{--mdc-icon-size:18px;flex:none}
+.ikio-system .system-footer[open]>summary>ha-icon{transform:rotate(180deg)}
+.ikio-system .system-error-note{color:var(--ae-error)}
+.ikio-system .system-extra-details{border-top:1px solid var(--ae-border);padding-top:6px}
 @container(max-width:310px){.ikio-system .system-header-meta{max-width:145px;gap:0 6px}.ikio-system>header>.ae-title,.ikio-system>header>h2{font-size:15px}}
 `;
 export function ringReading(label, percent, entity, level, hass) {

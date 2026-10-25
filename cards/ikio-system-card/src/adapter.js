@@ -18,15 +18,35 @@ export function threshold(value, rule) {
       : "";
 }
 
-export function uptimeSeconds(state, mode = "duration", now = Date.now()) {
+export function uptimeSeconds(state, mode = "auto", now = Date.now()) {
   if (!state || ["unknown", "unavailable"].includes(state.state)) return null;
-  if (mode === "timestamp") {
+  const raw = String(state.state).trim();
+  const timestamp = /^\d{4}-\d{2}-\d{2}(?:T| )/.test(raw);
+  if (mode === "timestamp" || (mode === "auto" && timestamp)) {
     const start = Date.parse(state.state);
     return Number.isFinite(start) && start <= now ? (now - start) / 1000 : null;
   }
-  const value = numeric(state);
+  let value = numeric(state);
+  let unit = String(state.attributes?.unit_of_measurement || "")
+    .trim()
+    .toLowerCase();
+  if (value === null && mode === "auto") {
+    const words =
+      /^(\d+(?:\.\d+)?)\s*(milliseconds?|ms|seconds?|s|minutes?|min|hours?|h|days?|d|weeks?|w)$/i.exec(
+        raw,
+      );
+    if (words) {
+      value = Number(words[1]);
+      unit = words[2].toLowerCase();
+    }
+    const clock = /^(\d+):([0-5]\d):([0-5]\d)$/.exec(raw);
+    if (clock)
+      return Number(clock[1]) * 3600 + Number(clock[2]) * 60 + Number(clock[3]);
+  }
   const factor = {
     ms: 0.001,
+    millisecond: 0.001,
+    milliseconds: 0.001,
     s: 1,
     sec: 1,
     second: 1,
@@ -44,11 +64,7 @@ export function uptimeSeconds(state, mode = "duration", now = Date.now()) {
     w: 604800,
     week: 604800,
     weeks: 604800,
-  }[
-    String(state.attributes?.unit_of_measurement || "")
-      .trim()
-      .toLowerCase()
-  ];
+  }[unit];
   return value !== null && value >= 0 && factor !== undefined
     ? value * factor
     : null;
@@ -110,3 +126,46 @@ export function rateHistory(data, unit) {
       };
     });
 }
+
+export function availabilityLabel(state) {
+  if (!state || state.state === "unknown") return "Unknown";
+  if (state.state === "unavailable") return "Unavailable";
+  const value = String(state.state).trim().toLowerCase();
+  if (
+    state.attributes?.device_class === "problem" &&
+    ["on", "off"].includes(value)
+  )
+    return value === "off" ? "Online" : "Offline";
+  if (
+    [
+      "on",
+      "online",
+      "connected",
+      "running",
+      "up",
+      "healthy",
+      "ok",
+      "ready",
+      "true",
+      "1",
+    ].includes(value)
+  )
+    return "Online";
+  if (
+    [
+      "off",
+      "offline",
+      "disconnected",
+      "stopped",
+      "down",
+      "unhealthy",
+      "false",
+      "0",
+    ].includes(value)
+  )
+    return "Offline";
+  return String(state.state) || "Unknown";
+}
+
+export const metricThresholds = Object.freeze({ warning: 70, critical: 85 });
+export const metricLevel = (value) => threshold(value, metricThresholds);

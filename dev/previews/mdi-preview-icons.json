@@ -19,5 +19,6 @@
   "mdi:home-import-outline": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"mdi-home-import-outline\" viewBox=\"0 0 24 24\"><path d=\"M15 13L11 17V14H2V12H11V9L15 13M5 20V16H7V18H17V10.19L12 5.69L7.21 10H4.22L12 3L22 12H19V20H5Z\" /></svg>",
   "mdi:restart": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"mdi-restart\" viewBox=\"0 0 24 24\"><path d=\"M12,4C14.1,4 16.1,4.8 17.6,6.3C20.7,9.4 20.7,14.5 17.6,17.6C15.8,19.5 13.3,20.2 10.9,19.9L11.4,17.9C13.1,18.1 14.9,17.5 16.2,16.2C18.5,13.9 18.5,10.1 16.2,7.7C15.1,6.6 13.5,6 12,6V10.6L7,5.6L12,0.6V4M6.3,17.6C3.7,15 3.3,11 5.1,7.9L6.6,9.4C5.5,11.6 5.9,14.4 7.8,16.2C8.3,16.7 8.9,17.1 9.6,17.4L9,19.4C8,19 7.1,18.4 6.3,17.6Z\" /></svg>",
   "mdi:close": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"mdi-close\" viewBox=\"0 0 24 24\"><path d=\"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z\" /></svg>",
-  "mdi:thermometer": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"mdi-thermometer\" viewBox=\"0 0 24 24\"><path d=\"M15 13V5A3 3 0 0 0 9 5V13A5 5 0 1 0 15 13M12 4A1 1 0 0 1 13 5V8H11V5A1 1 0 0 1 12 4Z\" /></svg>"
+  "mdi:thermometer": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"mdi-thermometer\" viewBox=\"0 0 24 24\"><path d=\"M15 13V5A3 3 0 0 0 9 5V13A5 5 0 1 0 15 13M12 4A1 1 0 0 1 13 5V8H11V5A1 1 0 0 1 12 4Z\" /></svg>",
+  "mdi:chevron-down": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"mdi-chevron-down\" viewBox=\"0 0 24 24\"><path d=\"M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z\" /></svg>"
 }
