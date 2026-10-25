@@ -511,3 +511,12 @@ Implement the approved countdown mock with the smaller 32 px shield: show remain
 Use the selected panel's read-only alarmo/countdown response (delay and remaining), tick locally against a deadline once per second, and resynchronize every 15 seconds while visible and on return or a new delay state. Do not restart a full configured delay on card opening. Bound requests to five seconds, ignore stale responses, clear requests/timers on hiding, configuration, disconnect or delay-state changes, and retain the PIN pad and native alarm controls. Missing/invalid timing data shows the actual state without fabricated seconds or a progress arc. A zero timer does not imply armed: only backend state confirmation changes the card to green. Validate with simulated HA state and websocket responses; no real alarm operations are authorized for testing.
 
 The owner authorized implementing and releasing this section with section 34 as ikio-v0.5.5, superseding its proposal/publication restrictions. Preserve synchronized versions and asset-free HACS release delivery.
+
+## 36. Collapsible Security sensor details (unreleased)
+
+Collapse individual alert sensor names/icons by default behind the live sensor status/count summary. Make the summary a keyboard-accessible toggle with a chevron, aria-expanded and aria-controls when sensor details exist. Keep the bypass checkbox above the summary and the inline PIN pad independently visible. Include open, active, unavailable and bypassed sensor details in the same disclosure; preserve HA icons and native details interactions when expanded. Keep expansion through live state/countdown updates; reset on reconfiguration or when every alert clears. An all-clear/loading/no-data summary has no empty disclosure. Implementation is authorized; no new release or commit has been requested.
+
+
+## 37. Release 0.5.6
+
+The owner authorized committing, merging and releasing section 36 as ikio-v0.5.6, superseding its publication restriction. Retain synchronized versions, asset-free HACS delivery and live-verification limits.
