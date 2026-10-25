@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.5.2 — Consistent device sparkline colours
+
+- Use the main Energy graph's configured colour thresholds and full palette for device and Untracked sparklines, so the same wattage has the same colour in every graph.
+- Retain automatic vertical scaling per device to keep small variations visible, independently of colour thresholds.
+- Thin sparkline strokes to 1 px, retaining row height, missing-data gaps and the main graph's existing line width.
+
 ## 0.5.1 — Car image entities and refined vehicle details
 
 - Add a visual-editor car-image entity selector. Use the entity picture or URL state and follow picture/token changes automatically, with clear unavailable status and no camera streaming.

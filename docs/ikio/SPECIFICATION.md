@@ -461,3 +461,8 @@ Move metric/status icons to the left of their label/value pair. Use 32 px icons 
 ## 26. Release 0.5.1
 
 The owner authorized publishing the section 25 car-card follow-up. Release the synchronized collection as `ikio-v0.5.1`, retaining asset-free HACS delivery and live-verification limits.
+
+
+## 27. Consistent Energy sparkline colours (0.5.2)
+
+Device and Untracked sparklines use the main graph's configured expected minimum/maximum colour thresholds and the identical full palette. The same wattage must therefore map to the same colour in every graph. This supersedes section 21's per-device colour normalization. Vertical scaling still uses each device's observed visible min/max, including constant-series handling, independently of colours. Use a 1 px non-scaling stroke for sparklines while preserving the main graph's 2 px stroke, row height, history batching, missing-data gaps and unit conversion. The owner authorized implementation and release as `ikio-v0.5.2`.

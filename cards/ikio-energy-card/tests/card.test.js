@@ -304,7 +304,7 @@ test("forecast validity messages remain visible in the quieter bill column", () 
   card.remove();
 });
 
-test("device sparklines share one history request and auto-scale without colour configuration", () => {
+test("device sparklines share one history request and auto-scale height while retaining the main colour palette", () => {
   const card = energyFixture(
     {
       power_entity: "sensor.total",
@@ -345,7 +345,7 @@ test("device sparklines share one history request and auto-scale without colour 
   assert.equal(plots[0].querySelectorAll("[data-extremum]").length, 0);
   assert.equal(
     plots[0].querySelector("stop:last-child").getAttribute("stop-color"),
-    "#ff0000",
+    "#d400ff",
   );
   assert.ok(!plots[1].querySelector("path").getAttribute("d").includes("NaN"));
   const gradient = plots[1].querySelector("linearGradient");
@@ -384,4 +384,37 @@ test("computed Untracked history aligns asynchronous changes and preserves missi
   assert.deepEqual(untrackedHistory([[{ time: 1, value: 100 }], []]), [
     { time: 1, value: null },
   ]);
+});
+
+test("device and Untracked graphs inherit configured main-graph colour thresholds", () => {
+  const card = energyFixture(
+    {
+      power_entity: "sensor.total",
+      circuits: [{ power_entity: "sensor.device" }],
+      untracked_entity: "sensor.rest",
+      expected_min: 100,
+      expected_max: 7100,
+    },
+    {},
+  );
+  const points = [
+    { time: 1, value: 1100 },
+    { time: 2, value: 1101 },
+  ];
+  for (const name of ["Device", "Untracked"]) {
+    const node = card.deviceReading(name, "1,100 W", undefined, points, 1, 2);
+    const gradient = node.querySelector("linearGradient");
+    const y = Number(
+      node
+        .querySelector("path")
+        .getAttribute("d")
+        .match(/^M[^,]+,([^ ]+)/)[1],
+    );
+    const ratio =
+      (y - Number(gradient.getAttribute("y1"))) /
+      (Number(gradient.getAttribute("y2")) -
+        Number(gradient.getAttribute("y1")));
+    assert.ok(Math.abs(ratio - 1000 / 7000) < 1e-10);
+  }
+  card.remove();
 });
