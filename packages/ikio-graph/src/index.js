@@ -287,7 +287,7 @@ export function graph(
       "stroke-width": 2,
       "stroke-linecap": "round",
       ...(sparkline
-        ? { "vector-effect": "non-scaling-stroke", "stroke-width": 1 }
+        ? { "vector-effect": "non-scaling-stroke", "stroke-width": 0.8 }
         : {}),
     });
     if (index) path.setAttribute("stroke-dasharray", index % 2 ? "5 3" : "2 3");

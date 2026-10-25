@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## 0.5.3 — Finer graphs and smaller vehicle details
+
+- Reduce device and Untracked sparkline strokes from 1 px to 0.8 px, retaining the main graph line, shared colour thresholds and automatic vertical scaling.
+- Reduce Drive metric/status icons to 28 px, or 22 px on narrow cards.
+- Show only the VIN value at 11 px, retaining its accessible label and native sensor details.
+- Reduce plate text by 1 px and tighten the outline/padding while keeping the plate and VIN centred. The existing Plate country code editor setting supports GR, another code or an empty country section.
+
 ## 0.5.2 — Consistent device sparkline colours
 
 - Use the main Energy graph's configured colour thresholds and full palette for device and Untracked sparklines, so the same wattage has the same colour in every graph.

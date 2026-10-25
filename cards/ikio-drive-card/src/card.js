@@ -48,11 +48,11 @@ export class Card extends ControlCard {
       .ae-drive-header.has-identifiers.has-image{grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr) minmax(0,1.2fr)}
       .ae-drive-identifiers{display:grid;gap:3px;min-width:0;justify-items:center;text-align:center}
       .ae-drive-plate{display:inline-flex;align-items:stretch;max-width:100%;border:1px solid var(--ae-muted);border-radius:4px;background:transparent;color:var(--ae-text)}
-      .ae-drive-plate-country{display:flex;align-items:center;justify-content:center;padding:2px 4px;font-size:11px;color:var(--ae-muted);border-inline-end:1px solid var(--ae-muted);flex:none}
-      .ae-drive-plate-number{padding:3px 6px;font-family:var(--ha-font-family,system-ui,sans-serif);font-size:16px;font-weight:400;letter-spacing:1px;overflow-wrap:anywhere;min-width:0}
+      .ae-drive-plate-country{display:flex;align-items:center;justify-content:center;padding:1px 3px;font-size:11px;color:var(--ae-muted);border-inline-end:1px solid var(--ae-muted);flex:none}
+      .ae-drive-plate-number{padding:2px 5px;font-family:var(--ha-font-family,system-ui,sans-serif);font-size:15px;font-weight:400;letter-spacing:1px;overflow-wrap:anywhere;min-width:0}
       .ae-drive-identifiers .ae-drive-vin{flex-direction:row;flex-wrap:wrap;padding:0;gap:4px;min-width:0;min-height:44px;width:100%;justify-content:center;text-align:center;align-items:center}
       .ae-drive-vin .ae-label{font-size:11px}
-      .ae-drive-vin .ae-value{font-size:12px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
+      .ae-drive-vin .ae-value{font-size:11px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
       .ae-drive-header.has-identifiers .ae-drive-image{width:100%}
       .ae-drive-header.has-identifiers .ae-drive-image-note{max-width:none}
       .ae-drive-image{width:35%;max-width:180px;height:90px;object-fit:contain;object-position:right center;flex:none}
@@ -68,8 +68,8 @@ export class Card extends ControlCard {
       .ae-drive-statuses{border-top:1px solid var(--ae-border);padding-top:7px}
       .ae-drive .ae-drive-statuses .ae-value{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;min-width:0}
       .ae-drive-statuses .ae-value span{min-width:0;overflow-wrap:anywhere}
-      .ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{display:grid;grid-template-columns:32px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-content:center}
-      .ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:32px;grid-column:1;grid-row:1/3;align-self:center}
+      .ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{display:grid;grid-template-columns:28px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-content:center}
+      .ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:28px;grid-column:1;grid-row:1/3;align-self:center}
       .ae-drive-metrics .ae-label,.ae-drive-statuses .ae-label{grid-column:2;grid-row:1;font-size:11px;font-weight:400;min-width:0}
       .ae-drive-metrics .ae-value,.ae-drive-statuses .ae-value{grid-column:2;grid-row:2;min-width:0}
       .ae-drive .ae-drive-statuses .ae-value{font-size:14px}
@@ -82,7 +82,7 @@ export class Card extends ControlCard {
       .ae-drive-footer{border-top:1px solid var(--ae-border);padding-top:6px;display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;min-width:0}
       .ae-drive-footer .ae-note{margin:0;font-size:12px}
       .ae-drive-footer .ae-location-link{font-size:12px;padding:2px 0;overflow-wrap:anywhere}
-      @container(max-width:350px){.ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{grid-template-columns:24px minmax(0,1fr);column-gap:5px}.ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:24px}.ae-drive-plate-number{font-size:14px;padding:3px 4px;letter-spacing:.5px}.ae-drive-metrics,.ae-drive-statuses{gap:6px}.ae-drive .ae-drive-metrics .ae-value{font-size:16px}}
+      @container(max-width:350px){.ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{grid-template-columns:22px minmax(0,1fr);column-gap:5px}.ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:22px}.ae-drive-plate-number{font-size:13px;padding:2px 3px;letter-spacing:.5px}.ae-drive-metrics,.ae-drive-statuses{gap:6px}.ae-drive .ae-drive-metrics .ae-value{font-size:16px}}
     `,
       ),
     );
@@ -242,7 +242,7 @@ export class Card extends ControlCard {
           c.vin_entity,
           "ae-drive-vin",
         );
-        vin.querySelector(".ae-label").textContent = "VIN ·";
+        vin.querySelector(".ae-label").classList.add("sr");
         identifiers.append(vin);
       }
       header.append(identifiers);
