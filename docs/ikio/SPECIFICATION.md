@@ -419,3 +419,32 @@ Untracked is an ordinary device-grid reading with matching typography, not a sep
 Use two three-column rows: range/fuel/odometer, then aggregate locks/doors/windows. Add native HA icons beside metric labels and state-dependent icons beside status text. Use muted mint for known secure states, amber for open/unlocked, soft red for jammed, grey for unknown/unavailable/unconfigured, and blue for locking/unlocking. Do not infer secure from unavailable data or introduce car commands. Preserve aggregate mappings and explicit unit handling.
 
 Move parking to the header and keep location age plus the plain Open location in maps link in one wrapping footer. Retain 44 px entity targets, readable labels and full values on narrow widths. Remove the separate fuel bar; a configured compatible fuel capacity can still convert the Fuel metric into percentage. Metric/status taps and holds open native HA details; aggregates select the member explaining an alert. Main/version/release are unchanged until the owner asks to publish.
+
+## 21. Device power sparklines (0.5.0)
+
+Place an 18 px sparkline beside each device's whole-watt value, beneath the unchanged name. Preserve row height, grid layout and native sensor details. Use the main graph's time window and batched history request. Each sparkline derives its vertical and colour range from its visible minimum/maximum, with no configuration; this overrides fixed colour thresholds for device sparklines only. Reuse the main palette's green/yellow/orange/red stops, ending at red for the observed maximum. Constant consumption is flat and green, including zero at the bottom. Omit axes, captions and guides. Missing history leaves the reserved space empty; missing states break the line.
+
+Include configured Untracked sensor history, or compute Untracked history from time-aligned total minus non-overlapping device readings with unit conversion and missing-data gaps. Computed Untracked stays read-only and existing warnings remain. No release/version bump or publication is authorized.
+
+## 22. Alarmo-style Security card (0.5.0)
+
+Use a 58 px circular status emblem with a 38 px icon, title and alarm status. A single segmented selector shows Disarmed then supported/configured Away, Home and other modes. Prominent green identifies armed states and the active mode; amber marks delays and sensor warnings; triggered uses the error colour. Retain native entity details on hold.
+
+Place the sensor area above the mode selector. Use compact wrapping sensor labels and HA state icons, including icon overrides. Show open/active/unavailable sensors and confirmed Alarmo bypassed sensors. Unknown data must never imply all sensors are clear. Remove user location/presence from the card and editor, while accepting legacy configuration.
+
+The Alarmo bypass checkbox defaults off and is offered only while disarmed with open sensors, overrides enabled and the Alarmo service available. Position it above the sensor warning. Apply selection to the next explicitly reviewed arming attempt; clear it on submission, state/configuration changes, hiding and disconnect. Preserve required codes, normal exit delays and force-arm semantics. After arming, display confirmed bypass status from the backend instead of the checkbox.
+
+Show a masked PIN field and numeric keypad inside the card whenever armed, including with bypassed sensors, and during triggered/entry/exit delay states. No initial tap is required. Codes may also be typed, including text codes. Selecting Disarmed focuses this field; submitting Disarm sends the code and awaits backend state confirmation. Code-free panels permit an empty code. Hide the keypad after confirmed disarming. Required arming codes and arming confirmation also use inline controls, without action popups. Clear codes after submission, alarm state/config changes, hiding and disconnect. Keep errors inline, preserve preview/pending/unavailable guards, and never save codes in configuration. No release/version bump is requested.
+
+## 23. Drive image, identifiers and matching security colours (0.5.0)
+
+Match Security's brighter green for Locked/Closed, including light/HA appearance handling. Keep amber Open/Unlocked, error-colour Jammed, blue transitional states and muted unknown/unavailable. Retain the existing state aggregation, native details interactions and read-only vehicle behaviour. Use the approved layout: title with parking beneath on the left, optional license plate and VIN in two compact rows in the centre, and an optional contained car image on the right. Keep the metric/status rows compact with subtle column dividers and a separated location footer.
+
+Expose optional `license_plate` text and `vin_entity` sensor through the visual editor. Preserve the VIN’s exact identifier text and leading zeroes, with no numeric formatting. VIN tap/hold opens sensor details. Omit unconfigured rows and allow long text to wrap.
+
+Expose optional `image` through HA's native media selector with image upload, plus `image_url` for local/HTTP(S) images. The selected upload takes precedence. Resolve media-source URLs through HA; deduplicate loading, ignore stale results after reconfiguration/disconnect, refresh resolved URLs while visible and stop timers when hidden/disconnected. Show inline image failures without losing readings. Preserve transparent cutouts with object-fit contain. Do not embed household images or identifiers in the collection. No version bump or release is requested.
+
+
+## 24. Release 0.5.0
+
+The owner authorized merging and releasing sections 21–23, superseding their earlier publication restrictions. Release this synchronized collection as `ikio-v0.5.0`, preserving asset-free HACS delivery and the documented live-verification limits.

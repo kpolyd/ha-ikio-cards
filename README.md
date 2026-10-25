@@ -20,7 +20,7 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 ## Installation
 
-Current collection version: **0.4.0**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
+Current collection version: **0.5.0**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
 ### HACS (recommended)
 
@@ -31,13 +31,13 @@ Current collection version: **0.4.0**. The source targets Home Assistant fronten
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All eleven cards and editors are included in one file, with one HACS version/update. Starting with 0.3.2, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Existing `custom:ikio-...` configurations stay the same. Aethora configurations need the one-time namespace migration below.
+All eleven cards and editors are included in one file, with one HACS version/update. Starting with 0.5.0, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Existing `custom:ikio-...` configurations stay the same. Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 
 ### Manual installation
 
-Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.4.0` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
+Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.5.0` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
 
 See the [installation guide](docs/ikio/INSTALLATION.md), [Aethora migration guide](docs/ikio/MIGRATION.md), [design specification](docs/ikio/SPECIFICATION.md) and [validation status](docs/ikio/STATUS.md).
 

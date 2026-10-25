@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.3.2**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.0**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.3.2` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-energy-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.0` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-energy-card.js`. Use only one route.
 
 Add card → Ikio Energy. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -53,4 +53,6 @@ Power readings display whole watts, including values supplied by kW/MW sensors. 
 
 Untracked occupies an ordinary slot in the device grid. A bound sensor has the same appearance and native details interaction as the other sensor readings. A calculated remainder is a plain read-only value with no fabricated entity or action button; unavailable/incompatible input and overlap warnings remain visible. The upper tariff figures use compact information rows; the main power and device entries retain their existing touch targets.
 
-These changes are unreleased. The collection version remains 0.3.2 until the owner requests a release.
+These changes are unreleased. The collection version remains 0.5.0 until the owner requests a release.
+
+Device power readings include compact sparklines beside their watt values without adding row height. They use the main graph's history window and automatically scale each device's visible minimum/maximum, including its green-to-red colours; no extra configuration is needed. Untracked also has a sparkline, using either its configured sensor or total minus confirmed non-overlapping circuits. Missing history stays blank and unavailable samples create gaps.

@@ -1,4 +1,9 @@
-import { HistoryCard } from "@ikio/graph";
+import {
+  HistoryCard,
+  graph,
+  normalizeHistory,
+  windowPoints,
+} from "@ikio/graph";
 import {
   group,
   reading,
@@ -11,6 +16,7 @@ import {
 import { validate } from "./config.js";
 import {
   untracked,
+  untrackedHistory,
   cycleTotal,
   forecastStatus,
   powerText,
@@ -39,6 +45,10 @@ export class Card extends HistoryCard {
       .ae-energy .ae-energy-tariffs .ae-reading{width:100%;min-height:24px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
       .ae-energy-tariffs .ae-value{min-width:0;text-align:right}
       .ae-energy-bills{display:grid;gap:5px}
+      .ae-energy .ae-grid .ae-device-reading{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:10px;align-content:center;align-items:center}
+      .ae-device-reading>.ae-label{grid-column:1/-1}
+      .ae-device-sparkline{height:18px;min-width:0;overflow:hidden;pointer-events:none}
+      .ae-device-sparkline .ae-graph{height:18px;width:100%}
       @container(max-width:350px){.ae-energy-summary{gap:7px}.ae-energy-tariffs,.ae-energy-bills{padding-inline-start:6px}.ae-energy-summary .ae-hero .ae-value{font-size:28px}}
     `,
       ),
@@ -60,7 +70,33 @@ export class Card extends HistoryCard {
     return document.createElement("ikio-energy-card-editor");
   }
   historyEntities() {
-    return this.config?.power_entity ? [this.config.power_entity] : [];
+    const c = this.config;
+    return [
+      ...new Set(
+        [
+          c?.power_entity,
+          ...(c?.circuits || []).map((r) => r.power_entity),
+          c?.untracked_entity,
+        ].filter(Boolean),
+      ),
+    ];
+  }
+  deviceReading(name, value, entity, points, start, end) {
+    const item = reading(name, value, entity, "ae-device-reading");
+    const slot = el("div", undefined, "ae-device-sparkline");
+    slot.setAttribute("aria-hidden", "true");
+    if (!this.historyError)
+      slot.append(
+        graph([{ name, points }], {
+          start,
+          end,
+          unit: "W",
+          hass: this.hass,
+          sparkline: true,
+        }),
+      );
+    item.append(slot);
+    return item;
   }
   render() {
     const c = this.config;
@@ -179,20 +215,29 @@ export class Card extends HistoryCard {
     );
     const circuits = (c.circuits || []).filter((r) => r.power_entity);
     const grid = el("div", undefined, "ae-grid");
+    const end = Date.now(),
+      start = end - (c.hours || 6) * 3600000;
+    const history = (entity) => normalizeHistory(this.history?.[entity], "W");
     for (const r of circuits)
       grid.append(
-        reading(
+        this.deviceReading(
           r.name || this.label(r.power_entity),
           powerText(this.hass, r.power_entity),
           r.power_entity,
+          history(r.power_entity),
+          start,
+          end,
         ),
       );
     if (c.untracked_entity)
       grid.append(
-        reading(
+        this.deviceReading(
           "Untracked",
           powerText(this.hass, c.untracked_entity),
           c.untracked_entity,
+          history(c.untracked_entity),
+          start,
+          end,
         ),
       );
     else if (c.show_untracked) {
@@ -206,9 +251,19 @@ export class Card extends HistoryCard {
             reason:
               "Confirm non-overlapping circuits in the editor before calculating untracked power.",
           };
-      const item = reading(
+      const item = this.deviceReading(
         "Untracked",
         `${formatNumber(this.hass, calc.value, 0)} W`,
+        undefined,
+        c.non_overlapping
+          ? untrackedHistory(
+              [c.power_entity, ...circuits.map((r) => r.power_entity)].map(
+                (entity) => windowPoints(history(entity), start, end),
+              ),
+            )
+          : [],
+        start,
+        end,
       );
       item.title = "Total power minus the configured device power sensors.";
       grid.append(item);

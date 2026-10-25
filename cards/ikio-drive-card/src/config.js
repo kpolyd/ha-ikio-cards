@@ -6,6 +6,14 @@ import {
   validateConfig,
 } from "@ikio/card-ui/schema-editor";
 export const fields = [
+  {
+    name: "image",
+    label: "Car image (optional)",
+    selector: { media: { accept: ["image/*"], image_upload: true } },
+  },
+  text("license_plate", "License plate (optional)"),
+  entity("vin_entity", "VIN sensor (optional)", "sensor"),
+  text("image_url", "Car image URL or /local/ path (optional alternative)"),
   entity("fuel_entity", "Fuel level", "sensor"),
   number(
     "fuel_capacity",
@@ -60,4 +68,16 @@ export const lists = ["locks", "doors", "windows"].map((name) => ({
     ),
   ],
 }));
-export const validate = (c) => validateConfig(c, fields, lists);
+export const validate = (c) => {
+  validateConfig(c, fields, lists);
+  if (
+    c.image != null &&
+    (typeof c.image !== "object" ||
+      typeof c.image.media_content_id !== "string")
+  )
+    throw Error("Choose a car image using the visual editor");
+  if (c.license_plate != null && typeof c.license_plate !== "string")
+    throw Error("License plate must be text");
+  if (c.image_url != null && typeof c.image_url !== "string")
+    throw Error("Car image URL must be text");
+};

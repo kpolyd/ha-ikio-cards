@@ -18,11 +18,6 @@ export const fields = [
 ];
 export const lists = [
   {
-    name: "persons",
-    label: "Presence",
-    fields: [entity("entity", "Person", "person", true), text("name", "Name")],
-  },
-  {
     name: "contacts",
     label: "Monitored openings",
     fields: [

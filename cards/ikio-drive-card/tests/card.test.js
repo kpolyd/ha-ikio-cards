@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 let dom;
 before(async () => {
-  dom = new JSDOM("<body></body>", { url: "http://localhost" });
+  dom = new JSDOM("<body></body>", {
+    url: "http://localhost",
+    pretendToBeVisual: true,
+  });
   for (const key of [
     "window",
     "document",
@@ -390,5 +393,161 @@ test("invalid coordinates stay disabled and missing timestamps stay explicit", (
     card.shadowRoot.querySelector(".ae-drive-footer").textContent,
     /Location update time unknown/,
   );
+  card.remove();
+});
+
+test("optional car image sits beside title/parking and missing images retain sensor readings", () => {
+  const card = driveFixture(
+    { tracker_entity: "device_tracker.car", image_url: "/local/car.png" },
+    {
+      "device_tracker.car": driveState("device_tracker.car", "home"),
+    },
+  );
+  const header = card.shadowRoot.querySelector(".ae-drive-header");
+  assert.match(
+    header.querySelector(".ae-drive-heading").textContent,
+    /CarParkingHome/,
+  );
+  const image = header.querySelector("img");
+  assert.equal(image.getAttribute("src"), "/local/car.png");
+  assert.equal(image.alt, "Car image");
+  image.dispatchEvent(new dom.window.Event("error"));
+  assert.equal(header.querySelector("img"), null);
+  assert.match(header.textContent, /Car image unavailable/);
+  assert.ok(card.shadowRoot.querySelector(".ae-drive-statuses"));
+  card.setConfig({ tracker_entity: "device_tracker.car" });
+  assert.equal(card.shadowRoot.querySelector("img"), null);
+  assert.equal(card.shadowRoot.querySelector(".ae-drive-image-note"), null);
+  card.remove();
+});
+
+test("uploaded media resolves once and stale results cannot replace a newly selected image", async () => {
+  const card = driveFixture({
+    image: { media_content_id: "media-source://image_upload/example" },
+  });
+  const calls = [];
+  let resolve;
+  card.hass = {
+    ...card.hass,
+    callWS: (args) => {
+      calls.push(args);
+      return new Promise((r) => (resolve = r));
+    },
+  };
+  const pending = card.loadImage();
+  card.update();
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0], {
+    type: "media_source/resolve_media",
+    media_content_id: "media-source://image_upload/example",
+  });
+  resolve({ url: "/api/image/serve/example/original" });
+  await pending;
+  assert.equal(
+    card.shadowRoot.querySelector("img").getAttribute("src"),
+    "/api/image/serve/example/original",
+  );
+  const stale = card.loadImage(true);
+  card.setConfig({ image_url: "/local/replacement.png" });
+  resolve({ url: "/api/image/serve/stale/original" });
+  await stale;
+  assert.equal(
+    card.shadowRoot.querySelector("img").getAttribute("src"),
+    "/local/replacement.png",
+  );
+  card.remove();
+});
+test("failed media resolution stays inline and disconnected requests do not restore image state", async () => {
+  const card = driveFixture({
+    image: { media_content_id: "media-source://image_upload/example" },
+  });
+  card.hass = {
+    ...card.hass,
+    callWS: async () => {
+      throw Error("Missing image");
+    },
+  };
+  await card.loadImage();
+  assert.match(card.shadowRoot.textContent, /Car image unavailable/);
+  let resolve;
+  card.hass = { ...card.hass, callWS: () => new Promise((r) => (resolve = r)) };
+  const pending = card.loadImage(true);
+  card.remove();
+  resolve({ url: "/api/image/serve/stale/original" });
+  await pending;
+  assert.equal(card.resolvedImage, "");
+  assert.equal(card.isConnected, false);
+});
+test("image editor offers native image upload, preserves selection, and rejects non-image URL schemes", async () => {
+  const { fields } = await import("../src/config.js");
+  const field = fields.find((f) => f.name === "image");
+  assert.deepEqual(field.selector.media, {
+    accept: ["image/*"],
+    image_upload: true,
+  });
+  const editor = await customElements.get("ikio-drive-card").getConfigElement();
+  const image = {
+    media_content_id: "media-source://image_upload/example",
+    media_content_type: "image/png",
+  };
+  editor.setConfig({ image });
+  editor.hass = { states: {} };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const form = editor.shadowRoot.querySelector("ha-form");
+  assert.deepEqual(form.data.image, image);
+  let saved;
+  editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  form.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...form.data, name: "Vehicle" } },
+    }),
+  );
+  assert.deepEqual(saved.image, image);
+  const card = driveFixture({ image_url: "javascript:alert(1)" });
+  assert.equal(card.shadowRoot.querySelector("img"), null);
+  assert.match(card.shadowRoot.textContent, /Car image unavailable/);
+  card.remove();
+  editor.remove();
+});
+
+test("plate and exact VIN occupy the two header rows between title and image", () => {
+  const card = driveFixture(
+    {
+      license_plate: "DEMO 1234",
+      vin_entity: "sensor.vin",
+      image_url: "/local/car.png",
+    },
+    {
+      "sensor.vin": driveState("sensor.vin", "00012345678901234"),
+    },
+  );
+  const header = card.shadowRoot.querySelector(".ae-drive-header");
+  assert.deepEqual(
+    [...header.children].map((n) => n.className),
+    ["ae-drive-heading", "ae-drive-identifiers", "ae-drive-image"],
+  );
+  const ids = header.querySelector(".ae-drive-identifiers");
+  assert.equal(ids.children.length, 2);
+  assert.equal(ids.firstElementChild.textContent, "DEMO 1234");
+  assert.equal(ids.querySelector(".ae-value").textContent, "00012345678901234");
+  let entity;
+  card.addEventListener("hass-more-info", (e) => (entity = e.detail.entityId));
+  ids.querySelector("button").click();
+  assert.equal(entity, "sensor.vin");
+  card.hass = {
+    ...card.hass,
+    states: { "sensor.vin": driveState("sensor.vin", "unavailable") },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-drive-vin .ae-value").textContent,
+    "unavailable",
+  );
+  card.setConfig({ license_plate: "DEMO 1234" });
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-drive-plate").textContent,
+    "DEMO 1234",
+  );
+  assert.equal(card.shadowRoot.querySelector(".ae-drive-vin"), null);
   card.remove();
 });
