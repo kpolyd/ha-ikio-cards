@@ -46,9 +46,11 @@ export class Card extends ControlCard {
       .ae-drive-parking ha-icon{--mdc-icon-size:13px;flex:0 0 13px}
       .ae-drive-header.has-identifiers{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}
       .ae-drive-header.has-identifiers.has-image{grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr) minmax(0,1.2fr)}
-      .ae-drive-identifiers{display:grid;gap:3px;min-width:0}
-      .ae-drive-plate{font-size:13px;font-weight:500;overflow-wrap:anywhere}
-      .ae-drive-identifiers .ae-drive-vin{padding:0;gap:2px;min-width:0;min-height:44px;width:100%;justify-content:center}
+      .ae-drive-identifiers{display:grid;gap:3px;min-width:0;justify-items:center;text-align:center}
+      .ae-drive-plate{display:inline-flex;align-items:stretch;max-width:100%;border:1px solid var(--ae-muted);border-radius:4px;background:transparent;color:var(--ae-text)}
+      .ae-drive-plate-country{display:flex;align-items:center;justify-content:center;padding:2px 4px;font-size:11px;color:var(--ae-muted);border-inline-end:1px solid var(--ae-muted);flex:none}
+      .ae-drive-plate-number{padding:3px 6px;font-family:var(--ha-font-family,system-ui,sans-serif);font-size:16px;font-weight:400;letter-spacing:1px;overflow-wrap:anywhere;min-width:0}
+      .ae-drive-identifiers .ae-drive-vin{flex-direction:row;flex-wrap:wrap;padding:0;gap:4px;min-width:0;min-height:44px;width:100%;justify-content:center;text-align:center;align-items:center}
       .ae-drive-vin .ae-label{font-size:11px}
       .ae-drive-vin .ae-value{font-size:12px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
       .ae-drive-header.has-identifiers .ae-drive-image{width:100%}
@@ -59,24 +61,28 @@ export class Card extends ControlCard {
       .ae-drive-metrics,.ae-drive-statuses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
       .ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{padding:2px 0;min-width:0;min-height:44px;width:100%}
       .ae-drive .ae-drive-metrics .ae-label{display:flex;align-items:center;gap:5px;min-width:0}
-      .ae-drive-metrics .ae-label ha-icon{--mdc-icon-size:14px;flex:0 0 14px}
+
       .ae-drive .ae-drive-metrics .ae-value{display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;font-size:19px;font-weight:500;min-width:0}
       .ae-drive-metrics .ae-value span{min-width:0;overflow-wrap:anywhere}
       .ae-drive-metrics small{font-size:12px;font-weight:400;color:var(--ae-muted)}
       .ae-drive-statuses{border-top:1px solid var(--ae-border);padding-top:7px}
       .ae-drive .ae-drive-statuses .ae-value{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;min-width:0}
       .ae-drive-statuses .ae-value span{min-width:0;overflow-wrap:anywhere}
-      .ae-drive-statuses ha-icon{--mdc-icon-size:16px;flex:0 0 16px}
-      .ae-drive .drive-secure .ae-value{color:var(--drive-secure)}
-      .ae-drive .drive-warning .ae-value{color:var(--ae-warning)}
-      .ae-drive .drive-error .ae-value{color:var(--ae-error)}
-      .ae-drive .drive-neutral .ae-value{color:var(--ae-muted)}
-      .ae-drive .drive-pending .ae-value{color:var(--ae-accent)}
+      .ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{display:grid;grid-template-columns:32px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-content:center}
+      .ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:32px;grid-column:1;grid-row:1/3;align-self:center}
+      .ae-drive-metrics .ae-label,.ae-drive-statuses .ae-label{grid-column:2;grid-row:1;font-size:11px;font-weight:400;min-width:0}
+      .ae-drive-metrics .ae-value,.ae-drive-statuses .ae-value{grid-column:2;grid-row:2;min-width:0}
+      .ae-drive .ae-drive-statuses .ae-value{font-size:14px}
+      .ae-drive .drive-secure>ha-icon,.ae-drive .drive-secure .ae-value{color:var(--drive-secure)}
+      .ae-drive .drive-warning>ha-icon,.ae-drive .drive-warning .ae-value{color:var(--ae-warning)}
+      .ae-drive .drive-error>ha-icon,.ae-drive .drive-error .ae-value{color:var(--ae-error)}
+      .ae-drive .drive-neutral>ha-icon,.ae-drive .drive-neutral .ae-value{color:var(--ae-muted)}
+      .ae-drive .drive-pending>ha-icon,.ae-drive .drive-pending .ae-value{color:var(--ae-accent)}
       .ae-drive-metrics>.ae-reading:not(:first-child),.ae-drive-statuses>.ae-reading:not(:first-child){border-inline-start:1px solid var(--ae-border);border-radius:0;padding-inline-start:8px}
       .ae-drive-footer{border-top:1px solid var(--ae-border);padding-top:6px;display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;min-width:0}
       .ae-drive-footer .ae-note{margin:0;font-size:12px}
       .ae-drive-footer .ae-location-link{font-size:12px;padding:2px 0;overflow-wrap:anywhere}
-      @container(max-width:350px){.ae-drive-metrics,.ae-drive-statuses{gap:6px}.ae-drive .ae-drive-metrics .ae-value{font-size:16px}}
+      @container(max-width:350px){.ae-drive .ae-drive-metrics .ae-reading,.ae-drive .ae-drive-statuses .ae-reading{grid-template-columns:24px minmax(0,1fr);column-gap:5px}.ae-drive-metrics .ae-reading>ha-icon,.ae-drive-statuses .ae-reading>ha-icon{--mdc-icon-size:24px}.ae-drive-plate-number{font-size:14px;padding:3px 4px;letter-spacing:.5px}.ae-drive-metrics,.ae-drive-statuses{gap:6px}.ae-drive .ae-drive-metrics .ae-value{font-size:16px}}
     `,
       ),
     );
@@ -97,6 +103,12 @@ export class Card extends ControlCard {
     return document.createElement("ikio-drive-card-editor");
   }
   imageSource() {
+    if (this.config?.image_entity) {
+      const state = this.state(this.config.image_entity);
+      if (!available(state)) return "";
+      const source = state.attributes?.entity_picture || state.state;
+      return typeof source === "string" ? source : "";
+    }
     return this.config?.image?.media_content_id || this.config?.image_url || "";
   }
   onConfig() {
@@ -104,6 +116,7 @@ export class Card extends ControlCard {
     this.resolvedImage = "";
     this.imageKey = "";
     this.imageError = "";
+    this.activeImageSource = undefined;
     clearTimeout(this.imageTimer);
   }
   imageUrl(source) {
@@ -207,7 +220,18 @@ export class Card extends ControlCard {
       header.classList.add("has-identifiers");
       const identifiers = el("div", undefined, "ae-drive-identifiers");
       if (c.license_plate) {
-        const plate = el("div", c.license_plate, "ae-drive-plate");
+        const plate = el("div", undefined, "ae-drive-plate");
+        const country = c.plate_country === undefined ? "GR" : c.plate_country;
+        if (country) {
+          const code = el(
+            "span",
+            country.toUpperCase(),
+            "ae-drive-plate-country",
+          );
+          code.setAttribute("aria-hidden", "true");
+          plate.append(code);
+        }
+        plate.append(el("span", c.license_plate, "ae-drive-plate-number"));
         plate.setAttribute("aria-label", `License plate: ${c.license_plate}`);
         identifiers.append(plate);
       }
@@ -218,13 +242,22 @@ export class Card extends ControlCard {
           c.vin_entity,
           "ae-drive-vin",
         );
-        vin.querySelector(".ae-label").classList.add("sr");
+        vin.querySelector(".ae-label").textContent = "VIN ·";
         identifiers.append(vin);
       }
       header.append(identifiers);
     }
     const source = this.imageSource();
-    if (source) header.classList.add("has-image");
+    if (source !== this.activeImageSource) {
+      this.activeImageSource = source;
+      this.imageRequest = (this.imageRequest || 0) + 1;
+      this.imageKey = "";
+      this.resolvedImage = "";
+      this.imageError = "";
+      clearTimeout(this.imageTimer);
+    }
+    const hasImage = !!(source || c.image_entity);
+    if (hasImage) header.classList.add("has-image");
     const imageUrl = source.startsWith("media-source://")
       ? this.resolvedImage
       : this.imageUrl(source);
@@ -246,7 +279,7 @@ export class Card extends ControlCard {
       });
       if (!this.imageError) header.append(image);
     }
-    if (source && (this.imageError || !imageUrl))
+    if (hasImage && (this.imageError || !imageUrl))
       header.append(
         el(
           "span",
@@ -267,7 +300,7 @@ export class Card extends ControlCard {
       const id = c[key + "_entity"];
       if (!id) continue;
       const item = reading(label, valueText(this.hass, id), id);
-      item.querySelector(".ae-label").prepend(icon(glyph));
+      item.prepend(icon(glyph));
       const state = this.state(id);
       const percent =
         key === "fuel" ? fuelPercent(state, c.fuel_capacity) : null;
@@ -329,9 +362,8 @@ export class Card extends ControlCard {
       );
       item.dataset.key = `status-${key}`;
       item.dataset.status = status;
-      item
-        .querySelector(".ae-value")
-        .replaceChildren(icon(presentation.icon), el("span", status));
+      item.querySelector(".ae-value").replaceChildren(el("span", status));
+      item.prepend(icon(presentation.icon));
       statuses.append(item);
     }
     result.append(statuses);

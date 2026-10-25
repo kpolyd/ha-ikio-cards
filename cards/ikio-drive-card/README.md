@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.5.0**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.1**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.0` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-drive-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.1` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-drive-card.js`. Use only one route.
 
 Add card → Ikio Drive. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -14,9 +14,11 @@ Add card → Ikio Drive. Configure all fields through the visual editor. No YAML
 
 | Field | Setting |
 |---|---|
+| image_entity | Optional image entity or sensor supplying a picture/URL |
 | image | Optional native image upload |
 | image_url | Optional image URL or /local/ path |
 | license_plate | Optional license plate text |
+| plate_country | Small outlined plate country section (default GR; empty to omit) |
 | vin_entity | Optional VIN sensor |
 | fuel_entity | Fuel level |
 | fuel_capacity | Fuel capacity (same volume unit as fuel sensor) |
@@ -65,7 +67,7 @@ Secure states use the security card’s brighter green, Open/Unlocked amber, Jam
 
 Metric and status controls open native HA entity details on tap or hold; the card sends no vehicle commands. An aggregate alert opens the member responsible for that state, rather than an unrelated secure member. Existing buttons retain focus during normal status updates. Invalid coordinates disable the maps link, and absent timestamps remain explicit.
 
-These changes ship in collection version 0.5.0.
+These changes ship in collection version 0.5.1.
 
 ## Car image and identifiers
 
@@ -74,3 +76,14 @@ The header places the title and parking label on the left, optional license plat
 Use **Car image** to upload an image through Home Assistant, or **Car image URL** for a local `/local/` path or HTTP(S) URL. If both are set, the uploaded image takes precedence. Transparent cutouts work best. Images fit inside the compact header without cropping. Media-source images are resolved through Home Assistant, refreshed while visible and cleaned up on disconnect. Missing images show an inline message without hiding the readings. No household image or identifier is embedded in the collection.
 
 Green matches the Security card for locked/closed states, with amber for unlocked/open, red for jammed, blue for locking/unlocking and grey for unknown/unavailable. Metrics remain in their compact three-column row, separated by subtle vertical dividers; status and location footer use the same arrangement as the approved mockup.
+
+### Entity-provided image (0.5.1)
+
+Select **Car image entity** for an `image`, `sensor`, `device_tracker` or `camera` entity. The card prefers its `entity_picture` attribute; otherwise it uses its state as the image URL. The configured entity takes precedence over uploaded/static images. Image and token changes update automatically, and unavailable entities show an inline unavailable message. Camera entities supply only their still picture; no stream is started.
+
+
+### Minimal plate and larger icons (0.5.1)
+
+The smaller license plate has a thin neutral outline and a country divider, with no coloured band or filled background. The plate and VIN share one horizontal centre. The country section defaults to GR and can be changed or omitted in the editor. VIN stays below the plate, with its native sensor details target intact.
+
+Metric and status icons sit to the left of their label/value pair at 32 px, scaling to 24 px on narrow cards. Supporting labels are smaller than the values. The compact three-column layout, state colours, full readings and touch targets are retained.
