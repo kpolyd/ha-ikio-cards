@@ -1,6 +1,6 @@
 {
   "name": "ikio",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "private": true,
   "description": "Synchronized version authority for the Ikio collection"
 }

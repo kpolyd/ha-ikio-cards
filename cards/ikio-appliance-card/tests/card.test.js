@@ -82,3 +82,29 @@ test("timed run calls the selected backend script instead of scheduling browser 
   ]);
   card.remove();
 });
+
+test("manual-on review stays inline and only confirmation invokes the configured switch", async () => {
+  const card = document.createElement("ikio-appliance-card");
+  card.setConfig({ entity: "switch.test", confirm_manual_on: true });
+  const calls = [];
+  card.hass = {
+    states: {
+      "switch.test": { entity_id: "switch.test", state: "off", attributes: {} },
+    },
+    callService: async (...args) => calls.push(args),
+  };
+  document.body.append(card);
+  card.shadowRoot.querySelector('[aria-label="Turn on"]').click();
+  assert.equal(calls.length, 0);
+  assert.equal(card.shadowRoot.querySelector("dialog"), null);
+  assert.match(
+    card.shadowRoot.querySelector(".ikio-review").textContent,
+    /automatic shutoff/,
+  );
+  card.shadowRoot.querySelector("[data-key=confirm-review]").click();
+  await Promise.resolve();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], "switch");
+  assert.equal(calls[0][1], "turn_on");
+  card.remove();
+});

@@ -119,3 +119,49 @@ test("camera native player is mounted on demand and disposed when hidden or rema
   assert.equal(player.isConnected, false);
   card.remove();
 });
+
+test("on-demand camera loading times out and a late helper cannot revive an obsolete request", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const card = document.createElement("ikio-camera-card");
+  card.setConfig({ entity: "camera.test" });
+  card.hass = {
+    states: {
+      "camera.test": {
+        entity_id: "camera.test",
+        state: "idle",
+        attributes: {},
+      },
+    },
+  };
+  document.body.append(card);
+  card.visible = true;
+  let resolveHelpers,
+    created = 0;
+  window.loadCardHelpers = () =>
+    new Promise((resolve) => (resolveHelpers = resolve));
+  const loading = card.openFeed();
+  assert.equal(card.loadingFeed, true);
+  t.mock.timers.tick(8000);
+  await loading;
+  assert.equal(card.loadingFeed, false);
+  assert.match(card.error.textContent, /too long/);
+  resolveHelpers({
+    createCardElement: async () => {
+      created++;
+      return document.createElement("div");
+    },
+  });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(created, 0);
+  assert.equal(card.live, false);
+  window.loadCardHelpers = async () => ({
+    createCardElement: async () => document.createElement("div"),
+  });
+  await card.openFeed();
+  assert.equal(card.live, true);
+  card.visible = false;
+  card.onVisibility();
+  assert.equal(card.live, false);
+  card.remove();
+});

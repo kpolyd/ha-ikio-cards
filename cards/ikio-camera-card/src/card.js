@@ -1,3 +1,4 @@
+import { installRefinement, refine, disclosure, glyph } from "@ikio/card-ui";
 import {
   ControlCard,
   group,
@@ -14,6 +15,10 @@ import {
 import { validate } from "./config.js";
 export class Card extends ControlCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+  }
   static getStubConfig() {
     return { schema_version: 1 };
   }
@@ -32,41 +37,79 @@ export class Card extends ControlCard {
     this.update();
   }
   stopFeed() {
+    this.feedRequest = (this.feedRequest || 0) + 1;
+    this.cancelFeed?.();
+    this.cancelFeed = undefined;
     this.live = false;
     this.player?.remove();
     this.player = null;
     this.loadingFeed = false;
   }
   async openFeed() {
-    if (this.preview || !available(this.state()) || !this.isConnected) return;
+    if (
+      this.preview ||
+      !available(this.state()) ||
+      !this.isConnected ||
+      !this.visible ||
+      this.loadingFeed
+    )
+      return;
     this.loadingFeed = true;
     this.error.textContent = "";
     this.update();
     const revision = this.revision;
+    const request = (this.feedRequest = (this.feedRequest || 0) + 1);
+    const valid = () =>
+      request === this.feedRequest &&
+      revision === this.revision &&
+      this.isConnected &&
+      this.visible &&
+      !this.preview &&
+      available(this.state());
+    let timer;
     try {
       if (!window.loadCardHelpers)
         throw Error("Home Assistant camera helpers are unavailable");
-      const helpers = await window.loadCardHelpers();
-      const player = await helpers.createCardElement({
-        type: "picture-entity",
-        entity: this.config.entity,
-        camera_view: "live",
-        show_name: false,
-        show_state: false,
+      const prepare = async () => {
+        const helpers = await window.loadCardHelpers();
+        if (!valid()) return null;
+        const player = await helpers.createCardElement({
+          type: "picture-entity",
+          entity: this.config.entity,
+          camera_view: "live",
+          show_name: false,
+          show_state: false,
+        });
+        if (!valid()) {
+          player.remove?.();
+          return null;
+        }
+        return player;
+      };
+      const cancelled = new Promise((_, reject) => {
+        this.cancelFeed = () => reject(new Error("Camera view cancelled"));
+        timer = setTimeout(() => {
+          this.feedRequest++;
+          this.loadingFeed = false;
+          this.error.textContent =
+            "Camera view took too long to load. Try again.";
+          this.update();
+          reject(new Error("Camera view timed out"));
+        }, 8000);
       });
-      if (!this.isConnected || revision !== this.revision || !this.visible) {
-        player.remove?.();
-        return;
-      }
+      const player = await Promise.race([prepare(), cancelled]);
+      if (!valid() || !player) return;
       this.player = player;
       this.live = true;
       player.hass = this.hass;
       this.update();
     } catch (e) {
-      if (revision === this.revision)
+      if (valid())
         this.error.textContent = e.message || "Camera view could not be loaded";
     } finally {
-      if (revision === this.revision) {
+      clearTimeout(timer);
+      if (request === this.feedRequest && revision === this.revision) {
+        this.cancelFeed = undefined;
         this.loadingFeed = false;
         this.update();
       }
@@ -92,6 +135,7 @@ export class Card extends ControlCard {
         stateText(this.hass, c.entity),
       ),
     );
+    refine(result, "mdi:cctv");
     const controls = row();
     if (this.live) {
       const mount = el("div", undefined, undefined, "camera-feed");
@@ -108,9 +152,7 @@ export class Card extends ControlCard {
         ),
       );
     } else {
-      const placeholder = el("div", undefined, "ae-camera-placeholder");
-      placeholder.style.cssText =
-        "display:grid;place-items:center;min-height:64px;background:var(--ae-well);border-radius:8px";
+      const placeholder = el("div", undefined, "ikio-camera-placeholder");
       placeholder.append(
         note(
           this.state(c.power_switch)?.state === "off"
@@ -121,17 +163,17 @@ export class Card extends ControlCard {
         ),
       );
       result.append(placeholder);
-      controls.append(
-        button(
-          this.loadingFeed ? "Loading…" : "Open live view",
-          () => this.openFeed(),
-          {
-            icon: "mdi:video",
-            disabled:
-              this.preview || !available(this.state()) || this.loadingFeed,
-          },
-        ),
+      const open = button(
+        this.loadingFeed ? "Loading…" : "Open live view",
+        () => this.openFeed(),
+        {
+          disabled:
+            this.preview || !available(this.state()) || this.loadingFeed,
+        },
       );
+      open.classList.add("ikio-primary", "ikio-camera-open");
+      open.prepend(glyph("mdi:video"));
+      placeholder.append(open);
     }
     if (c.power_switch)
       controls.append(
@@ -144,12 +186,19 @@ export class Card extends ControlCard {
         ),
       );
     result.append(controls);
+    const footer = row();
+    footer.classList.add("ikio-footer");
     if (c.snapshot_automation)
-      result.append(
-        button(
-          `Snapshot automation: ${stateText(this.hass, c.snapshot_automation)}`,
-          () => this.toggle(c.snapshot_automation),
-          { disabled: this.blocked(c.snapshot_automation) },
+      footer.append(
+        disclosure(
+          this,
+          "camera-automation",
+          "Snapshot automation",
+          button(
+            `Snapshot automation: ${stateText(this.hass, c.snapshot_automation)}`,
+            () => this.toggle(c.snapshot_automation),
+            { disabled: this.blocked(c.snapshot_automation) },
+          ),
         ),
       );
     if (c.snapshot_script)
@@ -161,14 +210,15 @@ export class Card extends ControlCard {
         ),
       );
     if (c.capture_timestamp_entity)
-      result.append(
+      footer.append(
         reading(
           "Captured",
           valueText(this.hass, c.capture_timestamp_entity),
           c.capture_timestamp_entity,
         ),
       );
-    else result.append(note("Snapshot capture time unknown"));
+    else footer.append(note("Snapshot capture time unknown"));
+    result.append(footer);
     return result;
   }
 }

@@ -13,7 +13,7 @@ const metrics = [
   ],
   ["uptime", "Uptime", "sensor"],
   ["cpu", "CPU utilization", "sensor"],
-  ["temperature", "CPU temperature", "sensor"],
+  ["temperature", "System temperature", "sensor"],
   ["ram_used", "RAM used", "sensor"],
   ["ram_total", "RAM total", "sensor"],
   ["ram_percent", "RAM utilization", "sensor"],

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ikio · Compact card redesigns</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #0d171b;
+        color: #e5e9e7;
+        font:
+          14px system-ui,
+          sans-serif;
+      }
+      body.light {
+        background: #edf3f1;
+        color: #17282e;
+      }
+      main,
+      header,
+      footer {
+        max-width: 1120px;
+        margin: auto;
+        padding: 24px;
+      }
+      header {
+        padding-bottom: 0;
+      }
+      h1 {
+        font-size: 30px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        margin: 0 0 8px;
+      }
+      header p {
+        color: #a4adb2;
+        line-height: 1.6;
+        max-width: 70ch;
+      }
+      body.light header p {
+        color: #50645f;
+      }
+      .toolbar,
+      nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      button,
+      select {
+        font: inherit;
+        min-height: 44px;
+        border: 1px solid #34474d;
+        color: inherit;
+        background: transparent;
+        border-radius: 8px;
+        padding: 6px 12px;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      a:focus-visible {
+        outline: 2px solid #90caf9;
+        outline-offset: 3px;
+      }
+      select option {
+        background: #17282e;
+        color: #e5e9e7;
+      }
+      nav a {
+        color: inherit;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        padding: 4px 10px;
+        border-bottom: 1px solid #34474d;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        gap: 28px 24px;
+      }
+      section {
+        min-width: 0;
+        scroll-margin-top: 20px;
+      }
+      section h2 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 500;
+        color: #a4adb2;
+        margin: 0 0 12px;
+      }
+      body.light section h2 {
+        color: #50645f;
+      }
+      section > p {
+        font-size: 12px;
+        line-height: 1.6;
+        color: #a4adb2;
+        margin: 10px 0 0;
+      }
+      body.light section > p {
+        color: #50645f;
+      }
+      footer {
+        font-size: 11px;
+        line-height: 1.6;
+        color: #a4adb2;
+      }
+      #log {
+        font-size: 12px;
+        white-space: pre-wrap;
+      }
+      body.light footer {
+        color: #50645f;
+      }
+      @media (max-width: 720px) {
+        main {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        header,
+        main,
+        footer {
+          padding: 18px;
+        }
+        h1 {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Ikio · Compact card redesigns</h1>
+      <p>
+        Compact interactive mocks built from the revised card code. All
+        entities, images and commands are simulated. Light, Energy, Car and
+        Security are unchanged.
+      </p>
+      <div class="toolbar">
+        <button id="dark">Dark</button><button id="light">Light</button
+        ><label
+          >Card width
+          <select id="width">
+            <option value="auto">Responsive</option>
+            <option>280</option>
+            <option>320</option>
+            <option>390</option>
+            <option>520</option>
+          </select></label
+        ><label
+          >State
+          <select id="state">
+            <option value="normal">Normal</option>
+            <option value="busy">Busy</option>
+            <option value="offline">Unavailable</option>
+          </select></label
+        >
+      </div>
+      <nav aria-label="Card previews"></nav>
+      <p id="log" role="status">
+        Local demonstration only · no Home Assistant connection.
+      </p>
+    </header>
+    <main></main>
+    <footer>
+      Icons: Material Design Icons, Pictogrammers / Templarian. Apache 2.0 and
+      Pictogrammers Free License.
+      <a href="https://github.com/Templarian/MaterialDesign/blob/master/LICENSE"
+        >Icon licensing</a
+      >. Native HA icons and media helpers still require live verification.
+      <details>
+        <summary>Third-party notices</summary>
+        <pre id="licenses" style="white-space: pre-wrap"></pre>
+      </details>
+    </footer>
+    <!-- IKIO_PREVIEW_SCRIPT -->
+  </body>
+</html>

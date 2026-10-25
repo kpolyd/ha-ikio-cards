@@ -8,3 +8,4 @@ export {
   sameConfig,
 } from "./editor.js";
 export * from "./controls.js";
+export * from "./refinement.js";

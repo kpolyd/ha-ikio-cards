@@ -1,3 +1,4 @@
+import { installRefinement, refine, disclosure } from "@ikio/card-ui";
 import {
   ControlCard,
   features,
@@ -18,6 +19,10 @@ import { validate } from "./config.js";
 import { transport, position, safeImage } from "./adapter.js";
 export class Card extends ControlCard {
   validate = validate;
+  constructor() {
+    super();
+    installRefinement(this);
+  }
   static getStubConfig() {
     return {
       schema_version: 1,
@@ -63,24 +68,30 @@ export class Card extends ControlCard {
         stateText(this.hass, c.entity),
       ),
     );
+    refine(result, "mdi:music-note-outline");
     const artwork = safeImage(a.entity_picture, this.hass);
-    if (c.show_artwork !== false && artwork && s?.state !== "off") {
-      const image = el("img");
-      image.src = artwork;
-      image.alt = "Media artwork";
-      image.style.cssText =
-        "width:48px;height:48px;object-fit:cover;border-radius:8px";
-      result.append(
-        row(
-          image,
-          note(
-            [a.media_title, a.media_artist || a.media_series_title]
-              .filter(Boolean)
-              .join(" · "),
-          ),
-        ),
-      );
-    } else if (a.media_title) result.append(note(a.media_title));
+    if (
+      a.media_title ||
+      (c.show_artwork !== false && artwork && s?.state !== "off")
+    ) {
+      const info = el("div", undefined, "ikio-media-info");
+      if (c.show_artwork !== false && artwork && s?.state !== "off") {
+        const image = el("img", undefined, "ikio-artwork");
+        image.src = artwork;
+        image.alt = "Media artwork";
+        image.width = 44;
+        image.height = 44;
+        info.append(image);
+      } else info.style.gridTemplateColumns = "minmax(0,1fr)";
+      const text = el("div");
+      if (a.media_title) text.append(el("div", a.media_title, "ikio-track"));
+      if (a.media_artist || a.media_series_title)
+        text.append(
+          el("div", a.media_artist || a.media_series_title, "ikio-artist"),
+        );
+      info.append(text);
+      result.append(info);
+    }
     const p = position(s);
     if (p) {
       const format = (t) =>
@@ -149,7 +160,20 @@ export class Card extends ControlCard {
           { icon: "mdi:power", disabled: this.blocked(c.entity) },
         ),
       );
-    if (controls.length) result.append(row(...controls));
+    if (controls.length) {
+      const transportRow = row(...controls);
+      transportRow.classList.add("ikio-transport");
+      const primary = transportRow.querySelector(
+        '[aria-label="Play"], [aria-label="Pause"]',
+      );
+      primary?.classList.add("ikio-primary");
+      const timeline = result.querySelector(".ae-playback")?.parentElement;
+      if (timeline) result.insertBefore(transportRow, timeline);
+      else result.append(transportRow);
+    }
+    const audio = row();
+    audio.classList.add("ikio-media-audio");
+    result.append(audio);
     if (c.show_volume !== false) {
       const volumeRow = row();
       if (features(s, 4) && Number.isFinite(a.volume_level)) {
@@ -192,7 +216,7 @@ export class Card extends ControlCard {
             },
           ),
         );
-      result.append(volumeRow);
+      audio.append(volumeRow);
     }
     if (c.show_source !== false && features(s, 2048) && a.source_list?.length) {
       const sources = select("Source", a.source_list, a.source, (v) =>
@@ -205,14 +229,17 @@ export class Card extends ControlCard {
         ),
       );
       sources.querySelector("select").disabled = this.blocked(c.entity);
-      result.append(sources);
+      audio.append(sources);
     }
+    const footer = row();
+    footer.classList.add("ikio-footer");
     if (c.power_entity)
-      result.append(
+      footer.append(
         reading("Power", valueText(this.hass, c.power_entity), c.power_entity),
       );
+    const extras = [];
     if (c.backlight_entity)
-      result.append(
+      extras.push(
         button(
           `TV glow: ${stateText(this.hass, c.backlight_entity)}`,
           () => this.toggle(c.backlight_entity),
@@ -221,13 +248,18 @@ export class Card extends ControlCard {
       );
     for (const shortcut of c.shortcuts || [])
       if (shortcut.entity)
-        result.append(
+        extras.push(
           button(
             shortcut.label || this.label(shortcut.entity),
             () => this.action(shortcut.entity, shortcut.label),
             { disabled: this.blocked(shortcut.entity) },
           ),
         );
+    if (extras.length)
+      footer.append(
+        disclosure(this, "media-extras", "More controls", ...extras),
+      );
+    if (footer.children.length) result.append(footer);
     return result;
   }
 }
