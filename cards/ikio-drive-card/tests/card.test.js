@@ -529,7 +529,10 @@ test("plate and exact VIN occupy the two header rows between title and image", (
   );
   const ids = header.querySelector(".ae-drive-identifiers");
   assert.equal(ids.children.length, 2);
-  assert.equal(ids.firstElementChild.textContent, "DEMO 1234");
+  assert.equal(
+    ids.querySelector(".ae-drive-plate-number").textContent,
+    "DEMO 1234",
+  );
   assert.equal(ids.querySelector(".ae-value").textContent, "00012345678901234");
   let entity;
   card.addEventListener("hass-more-info", (e) => (entity = e.detail.entityId));
@@ -545,9 +548,107 @@ test("plate and exact VIN occupy the two header rows between title and image", (
   );
   card.setConfig({ license_plate: "DEMO 1234" });
   assert.equal(
-    card.shadowRoot.querySelector(".ae-drive-plate").textContent,
+    card.shadowRoot.querySelector(".ae-drive-plate-number").textContent,
     "DEMO 1234",
   );
   assert.equal(card.shadowRoot.querySelector(".ae-drive-vin"), null);
+  card.remove();
+});
+
+test("car image entity follows entity_picture changes and recovers from image failures", () => {
+  const entity = "image.vehicle";
+  const card = driveFixture(
+    { image_entity: entity, image_url: "/local/fallback.png" },
+    {
+      [entity]: driveState(entity, "2026-10-25T10:00:00Z", {
+        entity_picture: "/api/image_proxy/vehicle?token=one",
+      }),
+    },
+  );
+  assert.ok(card.entityIds.includes(entity));
+  assert.equal(
+    card.shadowRoot.querySelector("img").getAttribute("src"),
+    "/api/image_proxy/vehicle?token=one",
+  );
+  card.shadowRoot
+    .querySelector("img")
+    .dispatchEvent(new dom.window.Event("error"));
+  assert.equal(card.shadowRoot.querySelector("img"), null);
+  card.hass = {
+    ...card.hass,
+    states: {
+      [entity]: driveState(entity, "2026-10-25T10:01:00Z", {
+        entity_picture: "/api/image_proxy/vehicle?token=two",
+      }),
+    },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector("img").getAttribute("src"),
+    "/api/image_proxy/vehicle?token=two",
+  );
+  card.hass = {
+    ...card.hass,
+    states: { [entity]: driveState(entity, "unavailable") },
+  };
+  assert.equal(card.shadowRoot.querySelector("img"), null);
+  assert.match(
+    card.shadowRoot.querySelector(".ae-drive-image-note").textContent,
+    /unavailable/,
+  );
+  card.remove();
+});
+test("a sensor URL can supply the car image and selecting it is available in the visual editor", async () => {
+  const { fields } = await import("../src/config.js");
+  assert.ok(
+    fields
+      .find((f) => f.name === "image_entity")
+      .selector.entity.filter.domain.includes("sensor"),
+  );
+  const card = driveFixture(
+    { image_entity: "sensor.car_image" },
+    {
+      "sensor.car_image": driveState(
+        "sensor.car_image",
+        "https://example.invalid/car.png",
+      ),
+    },
+  );
+  assert.equal(
+    card.shadowRoot.querySelector("img").getAttribute("src"),
+    "https://example.invalid/car.png",
+  );
+  card.remove();
+});
+
+test("minimal plate preserves registration text, supports a country section, and keeps VIN labelled", () => {
+  const config = { license_plate: "DEMO 1234", vin_entity: "sensor.vin" };
+  const card = driveFixture(config, {
+    "sensor.vin": driveState("sensor.vin", "VNK12345678901234"),
+  });
+  const plate = () => card.shadowRoot.querySelector(".ae-drive-plate");
+  assert.equal(plate().getAttribute("aria-label"), "License plate: DEMO 1234");
+  assert.equal(
+    plate().querySelector(".ae-drive-plate-country").textContent,
+    "GR",
+  );
+  assert.equal(
+    plate().querySelector(".ae-drive-plate-number").textContent,
+    "DEMO 1234",
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-drive-vin .ae-label").textContent,
+    "VIN ·",
+  );
+  card.setConfig({ ...config, plate_country: "de" });
+  assert.equal(
+    plate().querySelector(".ae-drive-plate-country").textContent,
+    "DE",
+  );
+  card.setConfig({ ...config, plate_country: "" });
+  assert.equal(plate().querySelector(".ae-drive-plate-country"), null);
+  assert.equal(
+    plate().querySelector(".ae-drive-plate-number").textContent,
+    "DEMO 1234",
+  );
   card.remove();
 });

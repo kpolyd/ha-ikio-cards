@@ -448,3 +448,16 @@ Expose optional `image` through HA's native media selector with image upload, pl
 ## 24. Release 0.5.0
 
 The owner authorized merging and releasing sections 21–23, superseding their earlier publication restrictions. Release this synchronized collection as `ikio-v0.5.0`, preserving asset-free HACS delivery and the documented live-verification limits.
+
+## 25. Drive image entities and approved plate/icon refinement (0.5.1)
+
+Expose `image_entity` in the visual editor for an image, sensor, tracker or camera entity. Prefer its `entity_picture` attribute, otherwise its URL state. An explicitly selected entity takes precedence over upload/static URL configuration. Follow source/token changes, clear obsolete image errors and show unavailable state without substituting another car image. Do not start camera streams.
+
+Use the final approved smaller plate mockup: transparent interior, thin neutral outline and country divider, with no coloured band, stars, bevel or shadow. Centre both the plate and its VIN row on the same horizontal axis. Expose optional `plate_country` text (default GR; empty omits the country section). Preserve the registration and VIN text, wrapped when needed, and native VIN details interactions.
+
+Move metric/status icons to the left of their label/value pair. Use 32 px icons with 11 px supporting labels and prominent values, reducing icons to 24 px on narrow cards. Keep the three-column groups, full values, state colours and 44 px details targets. Implementation is authorized; publication of this follow-up has not been requested.
+
+
+## 26. Release 0.5.1
+
+The owner authorized publishing the section 25 car-card follow-up. Release the synchronized collection as `ikio-v0.5.1`, retaining asset-free HACS delivery and live-verification limits.

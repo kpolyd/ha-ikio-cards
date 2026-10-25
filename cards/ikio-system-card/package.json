@@ -1,10 +1,10 @@
 {
   "name": "@ikio/system-card",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@ikio/card-ui": "0.5.0"
+    "@ikio/card-ui": "0.5.1"
   },
   "devDependencies": {
     "esbuild": "^0.25.10",

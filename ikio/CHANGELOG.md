@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## 0.5.1 — Car image entities and refined vehicle details
+
+- Add a visual-editor car-image entity selector. Use the entity picture or URL state and follow picture/token changes automatically, with clear unavailable status and no camera streaming.
+- Match the approved Drive mockup with larger icons beside smaller labels, retaining full values, native details and narrow-card layouts.
+- Style the smaller license plate with a neutral outline and country divider, with no coloured band or fill. Centre it with the VIN underneath; expose an optional country code, defaulting to GR.
+- Preserve uploaded/static image alternatives and rebuild the synchronized HACS bundle.
+
 ## 0.5.0 — Device history, Alarmo controls and vehicle images
 
 - Add compact device power sparklines, including Untracked, with automatic observed min/max scaling and green-to-red colours. Batch device history with the main graph and preserve gaps and unit conversion.
