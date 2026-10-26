@@ -1,11 +1,11 @@
 {
   "name": "@ikio/graph",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
   "type": "module",
   "exports": "./src/index.js",
   "dependencies": {
-    "@ikio/card-ui": "0.6.1"
+    "@ikio/card-ui": "0.6.2"
   },
   "devDependencies": {
     "prettier": "3.6.2",

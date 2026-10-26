@@ -21,6 +21,7 @@ import {
   details,
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
+import { graphPalette } from "@ikio/graph";
 import {
   utilization,
   metricLevel,
@@ -169,6 +170,9 @@ export class Card extends ControlCard {
     const rows = this.networkRows();
     if (!rows.length) return null;
     const section = el("div", undefined, "system-network");
+    const palette = graphPalette(this.config.appearance?.theme, this.hass);
+    section.style.setProperty("--ae-network-download", palette[0][1]);
+    section.style.setProperty("--ae-network-upload", palette.at(-1)[1]);
     const legend = el("div", undefined, "system-network-legend");
     for (const row of rows) {
       const entry = reading(

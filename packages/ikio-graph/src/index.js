@@ -7,27 +7,21 @@ import {
   formatNumber,
   available,
 } from "@ikio/card-ui";
-export const stops = [
-  [0, "#6ff7b3"],
-  [100, "#64f564"],
-  [200, "#00ff00"],
-  [380, "#ffff00"],
-  [500, "#ffc800"],
-  [700, "#ff8000"],
-  [950, "#ff5100"],
-  [1500, "#ff4000"],
-  [2200, "#ff0000"],
-  [3500, "#d400ff"],
-];
-export function colour(value, min = 0, max = 3500) {
+import { darkGraphStops as stops, graphPalette } from "./palette.js";
+export {
+  darkGraphStops as stops,
+  lightGraphStops,
+  graphPalette,
+} from "./palette.js";
+export function colour(value, min = 0, max = 3500, colourStops = stops) {
   if (!Number.isFinite(value))
     throw Error("Colour requires a finite numeric value");
   if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max)
     throw Error("Expected minimum must be less than maximum");
   const v = Math.max(0, Math.min(3500, ((value - min) / (max - min)) * 3500));
-  for (let i = 1; i < stops.length; i++) {
-    const [a, c1] = stops[i - 1],
-      [b, c2] = stops[i];
+  for (let i = 1; i < colourStops.length; i++) {
+    const [a, c1] = colourStops[i - 1],
+      [b, c2] = colourStops[i];
     if (v <= b) {
       const t = (v - a) / (b - a);
       return (
@@ -45,7 +39,7 @@ export function colour(value, min = 0, max = 3500) {
       );
     }
   }
-  return stops.at(-1)[1];
+  return colourStops.at(-1)[1];
 }
 export function normalizeHistory(data, unit) {
   let previousAttributes = {};
@@ -163,6 +157,7 @@ export function graph(
     axisGuides = false,
     formatAxis,
     sparkline = false,
+    colourStops = stops,
   } = {},
 ) {
   series = series.map((s) => ({
@@ -265,7 +260,7 @@ export function graph(
       spreadMethod: "pad",
       "color-interpolation": "sRGB",
     });
-    for (const [position, colour] of stops)
+    for (const [position, colour] of colourStops)
       gradient.append(
         svgNode("stop", { offset: position / 3500, "stop-color": colour }),
       );
@@ -324,6 +319,9 @@ export function graph(
   return wrap;
 }
 export class HistoryCard extends ControlCard {
+  get graphStops() {
+    return graphPalette(this.config?.appearance?.theme, this.hass);
+  }
   onConfig() {
     this.history = {};
     this.historyError = "";
@@ -404,6 +402,7 @@ export class HistoryCard extends ControlCard {
         end: now,
         unit,
         hass: this.hass,
+        colourStops: this.graphStops,
         ...options,
       },
     );

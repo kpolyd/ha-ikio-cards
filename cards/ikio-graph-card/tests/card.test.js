@@ -16,6 +16,43 @@ before(async () => {
   await import("../src/index.js");
 });
 after(() => dom.window.close());
+test("shared graph palette follows dark, light and live HA appearance without changing paths", (t) => {
+  const now = Date.now();
+  t.mock.method(Date, "now", () => now);
+  const card = document.createElement("ikio-graph-card");
+  card.setConfig({
+    entities: [{ entity: "sensor.power" }],
+    appearance: { theme: "ha" },
+  });
+  card.hass = {
+    states: {
+      "sensor.power": {
+        state: "500",
+        attributes: { unit_of_measurement: "W" },
+      },
+    },
+    themes: { darkMode: true },
+  };
+  card.history = {
+    "sensor.power": [
+      { lu: now / 1000 - 100, s: "0", a: { unit_of_measurement: "W" } },
+      { lu: now / 1000, s: "500" },
+    ],
+  };
+  card.update();
+  const palette = () =>
+    [...card.shadowRoot.querySelectorAll("stop")].map((n) =>
+      n.getAttribute("stop-color"),
+    );
+  assert.equal(palette()[0], "#a4e4b8");
+  assert.equal(palette().at(-1), "#c47dd4");
+  const path = card.shadowRoot.querySelector("path").getAttribute("d");
+  card.hass = { ...card.hass, themes: { darkMode: false } };
+  assert.equal(palette()[0], "#48835b");
+  assert.equal(palette().at(-1), "#9553a7");
+  assert.equal(card.shadowRoot.querySelector("path").getAttribute("d"), path);
+  card.remove();
+});
 test("card registers and safely renders an empty visual-editor stub", () => {
   const Card = customElements.get("ikio-graph-card");
   const card = document.createElement("ikio-graph-card");

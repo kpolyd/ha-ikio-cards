@@ -17,11 +17,64 @@ before(async () => {
 after(() => dom.window.close());
 test("fixed stops, midpoint and rescaled range use encoded RGB interpolation", () => {
   for (const [v, c] of mod.stops) assert.equal(mod.colour(v), c);
-  assert.equal(mod.colour(50), "#6af68c");
+  assert.equal(mod.colour(50), "#99dfae");
   assert.equal(mod.colour(1100, 100, 7100), mod.colour(500));
-  assert.equal(mod.colour(-100), "#6ff7b3");
-  assert.equal(mod.colour(9000), "#d400ff");
+  assert.equal(mod.colour(-100), "#a4e4b8");
+  assert.equal(mod.colour(9000), "#c47dd4");
   assert.throws(() => mod.colour(0, 1, 1));
+});
+test("dark and light palettes retain the same ten normalized thresholds", () => {
+  const positions = [0, 100, 200, 380, 500, 700, 950, 1500, 2200, 3500];
+  assert.deepEqual(
+    mod.stops.map(([v]) => v),
+    positions,
+  );
+  assert.deepEqual(
+    mod.lightGraphStops.map(([v]) => v),
+    positions,
+  );
+  for (const [value, color] of mod.lightGraphStops)
+    assert.equal(mod.colour(value, 0, 3500, mod.lightGraphStops), color);
+  assert.equal(
+    mod.graphPalette("ha", { themes: { darkMode: false } }),
+    mod.lightGraphStops,
+  );
+  assert.equal(
+    mod.graphPalette("ha", { themes: { darkMode: true } }),
+    mod.stops,
+  );
+  assert.equal(mod.graphPalette("light"), mod.lightGraphStops);
+});
+test("optional palette changes only colours and leaves default graphs unchanged", () => {
+  const series = [
+    {
+      name: "Power",
+      points: [
+        { time: 1, value: 0 },
+        { time: 2, value: 3500 },
+      ],
+    },
+  ];
+  const original = mod.graph(series);
+  const palette = mod.stops.map(([position]) => [position, "#123456"]);
+  const themed = mod.graph(series, { colourStops: palette });
+  assert.equal(
+    themed.querySelector("path").getAttribute("d"),
+    original.querySelector("path").getAttribute("d"),
+  );
+  assert.deepEqual(
+    [...themed.querySelectorAll("stop")].map((n) => n.getAttribute("offset")),
+    [...original.querySelectorAll("stop")].map((n) => n.getAttribute("offset")),
+  );
+  assert.ok(
+    [...themed.querySelectorAll("stop")].every(
+      (n) => n.getAttribute("stop-color") === "#123456",
+    ),
+  );
+  assert.equal(
+    mod.graph(series).querySelector("stop").getAttribute("stop-color"),
+    "#a4e4b8",
+  );
 });
 test("history retains missing-data gaps and converts recorded power units", () => {
   const data = mod.normalizeHistory(

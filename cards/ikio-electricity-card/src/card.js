@@ -199,6 +199,7 @@ export class Card extends HistoryCard {
           unit: "W",
           hass: this.hass,
           sparkline: true,
+          colourStops: this.graphStops,
           min: this.config.expected_min ?? 0,
           max: this.config.expected_max ?? 3500,
         }),

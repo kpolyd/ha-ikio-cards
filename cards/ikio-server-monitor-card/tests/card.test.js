@@ -330,6 +330,32 @@ test("network history batches both rate sensors, preserves gaps and stops reques
   );
   card.update();
   assert.equal(calls.length, 1);
+  const network = () => card.shadowRoot.querySelector(".system-network");
+  assert.equal(
+    network().style.getPropertyValue("--ae-network-download"),
+    "#a4e4b8",
+  );
+  assert.equal(
+    network().style.getPropertyValue("--ae-network-upload"),
+    "#c47dd4",
+  );
+  assert.equal(
+    card.shadowRoot
+      .querySelectorAll(".system-network-plot path")[1]
+      .getAttribute("stroke-dasharray"),
+    "4 3",
+  );
+  card.setConfig({ ...card.config, appearance: { theme: "ha" } });
+  card.hass = { ...card.hass, themes: { darkMode: true } };
+  card.hass = { ...card.hass, themes: { darkMode: false } };
+  assert.equal(
+    network().style.getPropertyValue("--ae-network-download"),
+    "#48835b",
+  );
+  assert.equal(
+    network().style.getPropertyValue("--ae-network-upload"),
+    "#9553a7",
+  );
   card.visible = false;
   card.onVisibility();
   assert.equal(card.networkLoading, false);
