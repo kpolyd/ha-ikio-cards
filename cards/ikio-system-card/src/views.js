@@ -105,7 +105,26 @@ export function networkPlot(rows, history, now, hass) {
   for (const row of series) {
     let d = "",
       known = false;
-    for (const point of downsample(row.points, 180)) {
+    // Close each known interval at the first unknown timestamp before
+    // downsampling. A single recorded state represents the whole interval.
+    const segments = [];
+    let segment = [];
+    for (const point of row.points) {
+      if (point.value === null) {
+        if (segment.length) {
+          segment.push({ ...segment.at(-1), time: point.time });
+          segments.push(segment);
+          segment = [];
+        }
+      } else segment.push(point);
+    }
+    if (segment.length) segments.push(segment);
+    const budget = Math.max(4, Math.floor(180 / (segments.length || 1)));
+    const points = segments.flatMap((part) => [
+      { value: null },
+      ...downsample(part, budget),
+    ]);
+    for (const point of points) {
       if (point.value === null) {
         known = false;
         continue;
