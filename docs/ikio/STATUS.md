@@ -30,6 +30,10 @@ Common `@ikio/card-ui` supplies tokens, touch-sized controls, hold behaviour, ke
 
 ## Remaining deployment verification
 
+Energy distribution rings (0.5.12) have 24 passing Energy DOM/behaviour tests covering opt-in configuration, area grouping, conservation, invalid readings, aggregation, live selection, holds, keyboard access, resize cleanup and long-label wrapping. Browser geometry and native Home Assistant verification for this new graph remain outstanding; the earlier Chromium gallery checks do not cover this addition.
+
+Cron billing cycles join the same release, bringing the Energy test suite to 34 passing tests. Numeric schedule evaluation, inclusive date labels, timezone/DST rules, short months/leap years, idle label rollover without changing sensor readings or forecast gates, lifecycle cleanup and legacy configuration round-trips have automated coverage. This does not add live Home Assistant verification.
+
 Live Home Assistant verification is still required. Validate native HA form loading, real selectors/icons, camera streaming, recorder history permissions, actual device capabilities/actions, Alarmo code behaviour and assistive technology in the deployed HA frontend. Automated DOM tests simulate HA form components; browser fixtures simulate HA data and backend calls. Neither proves live integration compatibility.
 
 HACS custom-repository support uses the tracked root bundle, `ha-ikio-cards.js`, downloaded from raw tagged source. CI validates main and publishes the collection version as a GitHub release. HACS default-catalog inclusion is not configured; it is a separate process.

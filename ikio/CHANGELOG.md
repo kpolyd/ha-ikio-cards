@@ -1,5 +1,13 @@
 # Ikio changelog
 
+## 0.5.12 — Live Energy distribution rings
+
+- Add optional cron-based billing cycles using Home Assistant's timezone, only for inclusive displayed period labels, with automatic reset-boundary rollover. Energy, bill and forecast values and validity rules remain sensor-driven. Existing timestamp bindings remain compatible.
+- Add optional compact double rings beneath the Energy device grid: areas on the inner ring and devices in shades of their area's colour on the outer ring. Keep the existing card layout unchanged.
+- Label devices directly with fine leader lines. Tap a device or area to inspect its whole watts in the centre; tap again or the centre to restore total. Preserve keyboard navigation, live selection and native details on hold.
+- Reuse existing sensors and Home Assistant area assignments. Keep untracked consumption separate from smaller devices grouped into Other, conserve total power and report missing or inconsistent readings honestly.
+- Enable through **Show labelled power distribution rings** in the visual editor and confirm that selected device circuits do not overlap. The graph defaults off and is normally 184 px tall, growing only to keep crowded labels readable.
+
 ## 0.5.11 — Ikio branding
 
 - Add the approved house-and-dashboard tile logo to the repository and README displayed in GitHub and HACS details.

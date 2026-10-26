@@ -14,6 +14,12 @@ import {
   unitValue,
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
+import { cronBillingCycle, billingCycleLabel } from "./billing-cycle.js";
+import {
+  distributionModel,
+  distributionView,
+  distributionStyles,
+} from "./distribution.js";
 import {
   untracked,
   untrackedHistory,
@@ -31,6 +37,7 @@ export class Card extends HistoryCard {
       el(
         "style",
         `
+      ${distributionStyles}
       .ae-energy{gap:4px}.ae-energy-header{display:flex;align-items:center;gap:8px;justify-content:space-between}
       .ae-energy-header h2{min-width:0;margin:0;font-size:14px;font-weight:600;overflow-wrap:anywhere}.ae-energy-header .ae-note{text-align:right;max-width:55%}
       .ae-energy-summary{display:grid;gap:10px;align-items:start;min-width:0}
@@ -66,12 +73,83 @@ export class Card extends HistoryCard {
       expected_max: 3500,
       circuits: [],
       show_untracked: false,
+      show_power_distribution: false,
       same_cycle: false,
     };
   }
   static async getConfigElement() {
     await import("./editor.js");
     return document.createElement("ikio-energy-card-editor");
+  }
+  onConfig() {
+    clearTimeout(this.cycleTimer);
+    this.distributionSelection = null;
+    super.onConfig();
+  }
+  get hass() {
+    return super.hass;
+  }
+  set hass(value) {
+    super.hass = value;
+    if (
+      this.config?.billing_cycle_cron?.trim() &&
+      this.cycleTimezone !== value?.config?.time_zone
+    )
+      this.update();
+  }
+  onVisibility() {
+    super.onVisibility();
+    clearTimeout(this.cycleTimer);
+    if (this.config?.billing_cycle_cron?.trim()) this.update();
+  }
+  syncCycleTimer() {
+    clearTimeout(this.cycleTimer);
+    const cycle = this.billingCycle;
+    if (
+      !cycle ||
+      cycle.error ||
+      !this.isConnected ||
+      !this.visible ||
+      this.preview
+    )
+      return;
+    const now = Date.now();
+    this.cycleTimer = setTimeout(
+      () => this.update(),
+      Math.min(2147483647, Math.max(20, cycle.end - now + 20)),
+    );
+    this.cycleTimer.unref?.();
+  }
+  afterRender() {
+    super.afterRender();
+    this.syncCycleTimer();
+    const section = this.content.querySelector(".ae-power-distribution");
+    if (
+      section === this.distributionSection &&
+      (this.distributionObserver || !section || !this.isConnected)
+    )
+      return;
+    this.distributionObserver?.disconnect();
+    this.distributionObserver = null;
+    this.distributionSection = section;
+    if (section && this.isConnected && globalThis.ResizeObserver) {
+      this.distributionObserver = new ResizeObserver(([entry]) => {
+        if (!this.isConnected || section !== this.distributionSection) return;
+        const width = Math.round(entry.contentRect.width);
+        if (width > 0 && width !== this.distributionWidth) {
+          this.distributionWidth = width;
+          this.update();
+        }
+      });
+      this.distributionObserver.observe(section);
+    }
+  }
+  onDisconnect() {
+    super.onDisconnect();
+    clearTimeout(this.cycleTimer);
+    this.distributionObserver?.disconnect();
+    this.distributionObserver = null;
+    this.distributionSection = null;
   }
   historyEntities() {
     const c = this.config;
@@ -135,11 +213,18 @@ export class Card extends HistoryCard {
       );
     const header = el("div", undefined, "ae-energy-header");
     header.append(el("h2", c.name || "Home energy"));
+    const now = Date.now();
+    this.cycleTimezone = this.hass?.config?.time_zone;
+    this.billingCycle = c.billing_cycle_cron?.trim()
+      ? cronBillingCycle(c.billing_cycle_cron, this.cycleTimezone, now)
+      : null;
     const dates =
       c.billing_period_label ||
-      (c.cycle_start_entity
-        ? `${valueText(this.hass, c.cycle_start_entity)} – ${valueText(this.hass, c.cycle_end_entity)}`
-        : "");
+      (this.billingCycle
+        ? billingCycleLabel(this.billingCycle, this.hass)
+        : c.cycle_start_entity
+          ? `${valueText(this.hass, c.cycle_start_entity)} – ${valueText(this.hass, c.cycle_end_entity)}`
+          : "");
     if (dates) header.append(note(dates));
     const summary = el("div", undefined, "ae-energy-summary");
     const power = reading(
@@ -292,6 +377,24 @@ export class Card extends HistoryCard {
       if (calc.reason) result.append(note(calc.reason, "ae-warn"));
     }
     result.append(grid);
+    if (c.show_power_distribution) {
+      const model = distributionModel(c, this.hass);
+      if (!model.items?.some((item) => item.id === this.distributionSelection))
+        this.distributionSelection = null;
+      result.append(
+        distributionView(model, {
+          hass: this.hass,
+          width: this.distributionWidth || 300,
+          selection: this.distributionSelection,
+          totalEntity: c.power_entity,
+          onSelect: (id) => {
+            this.distributionSelection =
+              this.distributionSelection === id ? null : id;
+            this.update();
+          },
+        }),
+      );
+    }
     return result;
   }
 }

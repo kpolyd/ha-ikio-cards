@@ -5,6 +5,7 @@ import {
   bool,
   validateConfig,
 } from "@ikio/card-ui/schema-editor";
+import { parseBillingCron } from "./billing-cycle.js";
 export const fields = [
   entity("power_entity", "Total power", "sensor", true),
   entity("day_entity", "Billing-cycle day energy", "sensor"),
@@ -14,16 +15,19 @@ export const fields = [
     "Billing-cycle total energy (optional)",
     "sensor",
   ),
-  text("billing_period_label", "Billing-cycle dates/label"),
+  text("billing_cycle_cron", "Billing cycle cron (e.g. 0 0 20 * *)"),
+  text("billing_period_label", "Billing-cycle label override (optional)"),
   bool("same_cycle", "Day and night entities cover the same billing cycle"),
-  entity("cycle_start_entity", "Billing-cycle start timestamp", [
-    "sensor",
-    "input_datetime",
-  ]),
-  entity("cycle_end_entity", "Billing-cycle end timestamp", [
-    "sensor",
-    "input_datetime",
-  ]),
+  entity(
+    "cycle_start_entity",
+    "Billing-cycle start timestamp (optional with cron)",
+    ["sensor", "input_datetime"],
+  ),
+  entity(
+    "cycle_end_entity",
+    "Billing-cycle end timestamp (optional with cron)",
+    ["sensor", "input_datetime"],
+  ),
   entity("accrued_bill_entity", "Estimated/accrued bill", "sensor"),
   entity("forecast_bill_entity", "Forecast bill", "sensor"),
   entity("forecast_valid_entity", "Forecast validity", [
@@ -40,6 +44,13 @@ export const fields = [
   entity("untracked_entity", "Existing untracked-power sensor", "sensor"),
   bool("show_untracked", "Show calculated untracked power"),
   bool("non_overlapping", "Selected circuits do not overlap"),
+  bool("show_power_distribution", "Show labelled power distribution rings"),
+  number(
+    "distribution_max_devices",
+    "Distribution device limit (smaller devices become Other)",
+    1,
+    20,
+  ),
   number("hours", "Power history hours", 1, 168),
   number("expected_min", "Expected minimum power", -1e9, 1e9, 0.01),
   number("expected_max", "Expected maximum power", -1e9, 1e9, 0.01),
@@ -58,6 +69,17 @@ export const lists = [
 ];
 export function validate(c) {
   validateConfig(c, fields, lists);
+  if (
+    c.billing_cycle_cron?.trim?.() ||
+    (c.billing_cycle_cron !== undefined &&
+      typeof c.billing_cycle_cron !== "string")
+  )
+    parseBillingCron(c.billing_cycle_cron);
+  if (
+    c.distribution_max_devices !== undefined &&
+    !Number.isInteger(c.distribution_max_devices)
+  )
+    throw Error("Distribution device limit must be a whole number");
   if ((c.expected_min ?? 0) >= (c.expected_max ?? 3500))
     throw Error("Expected minimum must be less than maximum");
 }
