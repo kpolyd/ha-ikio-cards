@@ -24,7 +24,7 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 For UI work, see the [Ikio design approach](docs/ikio/DESIGN_APPROACH.md) and [current design review](docs/ikio/DESIGN_REVIEW.md). Light, Energy, Drive and Security are the approved reference designs; the review proposes refinements for the other seven cards.
 
-Current collection version: **0.6.2**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
+Current collection version: **0.6.3**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
 ### HACS (recommended)
 
@@ -41,7 +41,7 @@ This is a HACS **custom repository**, not a default-catalog listing. The optiona
 
 ### Manual installation
 
-Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.6.2` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
+Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.6.3` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
 
 See the [installation guide](docs/ikio/INSTALLATION.md), [Aethora migration guide](docs/ikio/MIGRATION.md), [design specification](docs/ikio/SPECIFICATION.md) and [validation status](docs/ikio/STATUS.md).
 
@@ -74,51 +74,51 @@ Ikio was previously developed as Aethora. Version 0.3.0 introduces the Ikio name
 An original-source license has not yet been selected. Dependency notices are included in generated distributions and apply to their respective dependencies.
 
 <!-- IKIO_PREVIEWS_START -->
-## Card previews · 0.6.2
+## Card previews · 0.6.3
 
 Actual compiled cards with simulated Home Assistant data. Click an image to open the interactive gallery.
 
 ### Lights
 
-[![Lights](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/lights/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#lights)
+[![Lights](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/lights/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#lights)
 
 ### Electricity
 
-[![Electricity](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/electricity/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#electricity)
+[![Electricity](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/electricity/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#electricity)
 
 ### Vehicle
 
-[![Vehicle](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/vehicle/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#vehicle)
+[![Vehicle](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/vehicle/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#vehicle)
 
 ### Alarmo
 
-[![Alarmo](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/alarmo/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#alarmo)
+[![Alarmo](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/alarmo/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#alarmo)
 
 ### Server Monitor
 
-[![Server Monitor](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/server-monitor/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#server-monitor)
+[![Server Monitor](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/server-monitor/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#server-monitor)
 
 ### Climate
 
-[![Climate](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/climate/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#climate)
+[![Climate](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/climate/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#climate)
 
 ### Media
 
-[![Media](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/media/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#media)
+[![Media](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/media/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#media)
 
 ### Camera
 
-[![Camera](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/camera/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#camera)
+[![Camera](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/camera/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#camera)
 
 ### Vacuum
 
-[![Vacuum](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/vacuum/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#vacuum)
+[![Vacuum](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/vacuum/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#vacuum)
 
 ### Appliances
 
-[![Appliances](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/appliances/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#appliances)
+[![Appliances](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/appliances/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#appliances)
 
 ### Graph
 
-[![Graph](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/screenshots/graph/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.2/index.html#graph)
+[![Graph](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/screenshots/graph/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.6.3/index.html#graph)
 <!-- IKIO_PREVIEWS_END -->

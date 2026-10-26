@@ -1,10 +1,10 @@
 {
   "name": "@ikio/vacuum-card",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@ikio/card-ui": "0.6.2"
+    "@ikio/card-ui": "0.6.3"
   },
   "devDependencies": {
     "esbuild": "^0.25.10",

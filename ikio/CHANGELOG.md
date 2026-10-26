@@ -1,6 +1,6 @@
 # Ikio changelog
 
-## Unreleased
+## 0.6.3 — Server storage and network extrema
 
 - Server Monitor accepts used + remaining memory/disk sensors, with automatic utilization and visual editor support. Existing percentage and total sensors remain supported.
 - Add network graph minimum/maximum labels, readable rate units and subtle dashed guides based on the visible download/upload history.
