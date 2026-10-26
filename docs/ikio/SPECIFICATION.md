@@ -578,3 +578,8 @@ Remove the System Availability entity selector from the visual configuration. Pr
 Request the complete recorded network history for the previous 30 minutes on first display, explicitly including the initial state and disabling significant-only and minimal-response filtering so repeated rate samples and attribute changes remain available. Preserve bounded batched loading, unit conversion, unknown gaps and cancellation. Do not fabricate earlier data if Recorder returns no samples. A recorded initial zero rate may span the full window.
 
 When no legacy availability binding exists, use a valid uptime value for the green online dot and adaptive uptime text. An unavailable uptime sensor shows Offline with a red error-colour dot; missing, unknown or invalid uptime shows Unknown without a status dot. Explicit offline/unavailable legacy availability states also use the red dot. Existing explicit availability bindings retain priority. This owner decision supersedes the earlier prohibition on deriving status from uptime. Sensor availability is the status signal, not an independent reachability probe.
+
+
+## 47. Ikio brand logo
+
+Use the approved original option B: four asymmetric rounded dashboard tiles forming a house, referring to Greek οικία and the card collection. Preserve the original artwork in assets/branding/ikio-logo.png and display it in the root README for GitHub and HACS repository details. HACS dashboard listings use a generic category icon; do not add unsupported logo manifest keys or change the repository category.

@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## 0.5.11 — Ikio branding
+
+- Add the approved house-and-dashboard tile logo to the repository and README displayed in GitHub and HACS details.
+- Document the logo and HACS branding limitations. Ikio remains a dashboard card repository.
+
 ## 0.5.10 — System network history and status dots
 
 - Request the initial network state and all recorded updates for the previous 30 minutes, including repeated values and attribute changes. Keep genuine missing history blank.
