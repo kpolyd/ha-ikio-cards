@@ -1,5 +1,9 @@
 # Ikio changelog
 
+## 0.5.14
+
+- Fix System network history losing valid intervals before unknown/unavailable readings. Preserve zero and nonzero intervals up to the exact gap boundary, including after downsampling, without filling missing data.
+
 ## 0.5.13 — Energy section separator
 
 - Separate the main power history from individual device readings with the same thin divider, colour and compact spacing used above the distribution rings. Show it only when device readings exist; add no extra heading or empty row.

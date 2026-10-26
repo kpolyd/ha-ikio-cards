@@ -479,3 +479,48 @@ test("fixed 70/85 thresholds apply at their boundaries and override legacy setti
   editor.remove();
   card.remove();
 });
+
+test("network preserves known intervals before unknown readings without bridging gaps", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const now = 1800000;
+  for (const value of ["0", "2"]) {
+    const history = [
+      { lu: 0, s: value },
+      { lu: 300, s: "unknown" },
+      { lu: 315, s: value },
+      { lu: 900, s: "unavailable" },
+      { lu: 915, s: value },
+    ];
+    const svg = networkPlot(
+      [{ entity: "sensor.example", key: "network_rx", unit: "B/s" }],
+      { "sensor.example": history },
+      now,
+      {},
+    );
+    const y = value === "0" ? 30 : 2;
+    assert.equal(
+      svg.querySelector("path").getAttribute("d"),
+      `M0,${y} L50,${y} M52.5,${y} L150,${y} M152.5,${y} L300,${y} `,
+    );
+  }
+});
+
+test("network downsampling preserves gap boundaries and trailing unknowns", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const history = Array.from({ length: 600 }, (_, i) => ({ lu: i, s: "1" }));
+  history.push(
+    { lu: 600, s: "unknown" },
+    { lu: 615, s: "2" },
+    { lu: 900, s: "unknown" },
+  );
+  const svg = networkPlot(
+    [{ entity: "sensor.example", key: "network_rx", unit: "B/s" }],
+    { "sensor.example": history },
+    1800000,
+    {},
+  );
+  const d = svg.querySelector("path").getAttribute("d");
+  assert.match(d, /L100,16 M102.5,2 L150,2 $/);
+  assert.equal((d.match(/M/g) || []).length, 2);
+  assert.doesNotMatch(d, /L300,/);
+});

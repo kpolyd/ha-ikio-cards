@@ -605,3 +605,7 @@ Schedule a bounded timer for label rollover only so an idle header updates witho
 ## 50. Energy overall/device separator (0.5.13)
 
 Add a thin theme-aware horizontal divider between the main power history and individual device readings within the same card. Match the existing devices-to-distribution separator exactly: 1 px solid var(--ae-border), 4 px top margin and 4 px top padding. Apply it to a non-empty device grid only. Add no heading or standalone empty row; preserve all readings, sparklines, distribution rings and interactions. The owner authorized committing, merging and releasing this visual adjustment as ikio-v0.5.13, with synchronized manifests and asset-free HACS delivery.
+
+## 51. System network history gaps (0.5.14)
+
+Preserve each known interval through the timestamp where its state becomes unknown or unavailable. Split at gaps before downsampling, preserving segment endpoints; keep actual unknown intervals blank. This fixes isolated recorded zeros becoming invisible move-only SVG paths. Retain current scale, layout and linear connections within known runs. The owner authorized fixing and releasing this as ikio-v0.5.14.
