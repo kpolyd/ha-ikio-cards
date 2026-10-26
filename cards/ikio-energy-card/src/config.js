@@ -5,6 +5,7 @@ import {
   bool,
   validateConfig,
 } from "@ikio/card-ui/schema-editor";
+import { parseBillingCron } from "./billing-cycle.js";
 export const fields = [
   entity("power_entity", "Total power", "sensor", true),
   entity("day_entity", "Billing-cycle day energy", "sensor"),
@@ -14,16 +15,19 @@ export const fields = [
     "Billing-cycle total energy (optional)",
     "sensor",
   ),
-  text("billing_period_label", "Billing-cycle dates/label"),
+  text("billing_cycle_cron", "Billing cycle cron (e.g. 0 0 20 * *)"),
+  text("billing_period_label", "Billing-cycle label override (optional)"),
   bool("same_cycle", "Day and night entities cover the same billing cycle"),
-  entity("cycle_start_entity", "Billing-cycle start timestamp", [
-    "sensor",
-    "input_datetime",
-  ]),
-  entity("cycle_end_entity", "Billing-cycle end timestamp", [
-    "sensor",
-    "input_datetime",
-  ]),
+  entity(
+    "cycle_start_entity",
+    "Billing-cycle start timestamp (optional with cron)",
+    ["sensor", "input_datetime"],
+  ),
+  entity(
+    "cycle_end_entity",
+    "Billing-cycle end timestamp (optional with cron)",
+    ["sensor", "input_datetime"],
+  ),
   entity("accrued_bill_entity", "Estimated/accrued bill", "sensor"),
   entity("forecast_bill_entity", "Forecast bill", "sensor"),
   entity("forecast_valid_entity", "Forecast validity", [
@@ -65,6 +69,12 @@ export const lists = [
 ];
 export function validate(c) {
   validateConfig(c, fields, lists);
+  if (
+    c.billing_cycle_cron?.trim?.() ||
+    (c.billing_cycle_cron !== undefined &&
+      typeof c.billing_cycle_cron !== "string")
+  )
+    parseBillingCron(c.billing_cycle_cron);
   if (
     c.distribution_max_devices !== undefined &&
     !Number.isInteger(c.distribution_max_devices)

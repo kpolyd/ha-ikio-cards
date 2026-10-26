@@ -14,6 +14,7 @@ import {
   unitValue,
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
+import { cronBillingCycle, billingCycleLabel } from "./billing-cycle.js";
 import {
   distributionModel,
   distributionView,
@@ -81,11 +82,47 @@ export class Card extends HistoryCard {
     return document.createElement("ikio-energy-card-editor");
   }
   onConfig() {
+    clearTimeout(this.cycleTimer);
     this.distributionSelection = null;
     super.onConfig();
   }
+  get hass() {
+    return super.hass;
+  }
+  set hass(value) {
+    super.hass = value;
+    if (
+      this.config?.billing_cycle_cron?.trim() &&
+      this.cycleTimezone !== value?.config?.time_zone
+    )
+      this.update();
+  }
+  onVisibility() {
+    super.onVisibility();
+    clearTimeout(this.cycleTimer);
+    if (this.config?.billing_cycle_cron?.trim()) this.update();
+  }
+  syncCycleTimer() {
+    clearTimeout(this.cycleTimer);
+    const cycle = this.billingCycle;
+    if (
+      !cycle ||
+      cycle.error ||
+      !this.isConnected ||
+      !this.visible ||
+      this.preview
+    )
+      return;
+    const now = Date.now();
+    this.cycleTimer = setTimeout(
+      () => this.update(),
+      Math.min(2147483647, Math.max(20, cycle.end - now + 20)),
+    );
+    this.cycleTimer.unref?.();
+  }
   afterRender() {
     super.afterRender();
+    this.syncCycleTimer();
     const section = this.content.querySelector(".ae-power-distribution");
     if (
       section === this.distributionSection &&
@@ -109,6 +146,7 @@ export class Card extends HistoryCard {
   }
   onDisconnect() {
     super.onDisconnect();
+    clearTimeout(this.cycleTimer);
     this.distributionObserver?.disconnect();
     this.distributionObserver = null;
     this.distributionSection = null;
@@ -175,11 +213,18 @@ export class Card extends HistoryCard {
       );
     const header = el("div", undefined, "ae-energy-header");
     header.append(el("h2", c.name || "Home energy"));
+    const now = Date.now();
+    this.cycleTimezone = this.hass?.config?.time_zone;
+    this.billingCycle = c.billing_cycle_cron?.trim()
+      ? cronBillingCycle(c.billing_cycle_cron, this.cycleTimezone, now)
+      : null;
     const dates =
       c.billing_period_label ||
-      (c.cycle_start_entity
-        ? `${valueText(this.hass, c.cycle_start_entity)} – ${valueText(this.hass, c.cycle_end_entity)}`
-        : "");
+      (this.billingCycle
+        ? billingCycleLabel(this.billingCycle, this.hass)
+        : c.cycle_start_entity
+          ? `${valueText(this.hass, c.cycle_start_entity)} – ${valueText(this.hass, c.cycle_end_entity)}`
+          : "");
     if (dates) header.append(note(dates));
     const summary = el("div", undefined, "ae-energy-summary");
     const power = reading(
