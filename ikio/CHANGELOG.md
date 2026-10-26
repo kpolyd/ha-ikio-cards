@@ -1,5 +1,9 @@
 # Ikio changelog
 
+## Unreleased
+
+- Restore Server Monitor RAM/disk used / total captions, deriving total from used + remaining when needed. Round displayed readings and network extrema to whole numbers while preserving calculation precision.
+
 ## 0.6.3 — Server storage and network extrema
 
 - Server Monitor accepts used + remaining memory/disk sensors, with automatic utilization and visual editor support. Existing percentage and total sensors remain supported.
