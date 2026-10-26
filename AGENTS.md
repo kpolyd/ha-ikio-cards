@@ -38,3 +38,8 @@ Run affected workspace checks for focused changes; run all workspaces after shar
 - `npm run package:ikio` creates an installation folder and a ZIP containing compiled cards, lazy chunks, notices, theme, docs and reproducible tracked source. Stage new files before packaging. Keep source and design documents outside Home Assistant's public www directory.
 - CI validates and publishes one versioned GitHub release on main. HACS installs the tracked root `ha-ikio-cards.js` named in `hacs.json` from raw tagged content. Releases must have no attached assets: HACS 2.0.5 would prefer the release-download route if any assets exist. ZIPs remain in CI artifacts. Individual builds remain available in the ZIP. Never add required external imports to the HACS bundle; never overwrite published releases/tags. Keep unrelated release automation out of this repository.
 - Commit or publish only when the user has authorized it. Do not add an original-source license without the owner's choice. Third-party notices apply to their respective dependencies.
+
+## Pull request merge policy
+
+- The owner prefers visible merge commits on main. Merge PRs using GitHub's `merge` method; do not squash or rebase unless the owner explicitly requests an exception. Preserve existing published history.
+- Delete the source branch after a successful merge. The merged-branch cleanup workflow handles repository branches whose current head exactly matches a PR merged into main. Keep main, gh-pages, protected branches, unmerged work and branches with commits added after merging.
