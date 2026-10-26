@@ -1,49 +1,18 @@
-import { numeric, unitValue, formatNumber, valueText } from "@ikio/card-ui";
-export function wholeValueText(hass, id) {
-  const state = hass?.states?.[id];
-  const value = numeric(state);
-  return value === null
-    ? valueText(hass, id)
-    : `${formatNumber(hass, value, 0)} ${state.attributes?.unit_of_measurement || ""}`.trim();
-}
-function storageCapacity(used, total, remaining) {
-  const rawUsed = unitValue(used, "storage");
-  const u = rawUsed !== null && rawUsed >= 0 ? rawUsed : null;
-  const explicitTotal = unitValue(total, "storage");
-  const free = unitValue(remaining, "storage");
-  const t =
-    explicitTotal !== null && explicitTotal > 0
-      ? explicitTotal
-      : u !== null && free !== null && free >= 0
-        ? u + free
-        : null;
-  return { used: u, total: t };
-}
-export function capacityText(hass, used, total, remaining) {
-  const capacity = storageCapacity(used, total, remaining);
-  const source = [used, total, remaining].find(
-    (state) =>
-      unitValue({ state: "1", attributes: state?.attributes }, "storage") !==
-      null,
-  );
-  const factor = unitValue(
-    { state: "1", attributes: source?.attributes },
-    "storage",
-  );
-  const unit = source?.attributes?.unit_of_measurement;
-  const text = (value) =>
-    value === null || factor === null
-      ? "—"
-      : `${formatNumber(hass, value / factor, 0)} ${unit}`;
-  return `${text(capacity.used)} / ${text(capacity.total)}`;
-}
+import { numeric, unitValue } from "@ikio/card-ui";
 export function utilization(percent, used, total, remaining) {
   const p = numeric(percent);
   if (p !== null && percent.attributes?.unit_of_measurement === "%") return p;
-  const capacity = storageCapacity(used, total, remaining);
-  return capacity.used !== null && capacity.total !== null && capacity.total > 0
-    ? (capacity.used / capacity.total) * 100
-    : null;
+  const u = unitValue(used, "storage"),
+    explicitTotal = unitValue(total, "storage"),
+    free = unitValue(remaining, "storage");
+  if (u === null || u < 0) return null;
+  const t =
+    explicitTotal !== null && explicitTotal > 0
+      ? explicitTotal
+      : free !== null && free >= 0
+        ? u + free
+        : null;
+  return t !== null && t > 0 ? (u / t) * 100 : null;
 }
 export function threshold(value, rule) {
   if (value === null || !rule) return "";

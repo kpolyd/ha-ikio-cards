@@ -13,6 +13,7 @@ import {
   reading,
   note,
   button,
+  valueText,
   numeric,
   formatNumber,
   el,
@@ -23,8 +24,6 @@ import { validate } from "./config.js";
 import { graphPalette } from "@ikio/graph";
 import {
   utilization,
-  capacityText,
-  wholeValueText,
   metricLevel,
   uptimeSeconds,
   uptimeLabel,
@@ -178,7 +177,7 @@ export class Card extends ControlCard {
     for (const row of rows) {
       const entry = reading(
         row.label,
-        wholeValueText(this.hass, row.entity),
+        valueText(this.hass, row.entity),
         row.entity,
       );
       const key = el(
@@ -250,13 +249,13 @@ export class Card extends ControlCard {
       meta = el("div", undefined, "system-header-meta");
     if (c.temperature_entity) {
       const temperature = button(
-        wholeValueText(this.hass, c.temperature_entity),
+        valueText(this.hass, c.temperature_entity),
         () => details(this, c.temperature_entity),
         { entity: c.temperature_entity, key: "header-temperature" },
       );
       temperature.setAttribute(
         "aria-label",
-        `System temperature: ${wholeValueText(this.hass, c.temperature_entity)}`,
+        `System temperature: ${valueText(this.hass, c.temperature_entity)}`,
       );
       temperature.prepend(glyph("mdi:thermometer"));
       meta.append(temperature);
@@ -314,12 +313,11 @@ export class Card extends ControlCard {
         const label = metric === "disk" ? "Disk" : metric.toUpperCase(),
           capacity =
             metric !== "cpu" && c[metric + "_used_entity"]
-              ? capacityText(
-                  this.hass,
-                  this.state(c[metric + "_used_entity"]),
-                  this.state(c[metric + "_total_entity"]),
-                  this.state(c[metric + "_free_entity"]),
-                )
+              ? c[metric + "_total_entity"]
+                ? `${valueText(this.hass, c[metric + "_used_entity"])} / ${valueText(this.hass, c[metric + "_total_entity"])}`
+                : c[metric + "_free_entity"]
+                  ? `${valueText(this.hass, c[metric + "_used_entity"])} used · ${valueText(this.hass, c[metric + "_free_entity"])} free`
+                  : `${valueText(this.hass, c[metric + "_used_entity"])} used`
               : "";
         const resource = group();
         resource.classList.add("ikio-resource");
@@ -350,7 +348,7 @@ export class Card extends ControlCard {
       if (level)
         result.append(
           note(
-            `${metric}: ${level === "critical" ? "error" : "warning"} threshold reached (${formatNumber(this.hass, value, 0)})`,
+            `${metric}: ${level === "critical" ? "error" : "warning"} threshold reached (${formatNumber(this.hass, value)})`,
             level === "critical" ? "system-error-note" : "ae-warn",
           ),
         );
@@ -407,7 +405,7 @@ export class Card extends ControlCard {
       const extra = group(
         reading(
           "Database",
-          wholeValueText(this.hass, c.database_entity),
+          valueText(this.hass, c.database_entity),
           c.database_entity,
         ),
       );

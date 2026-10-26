@@ -53,7 +53,7 @@ export const systemStyles = `
 export function ringReading(label, percent, entity, level, hass) {
   const result = reading(label, "", entity, "system-ring-reading");
   const name = result.querySelector(".ae-label");
-  const text = percent === null ? "—" : `${formatNumber(hass, percent, 0)}%`;
+  const text = percent === null ? "—" : `${formatNumber(hass, percent, 1)}%`;
   result.setAttribute(
     "aria-label",
     `${label}: ${percent === null ? "unavailable" : text}${level ? `, ${level}` : ""}`,

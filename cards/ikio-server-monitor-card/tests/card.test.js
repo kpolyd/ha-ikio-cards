@@ -116,8 +116,8 @@ test("used/remaining sensors populate RAM and disk rings and react to live remai
     },
   );
   const resources = () => card.shadowRoot.querySelectorAll(".ikio-resource");
-  assert.match(resources()[1].textContent, /50%RAM8 GiB \/ 16 GiB/);
-  assert.match(resources()[2].textContent, /75%Disk750 GB \/ 1,000 GB/);
+  assert.match(resources()[1].textContent, /50%RAM8 GiB used · 8 GiB free/);
+  assert.match(resources()[2].textContent, /75%Disk750 GB used · 250 GB free/);
   assert.ok(resources()[2].querySelector(".warning"));
   assert.ok(card.entityIds.includes("sensor.memory_free"));
   card.hass = {
@@ -134,52 +134,6 @@ test("used/remaining sensors populate RAM and disk rings and react to live remai
     },
   };
   assert.ok(resources()[1].querySelector(".unknown"));
-  card.remove();
-});
-test("capacity captions add unrounded used/free values and keep the compact used / total format", async () => {
-  const { capacityText } = await import("../src/adapter.js");
-  const s = (state, unit) => ({
-    state: String(state),
-    attributes: { unit_of_measurement: unit },
-  });
-  const hass = { locale: { language: "en" } };
-  assert.equal(
-    capacityText(hass, s(3.6, "GiB"), null, s(3.6, "GiB")),
-    "4 GiB / 7 GiB",
-  );
-  assert.equal(
-    capacityText(hass, s(512, "MiB"), null, s(0.5, "GiB")),
-    "512 MiB / 1,024 MiB",
-  );
-  assert.equal(
-    capacityText(hass, s(3.6, "GB"), s(8.2, "GB"), s(99, "GB")),
-    "4 GB / 8 GB",
-  );
-  assert.equal(
-    capacityText(hass, s(3.6, "GB"), null, s("unavailable", "GB")),
-    "4 GB / —",
-  );
-});
-test("whole-number display preserves unrounded ring geometry and threshold decisions", () => {
-  const card = systemFixture(
-    {},
-    {
-      "sensor.ram": { state: "84.6", attributes: { unit_of_measurement: "%" } },
-      "sensor.temperature": {
-        state: "48.6",
-        attributes: { unit_of_measurement: "°C" },
-      },
-    },
-  );
-  const ram = card.shadowRoot.querySelectorAll(".ikio-resource")[1];
-  assert.equal(ram.querySelector(".system-ring-value").textContent, "85%");
-  assert.ok(ram.querySelector(".warning"));
-  assert.equal(ram.querySelector(".critical"), null);
-  assert.equal(
-    ram.querySelector(".system-ring-arc").getAttribute("stroke-dasharray"),
-    "84.6 100",
-  );
-  assert.match(card.shadowRoot.querySelector("header").textContent, /49 °C/);
   card.remove();
 });
 
@@ -579,7 +533,7 @@ test("database stays available inside collapsed details without an extra overvie
     "mdi:chevron-down",
   );
   const database = details.querySelector('[data-entity="sensor.database"]');
-  assert.match(database.textContent, /871 MB/);
+  assert.match(database.textContent, /871.44 MB/);
   assert.equal(
     card.shadowRoot.querySelector(".ikio-server-monitor-metadata"),
     null,
@@ -747,6 +701,7 @@ test("constant network history has one extremum and zero traffic remains a visib
     null,
   );
 });
+
 test("network extrema show at most one decimal while keeping precise plot values", async () => {
   const { networkPlot } = await import("../src/views.js");
   const chart = networkPlot(
