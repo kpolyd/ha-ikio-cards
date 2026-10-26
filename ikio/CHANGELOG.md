@@ -1,6 +1,6 @@
 # Ikio changelog
 
-## Unreleased
+## 0.6.2 — Theme-matched chart palette
 
 - Apply the approved softer mint-to-orchid palette to Electricity history, device/Untracked sparklines and the Graph card. Use deeper hues in light mode and follow live Home Assistant theme changes.
 - Match Server Monitor traffic to the chart palette with mint download and orchid upload; retain solid/dashed series, scales and history gaps.
