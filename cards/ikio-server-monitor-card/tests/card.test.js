@@ -116,8 +116,8 @@ test("used/remaining sensors populate RAM and disk rings and react to live remai
     },
   );
   const resources = () => card.shadowRoot.querySelectorAll(".ikio-resource");
-  assert.match(resources()[1].textContent, /50%RAM8 GiB used · 8 GiB free/);
-  assert.match(resources()[2].textContent, /75%Disk750 GB used · 250 GB free/);
+  assert.match(resources()[1].textContent, /50%RAM8 GiB \/ 16 GiB/);
+  assert.match(resources()[2].textContent, /75%Disk750 GB \/ 1,000 GB/);
   assert.ok(resources()[2].querySelector(".warning"));
   assert.ok(card.entityIds.includes("sensor.memory_free"));
   card.hass = {
@@ -134,6 +134,70 @@ test("used/remaining sensors populate RAM and disk rings and react to live remai
     },
   };
   assert.ok(resources()[1].querySelector(".unknown"));
+  card.remove();
+});
+test("capacity captions sum precise storage values before rounding used / total", async () => {
+  const { capacityText } = await import("../src/adapter.js");
+  const s = (state, unit) => ({
+    state: String(state),
+    attributes: { unit_of_measurement: unit },
+  });
+  const hass = { locale: { language: "en" } };
+  assert.equal(
+    capacityText(hass, s(3.6, "GiB"), null, s(3.6, "GiB")),
+    "4 GiB / 7 GiB",
+  );
+  assert.equal(
+    capacityText(hass, s(512, "MiB"), null, s(0.5, "GiB")),
+    "512 MiB / 1,024 MiB",
+  );
+  assert.equal(
+    capacityText(hass, s(3.6, "GB"), s(8.2, "GB"), s(99, "GB")),
+    "4 GB / 8 GB",
+  );
+  assert.equal(
+    capacityText(hass, s(3.6, "GB"), null, s("unavailable", "GB")),
+    "4 GB / —",
+  );
+});
+test("only RAM/disk percentages are rounded and their underlying geometry and thresholds stay precise", () => {
+  const card = systemFixture(
+    {},
+    {
+      "sensor.cpu": { state: "12.6", attributes: { unit_of_measurement: "%" } },
+      "sensor.ram": { state: "84.6", attributes: { unit_of_measurement: "%" } },
+      "sensor.disk": {
+        state: "42.6",
+        attributes: { unit_of_measurement: "%" },
+      },
+      "sensor.temperature": {
+        state: "48.6",
+        attributes: { unit_of_measurement: "°C" },
+      },
+    },
+  );
+  const resources = card.shadowRoot.querySelectorAll(".ikio-resource");
+  assert.equal(
+    resources[0].querySelector(".system-ring-value").textContent,
+    "12.6%",
+  );
+  assert.equal(
+    resources[1].querySelector(".system-ring-value").textContent,
+    "85%",
+  );
+  assert.equal(
+    resources[2].querySelector(".system-ring-value").textContent,
+    "43%",
+  );
+  assert.ok(resources[1].querySelector(".warning"));
+  assert.equal(resources[1].querySelector(".critical"), null);
+  assert.equal(
+    resources[1]
+      .querySelector(".system-ring-arc")
+      .getAttribute("stroke-dasharray"),
+    "84.6 100",
+  );
+  assert.match(card.shadowRoot.querySelector("header").textContent, /48.6 °C/);
   card.remove();
 });
 
@@ -700,4 +764,28 @@ test("constant network history has one extremum and zero traffic remains a visib
     ),
     null,
   );
+});
+
+test("network extrema show at most one decimal while keeping precise plot values", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const chart = networkPlot(
+    [{ entity: "sensor.rx", key: "network_rx", unit: "MB/s" }],
+    {
+      "sensor.rx": [
+        { lu: 0, s: "1.24" },
+        { lu: 1800, s: "2.36" },
+      ],
+    },
+    1800000,
+    { locale: { language: "en" } },
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="min"]').textContent,
+    "1.2 MB/s",
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="max"]').textContent,
+    "2.4 MB/s",
+  );
+  assert.equal(chart.querySelector("path").getAttribute("d"), "M0,30 L300,2 ");
 });

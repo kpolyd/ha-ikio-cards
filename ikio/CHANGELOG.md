@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## 0.6.4 — Server capacity display and graph precision
+
+- Restore compact Server Monitor RAM/disk used / total captions, deriving total from used + remaining when needed. Round these capacities and RAM/disk percentages to whole numbers without changing calculations or thresholds.
+- Show at most one decimal on network min/max graph labels. Other readings retain their existing precision.
+
 ## 0.6.3 — Server storage and network extrema
 
 - Server Monitor accepts used + remaining memory/disk sensors, with automatic utilization and visual editor support. Existing percentage and total sensors remain supported.

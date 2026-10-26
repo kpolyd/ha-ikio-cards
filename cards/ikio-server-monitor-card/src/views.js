@@ -50,10 +50,11 @@ export const systemStyles = `
 .ikio-server-monitor .system-extra-details{border-top:1px solid var(--ae-border);padding-top:6px}
 @container(max-width:310px){.ikio-server-monitor .system-header-meta{max-width:145px;gap:0 6px}.ikio-server-monitor>header>.ae-title,.ikio-server-monitor>header>h2{font-size:15px}}
 `;
-export function ringReading(label, percent, entity, level, hass) {
+export function ringReading(label, percent, entity, level, hass, digits = 1) {
   const result = reading(label, "", entity, "system-ring-reading");
   const name = result.querySelector(".ae-label");
-  const text = percent === null ? "—" : `${formatNumber(hass, percent, 1)}%`;
+  const text =
+    percent === null ? "—" : `${formatNumber(hass, percent, digits)}%`;
   result.setAttribute(
     "aria-label",
     `${label}: ${percent === null ? "unavailable" : text}${level ? `, ${level}` : ""}`,
@@ -108,7 +109,7 @@ export function networkPlot(rows, history, now, hass) {
       value > 0
         ? Math.min(4, Math.max(0, Math.floor(Math.log10(value) / 3)))
         : 0;
-    return `${formatNumber(hass, value / 1000 ** power, 2)} ${["B/s", "kB/s", "MB/s", "GB/s", "TB/s"][power]}`;
+    return `${formatNumber(hass, value / 1000 ** power, 1)} ${["B/s", "kB/s", "MB/s", "GB/s", "TB/s"][power]}`;
   };
   const svg = svgNode("svg", {
     viewBox: "0 0 300 32",
