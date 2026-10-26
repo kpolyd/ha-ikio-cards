@@ -19,9 +19,17 @@
     "test:scripts": "node --test scripts/tests/*.test.mjs",
     "build:hacs": "node scripts/build-hacs.mjs",
     "prepare:hacs": "npm run build:hacs -- --write",
-    "check:hacs": "node scripts/check-hacs.mjs"
+    "check:hacs": "node scripts/check-hacs.mjs",
+    "preview:build": "node scripts/build-previews.mjs",
+    "preview:generate": "node scripts/generate-previews.mjs",
+    "preview:readme": "node scripts/update-readme-previews.mjs",
+    "preview:check": "node scripts/update-readme-previews.mjs --check"
   },
   "devDependencies": {
-    "esbuild": "0.25.10"
+    "@mdi/js": "7.4.47",
+    "esbuild": "0.25.10",
+    "pixelmatch": "7.1.0",
+    "playwright": "1.56.1",
+    "pngjs": "7.0.0"
   }
 }
