@@ -32,7 +32,7 @@ export class Card extends HistoryCard {
     const result = group(
       title(
         this,
-        this.config.name || "History",
+        this.config.name || "Graph",
         rows.length === 1 ? rows[0].entity : null,
       ),
       rows.length === 1

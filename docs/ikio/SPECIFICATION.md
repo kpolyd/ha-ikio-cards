@@ -12,16 +12,16 @@ The requested outcome is a functioning card family with full graphical editors. 
 
 | Card name | Element / config type suffix | Primary purpose | Mockup |
 |---|---|---|---|
-| Light Studio | `ikio-light-card` | Mixed light/switch control, selected-light detail | [SVG](design/compact-lights.svg) |
-| Room Comfort | `ikio-comfort-card` | Room readings, AC, dehumidifier or fan | [SVG](design/compact-comfort.svg) |
-| Appliance Run | `ikio-appliance-card` | Switch, actual power and optional timed run | [SVG](design/compact-appliance.svg) |
+| Light Studio | `ikio-lights-card` | Mixed light/switch control, selected-light detail | [SVG](design/compact-lights.svg) |
+| Room Comfort | `ikio-climate-card` | Room readings, AC, dehumidifier or fan | [SVG](design/compact-comfort.svg) |
+| Appliance Run | `ikio-appliances-card` | Switch, actual power and optional timed run | [SVG](design/compact-appliance.svg) |
 | Media Session | `ikio-media-card` | Current media, transport, source and volume | [SVG](design/compact-media.svg) |
-| Cleaning Mission | `ikio-cleaning-card` | Vacuum state and supported cleaning actions | [SVG](design/compact-cleaning.svg) |
-| Security Readiness | `ikio-security-card` | Alarm, open contacts, presence and motion | [SVG](design/compact-security.svg) |
+| Cleaning Mission | `ikio-vacuum-card` | Vacuum state and supported cleaning actions | [SVG](design/compact-cleaning.svg) |
+| Security Readiness | `ikio-alarmo-card` | Alarm, open contacts, presence and motion | [SVG](design/compact-security.svg) |
 | Camera Window | `ikio-camera-card` | On-demand camera, optional power/snapshot controls | [SVG](design/compact-camera.svg) |
-| Energy Ledger | `ikio-energy-card` | Power, tariff usage, costs and breakdown | [SVG](design/compact-energy.svg) |
-| System Pulse | `ikio-system-card` | Host metrics, availability and optional services | [SVG](design/compact-system.svg) |
-| Drive Brief | `ikio-drive-card` | Fuel, range, odometer and parking | [SVG](design/compact-drive.svg) |
+| Energy Ledger | `ikio-electricity-card` | Power, tariff usage, costs and breakdown | [SVG](design/compact-energy.svg) |
+| System Pulse | `ikio-server-monitor-card` | Host metrics, availability and optional services | [SVG](design/compact-system.svg) |
+| Drive Brief | `ikio-vehicle-card` | Fuel, range, odometer and parking | [SVG](design/compact-drive.svg) |
 
 | Graph | `ikio-graph-card` | Numeric history and value-based colours | [SVG](design/compact-graph.svg) |
 
@@ -119,7 +119,7 @@ No dashboard background click should operate an entity. In preview mode all serv
 
 ## 5. Per-card designs and contracts
 
-### 5.1 Light Studio — `ikio-light-card`
+### 5.1 Light Studio — `ikio-lights-card`
 
 **Use case:** living-room ceiling strip and TV glow; kitchen mixed switches; office strip; entrance, balcony and bedroom light. Group by room rather than one enormous whole-home lighting card.
 
@@ -133,7 +133,7 @@ No dashboard background click should operate an entity. In preview mode all serv
 
 **Acceptance:** `light.h66a0` remains on when HA state is on even if brightness/RGB attributes are zero. Kitchen switches have no fake sliders. Dragging brightness must not toggle the light. Partial availability does not disable the whole group.
 
-### 5.2 Room Comfort — `ikio-comfort-card`
+### 5.2 Room Comfort — `ikio-climate-card`
 
 **Use case:** living room AC plus dehumidifier; bedroom fan plus separate light card; balcony/bathroom read-only climate summaries. Do not place the bedroom fan in the living-room instance merely because it is shown on the same dashboard.
 
@@ -145,7 +145,7 @@ No dashboard background click should operate an entity. In preview mode all serv
 
 **Acceptance:** changing device tab does not turn it on; changing HVAC mode does not rewrite a target without user input; unsupported temperature range and mode are never offered. An unavailable bedroom fan still shows valid room temperature/humidity as in guide p9. Do not add automatic humidity-based control to the frontend.
 
-### 5.3 Appliance Run — `ikio-appliance-card`
+### 5.3 Appliance Run — `ikio-appliances-card`
 
 **Use case:** water heater or monitored plug. State, instantaneous W and optional elapsed/timed operation matter more than a decorative history graph.
 
@@ -169,7 +169,7 @@ If a timer is bound, render its reported activity/finish time; browser countdown
 
 **Acceptance:** volume 0 remains valid; live streams don't have a fake end time; media position interpolation runs only while playing and visible and uses the entity's update timestamp. Pause interpolation on hidden pages.
 
-### 5.5 Cleaning Mission — `ikio-cleaning-card`
+### 5.5 Cleaning Mission — `ikio-vacuum-card`
 
 **Use case:** Roborock Q8 Max, currently shown docked with Quiet selected.
 
@@ -181,7 +181,7 @@ If a timer is bound, render its reported activity/finish time; browser countdown
 
 **Acceptance:** returning is distinct from docked; absent battery is not 0%; unavailable removes action affordances. Never offer a Resume service name that the integration doesn't expose—map to the verified supported action.
 
-### 5.6 Security Readiness — `ikio-security-card`
+### 5.6 Security Readiness — `ikio-alarmo-card`
 
 **Use case:** Alarmo, contact exceptions, presence and current motion. Complements the floor plan without duplicating it.
 
@@ -207,7 +207,7 @@ If a timer is bound, render its reported activity/finish time; browser countdown
 
 **Acceptance:** browsing or editing a dashboard does not power a camera or start a stream; live viewing is not restarted by unrelated sensor updates; a camera failure does not change the snapshot automation state. Never expose access tokens in logs or exported config.
 
-### 5.8 Energy Ledger — `ikio-energy-card`
+### 5.8 Energy Ledger — `ikio-electricity-card`
 
 **Use case:** total draw, office/TV/AC/dehumidifier/heater breakdown, day/night energy and tariffs, today's cost, estimated/accrued bill and forecast.
 
@@ -225,7 +225,7 @@ For untracked, convert compatible power units to a common unit, require valid to
 
 **Acceptance:** W versus kWh is never mixed; 0 is distinct from missing; thresholds/percentages cannot divide by zero; locale formatting preserves tariff precision (up to five decimals) while money totals normally show two. Billing periods are explicit, not assumed to be the calendar month.
 
-### 5.9 System Pulse — `ikio-system-card`
+### 5.9 System Pulse — `ikio-server-monitor-card`
 
 **Use case:** HA host uptime, CPU, RAM, disk, database, temperature and network. Reusable for another host by changing entities.
 
@@ -237,7 +237,7 @@ Optional `thresholds` use per-metric warning/critical numeric fields with units 
 
 **Acceptance:** don't compare bytes and gigabytes without conversion; values over 100% produce an explanatory warning, not a deceptive full bar; uptime updates at most once per minute while visible. Show RAM/disk used/total independently if percentage cannot be computed.
 
-### 5.10 Drive Brief — `ikio-drive-card`
+### 5.10 Drive Brief — `ikio-vehicle-card`
 
 **Use case:** Vehicle fuel, estimated range, odometer and parked location. This is a read-only status card with navigation to details.
 
@@ -609,3 +609,7 @@ Add a thin theme-aware horizontal divider between the main power history and ind
 ## 51. System network history gaps (0.5.14)
 
 Preserve each known interval through the timestamp where its state becomes unknown or unavailable. Split at gaps before downsampling, preserving segment endpoints; keep actual unknown intervals blank. This fixes isolated recorded zeros becoming invisible move-only SVG paths. Retain current scale, layout and linear connections within known runs. The owner authorized fixing and releasing this as ikio-v0.5.14.
+
+## 52. Complete card renaming (0.6.0)
+
+The owner requests complete renaming, including YAML identifiers, editors, workspace packages, directories and individual bundles, without compatibility aliases. Use Lights, Electricity, Vehicle, Alarmo, Server Monitor, Climate, Media, Camera, Vacuum, Appliances and Graph. Preserve entity/configuration keys and behavior; require explicit YAML migration as documented in MIGRATION.md. Release as a breaking 0.6.0 minor version.

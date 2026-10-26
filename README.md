@@ -8,23 +8,23 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 | Card | Purpose |
 |---|---|
-| [Lights](cards/ikio-light-card/README.md) | Compact light/switch buttons with location labels |
-| [Comfort](cards/ikio-comfort-card/README.md) | Room readings, climate, humidifier and fan |
-| [Appliance](cards/ikio-appliance-card/README.md) | Power, energy and optional backend timed runs |
+| [Lights](cards/ikio-lights-card/README.md) | Compact light/switch buttons with location labels |
+| [Climate](cards/ikio-climate-card/README.md) | Room readings, climate, humidifier and fan |
+| [Appliances](cards/ikio-appliances-card/README.md) | Power, energy and optional backend timed runs |
 | [Media](cards/ikio-media-card/README.md) | Icon transport controls, source, volume and progress |
-| [Cleaning](cards/ikio-cleaning-card/README.md) | State-aware vacuum actions and suction selection |
-| [Security](cards/ikio-security-card/README.md) | Alarm, contacts, presence and optional Alarmo override |
+| [Vacuum](cards/ikio-vacuum-card/README.md) | State-aware vacuum actions and suction selection |
+| [Alarmo](cards/ikio-alarmo-card/README.md) | Alarm, contacts, presence and optional Alarmo override |
 | [Camera](cards/ikio-camera-card/README.md) | On-demand live view and optional snapshot controls |
-| [Energy](cards/ikio-energy-card/README.md) | Current power, billing-cycle totals/costs and device breakdown |
-| [System](cards/ikio-system-card/README.md) | Host metrics, availability and service controls |
-| [Drive](cards/ikio-drive-card/README.md) | Vehicle readings, locks/doors/windows and map link |
+| [Electricity](cards/ikio-electricity-card/README.md) | Current power, billing-cycle totals/costs and device breakdown |
+| [Server Monitor](cards/ikio-server-monitor-card/README.md) | Host metrics, availability and service controls |
+| [Vehicle](cards/ikio-vehicle-card/README.md) | Vehicle readings, locks/doors/windows and map link |
 | [Graph](cards/ikio-graph-card/README.md) | History with value-based colours and expected min/max |
 
 ## Installation
 
 For UI work, see the [Ikio design approach](docs/ikio/DESIGN_APPROACH.md) and [current design review](docs/ikio/DESIGN_REVIEW.md). Light, Energy, Drive and Security are the approved reference designs; the review proposes refinements for the other seven cards.
 
-Current collection version: **0.5.14**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
+Current collection version: **0.6.0**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
 ### HACS (recommended)
 
@@ -35,13 +35,13 @@ Current collection version: **0.5.14**. The source targets Home Assistant fronte
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All eleven cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Existing `custom:ikio-...` configurations stay the same. Aethora configurations need the one-time namespace migration below.
+All eleven cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 
 ### Manual installation
 
-Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.5.14` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
+Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.6.0` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
 
 See the [installation guide](docs/ikio/INSTALLATION.md), [Aethora migration guide](docs/ikio/MIGRATION.md), [design specification](docs/ikio/SPECIFICATION.md) and [validation status](docs/ikio/STATUS.md).
 
@@ -59,7 +59,7 @@ npm run build
 npm run package:ikio
 ```
 
-Run a focused workspace command with, for example, `npm test --workspace @ikio/energy-card`. Format changed workspaces with `npm run format --workspace @ikio/card-ui`. Shared packages are bundled locally, with no separate HA resources or runtime CDN dependencies.
+Run a focused workspace command with, for example, `npm test --workspace @ikio/electricity-card`. Format changed workspaces with `npm run format --workspace @ikio/card-ui`. Shared packages are bundled locally, with no separate HA resources or runtime CDN dependencies.
 
 Serve the repository root after building and open `dev/previews/collection.html` for the simulated interactive gallery. It never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
 

@@ -3,11 +3,11 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const types = [
-  "comfort",
+  "climate",
   "media",
-  "cleaning",
-  "appliance",
-  "system",
+  "vacuum",
+  "appliances",
+  "server-monitor",
   "camera",
   "graph",
 ];

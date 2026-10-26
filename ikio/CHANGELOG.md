@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## 0.6.0 — Card names and YAML migration
+
+- Breaking: rename Light to Lights, Energy to Electricity, Drive to Vehicle, Security to Alarmo, System to Server Monitor, Comfort to Climate, Cleaning to Vacuum and Appliance to Appliances. Rename their custom element/editor IDs, workspace packages, source directories and individual bundle filenames. Media, Camera and Graph retain their identifiers.
+- Update dashboard YAML types and individual resource URLs using the migration table. Existing entity bindings and card settings stay the same.
+
 ## 0.5.14 — System network history gaps
 
 - Fix System network history losing valid intervals before unknown/unavailable readings. Preserve zero and nonzero intervals up to the exact gap boundary, including after downsampling, without filling missing data.

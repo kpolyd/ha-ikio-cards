@@ -3,17 +3,17 @@ import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 let dom;
 const cards = [
-  "energy",
-  "comfort",
-  "appliance",
+  "electricity",
+  "climate",
+  "appliances",
   "media",
-  "cleaning",
-  "security",
+  "vacuum",
+  "alarmo",
   "camera",
-  "system",
-  "drive",
+  "server-monitor",
+  "vehicle",
   "graph",
-  "light",
+  "lights",
 ];
 before(async () => {
   dom = new JSDOM("<body></body>");
@@ -68,7 +68,7 @@ for (const card of cards)
       editor.setConfig(saved);
     });
     const forms = editor.shadowRoot.querySelectorAll("ha-form");
-    const form = forms[card === "energy" || card === "light" ? 1 : 0];
+    const form = forms[card === "electricity" || card === "lights" ? 1 : 0];
     const input = form.input;
     input.focus();
     for (const character of "Office lamp") {
@@ -83,9 +83,9 @@ for (const card of cards)
       assert.equal(form.isConnected, true);
     }
     assert.equal(
-      card === "energy"
+      card === "electricity"
         ? saved.circuits[0].name
-        : card === "light"
+        : card === "lights"
           ? saved.lights[0].name
           : saved.name,
       "Office lamp",

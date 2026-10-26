@@ -62,19 +62,19 @@ export function installRefinement(card) {
     .ikio-refined .ikio-resources{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px}
     .ikio-refined .ikio-resources .ikio-resource>.ae-reading{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:2px 0}
     .ikio-refined .ikio-resources .ae-value{font-size:16px}
-    .ikio-refined .ikio-system-metadata{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 8px}
-    .ikio-refined .ikio-system-metadata>.ae-reading{flex-direction:row;align-items:center;justify-content:space-between;gap:6px;padding:0}
-    .ikio-refined .ikio-system-metadata>.ae-note{grid-column:1/-1}
+    .ikio-refined .ikio-server-monitor-metadata{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 8px}
+    .ikio-refined .ikio-server-monitor-metadata>.ae-reading{flex-direction:row;align-items:center;justify-content:space-between;gap:6px;padding:0}
+    .ikio-refined .ikio-server-monitor-metadata>.ae-note{grid-column:1/-1}
     .ikio-refined .ikio-resource>.ae-note{font-size:11px}
-    .ikio-refined .ikio-comfort-controls>.ae-select,.ikio-refined .ikio-comfort-controls>.ae-range{flex:1 1 130px}
-    .ikio-refined .ikio-comfort-controls>.ae-range{grid-template-columns:minmax(44px,.6fr) minmax(0,1.4fr)}
+    .ikio-refined .ikio-climate-controls>.ae-select,.ikio-refined .ikio-climate-controls>.ae-range{flex:1 1 130px}
+    .ikio-refined .ikio-climate-controls>.ae-range{grid-template-columns:minmax(44px,.6fr) minmax(0,1.4fr)}
     .ikio-refined .ikio-media-audio{align-items:center}
     .ikio-refined .ikio-media-audio>.ae-row{flex:2 1 170px}
     .ikio-refined .ikio-media-audio>.ae-select{flex:1 1 150px}
     .ikio-refined .ikio-footer{align-items:flex-start}
     .ikio-refined .ikio-footer>.ae-reading{flex-direction:row;align-items:center;justify-content:space-between;gap:6px}
     .ikio-refined .ikio-footer>.ikio-disclosure{border-top:0;padding-top:0}
-    .ikio-refined .ikio-cleaning-controls>.ae-row,.ikio-refined .ikio-cleaning-controls>.ae-select{flex:1 1 150px}
+    .ikio-refined .ikio-vacuum-controls>.ae-row,.ikio-refined .ikio-vacuum-controls>.ae-select{flex:1 1 150px}
     .ikio-refined .ikio-action-bar>.ae-row:first-child{flex:1 1 160px}
     .ikio-refined .ikio-action-bar>.ae-row:last-child{flex:0 1 auto}
     .ikio-refined .ikio-camera-placeholder>.ae-note{flex:1 1 90px}
