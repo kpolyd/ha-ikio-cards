@@ -38,6 +38,9 @@ export const systemStyles = `
 .ikio-server-monitor .system-network-key{width:14px;border-top:2px solid var(--ae-network-download);flex:none}
 .ikio-server-monitor .system-network-key.upload{border-top:2px dashed var(--ae-network-upload)}
 .ikio-server-monitor .system-network-plot{display:block;width:100%;height:32px;overflow:visible}
+.ikio-server-monitor .system-network-chart{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:6px;padding-block:4px}
+.ikio-server-monitor .system-network-axis{display:grid;position:relative;height:32px;font-size:11px;line-height:1;color:var(--ae-muted);font-variant-numeric:tabular-nums}
+.ikio-server-monitor .system-network-axis span{position:absolute;inset-inline-start:0;white-space:nowrap;transform:translateY(-50%)}
 .ikio-server-monitor .system-network-times{display:flex;justify-content:space-between;color:var(--ae-muted);font-size:11px}
 .ikio-server-monitor .system-footer>summary{font-size:13px;font-weight:500;color:var(--ae-text)}
 .ikio-server-monitor .system-footer>summary:after,.ikio-server-monitor .system-footer[open]>summary:after{content:none}
@@ -94,14 +97,48 @@ export function networkPlot(rows, history, now, hass) {
     row.points.filter((p) => p.value !== null).map((p) => p.value),
   );
   if (!values.length) return null;
-  const high = values.reduce((max, value) => Math.max(max, value), 1);
+  const low = values.reduce((min, value) => Math.min(min, value), Infinity);
+  const high = values.reduce((max, value) => Math.max(max, value), 0);
+  const constant = low === high;
+  const yMin = constant ? 0 : low;
+  const yMax = high || 1;
+  const y = (value) => 2 + ((yMax - value) / (yMax - yMin)) * 28;
+  const rateLabel = (value) => {
+    const power =
+      value > 0
+        ? Math.min(4, Math.max(0, Math.floor(Math.log10(value) / 3)))
+        : 0;
+    return `${formatNumber(hass, value / 1000 ** power, 2)} ${["B/s", "kB/s", "MB/s", "GB/s", "TB/s"][power]}`;
+  };
   const svg = svgNode("svg", {
     viewBox: "0 0 300 32",
     preserveAspectRatio: "none",
     class: "system-network-plot",
     role: "img",
-    "aria-label": `Download and upload history, last 30 minutes. Shared scale 0 to ${formatNumber(hass, high)} bytes per second.`,
+    "aria-label": `Download and upload history, last 30 minutes. Visible minimum ${rateLabel(low)}, maximum ${rateLabel(high)}. Shared scale ${rateLabel(yMin)} to ${rateLabel(yMax)}.`,
   });
+  const ticks = constant
+    ? [{ value: high, kind: "constant" }]
+    : [
+        { value: high, kind: "max" },
+        { value: low, kind: "min" },
+      ];
+  for (const tick of ticks)
+    svg.append(
+      svgNode("line", {
+        x1: 0,
+        x2: 300,
+        y1: y(tick.value),
+        y2: y(tick.value),
+        stroke: "var(--ae-text)",
+        "stroke-opacity": 0.07,
+        "stroke-width": 1,
+        "stroke-dasharray": "3 4",
+        "vector-effect": "non-scaling-stroke",
+        "data-guide": tick.kind,
+        "aria-hidden": "true",
+      }),
+    );
   for (const row of series) {
     let d = "",
       known = false;
@@ -133,8 +170,7 @@ export function networkPlot(rows, history, now, hass) {
         0,
         Math.min(300, ((point.time - start) / 1800000) * 300),
       );
-      const y = 30 - (point.value / high) * 28;
-      d += `${known ? "L" : "M"}${x},${y} `;
+      d += `${known ? "L" : "M"}${x},${y(point.value)} `;
       known = true;
     }
     if (!d) continue;
@@ -152,5 +188,20 @@ export function networkPlot(rows, history, now, hass) {
       }),
     );
   }
-  return svg;
+  const chart = el("div", undefined, "system-network-chart");
+  const axis = el("div", undefined, "system-network-axis");
+  for (const tick of ticks) {
+    // Reserve the measured width of both labels without duplicating them for AT.
+    const sizing = el("span", rateLabel(tick.value));
+    sizing.style.cssText =
+      "grid-area:1/1;position:static;visibility:hidden;transform:none";
+    sizing.setAttribute("aria-hidden", "true");
+    axis.append(sizing);
+    const label = el("span", rateLabel(tick.value));
+    label.dataset.extremum = tick.kind;
+    label.style.top = `${(y(tick.value) / 32) * 100}%`;
+    axis.append(label);
+  }
+  chart.append(axis, svg);
+  return chart;
 }

@@ -1,10 +1,18 @@
 import { numeric, unitValue } from "@ikio/card-ui";
-export function utilization(percent, used, total) {
+export function utilization(percent, used, total, remaining) {
   const p = numeric(percent);
   if (p !== null && percent.attributes?.unit_of_measurement === "%") return p;
   const u = unitValue(used, "storage"),
-    t = unitValue(total, "storage");
-  return u !== null && t !== null && t > 0 ? (u / t) * 100 : null;
+    explicitTotal = unitValue(total, "storage"),
+    free = unitValue(remaining, "storage");
+  if (u === null || u < 0) return null;
+  const t =
+    explicitTotal !== null && explicitTotal > 0
+      ? explicitTotal
+      : free !== null && free >= 0
+        ? u + free
+        : null;
+  return t !== null && t > 0 ? (u / t) * 100 : null;
 }
 export function threshold(value, rule) {
   if (value === null || !rule) return "";
