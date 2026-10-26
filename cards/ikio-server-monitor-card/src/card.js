@@ -24,6 +24,7 @@ import { validate } from "./config.js";
 import { graphPalette } from "@ikio/graph";
 import {
   utilization,
+  capacityText,
   metricLevel,
   uptimeSeconds,
   uptimeLabel,
@@ -313,11 +314,12 @@ export class Card extends ControlCard {
         const label = metric === "disk" ? "Disk" : metric.toUpperCase(),
           capacity =
             metric !== "cpu" && c[metric + "_used_entity"]
-              ? c[metric + "_total_entity"]
-                ? `${valueText(this.hass, c[metric + "_used_entity"])} / ${valueText(this.hass, c[metric + "_total_entity"])}`
-                : c[metric + "_free_entity"]
-                  ? `${valueText(this.hass, c[metric + "_used_entity"])} used · ${valueText(this.hass, c[metric + "_free_entity"])} free`
-                  : `${valueText(this.hass, c[metric + "_used_entity"])} used`
+              ? capacityText(
+                  this.hass,
+                  this.state(c[metric + "_used_entity"]),
+                  this.state(c[metric + "_total_entity"]),
+                  this.state(c[metric + "_free_entity"]),
+                )
               : "";
         const resource = group();
         resource.classList.add("ikio-resource");
@@ -332,6 +334,7 @@ export class Card extends ControlCard {
             id || c[metric + "_used_entity"],
             level,
             this.hass,
+            metric === "cpu" ? 1 : 0,
           ),
         );
         if (capacity) resource.append(note(capacity));
