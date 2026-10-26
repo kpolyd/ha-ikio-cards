@@ -215,6 +215,66 @@ test("rings expose measured percentages, unknowns, thresholds and native details
   card.remove();
 });
 const settle = () => new Promise(setImmediate);
+test("uptime alone supplies the status dot and unavailable/invalid uptime never looks online", () => {
+  const card = systemFixture({ availability_entity: undefined });
+  assert.ok(card.shadowRoot.querySelector(".system-online-dot"));
+  assert.match(
+    card.shadowRoot.querySelector("header").textContent,
+    /Up for 3 days/,
+  );
+  for (const [value, label] of [
+    ["unavailable", "Offline"],
+    ["unknown", "Unknown"],
+    ["invalid", "Unknown"],
+  ]) {
+    card.hass = {
+      ...card.hass,
+      states: {
+        ...card.hass.states,
+        "sensor.uptime": { state: value, attributes: {} },
+      },
+    };
+    assert.equal(card.shadowRoot.querySelector(".system-online-dot"), null);
+    assert.equal(
+      Boolean(card.shadowRoot.querySelector(".system-offline-dot")),
+      value === "unavailable",
+    );
+    assert.match(
+      card.shadowRoot.querySelector("header").textContent,
+      new RegExp(label),
+    );
+  }
+  card.remove();
+});
+
+test("recorded zero traffic fills the window on first open while missing history stays empty", async () => {
+  const now = Date.now() / 1000;
+  const card = systemFixture(
+    { network_rx_entity: "sensor.rx" },
+    {
+      "sensor.rx": { state: "0", attributes: { unit_of_measurement: "MB/s" } },
+    },
+    async () => ({
+      "sensor.rx": [
+        { lu: now - 1801, s: "0", a: { unit_of_measurement: "MB/s" } },
+        { lu: now - 1200, s: "0" },
+        { lu: now - 600, s: "0" },
+      ],
+    }),
+  );
+  card.visible = true;
+  card.onVisibility();
+  await settle();
+  const path = card.shadowRoot.querySelector(".system-network-plot path");
+  assert.match(path.getAttribute("d"), /^M0,30 /);
+  assert.match(path.getAttribute("d"), /L300,30 /);
+  card.network = {};
+  card.update();
+  assert.equal(card.shadowRoot.querySelector(".system-network-plot"), null);
+  assert.match(card.shadowRoot.textContent, /No network history yet/);
+  card.remove();
+});
+
 test("network history batches both rate sensors, preserves gaps and stops requests when hidden", async () => {
   const calls = [];
   const now = Date.now() / 1000;
@@ -242,6 +302,9 @@ test("network history batches both rate sensors, preserves gaps and stops reques
   await settle();
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0].entity_ids, ["sensor.rx", "sensor.tx"]);
+  assert.equal(calls[0].include_start_time_state, true);
+  assert.equal(calls[0].significant_changes_only, false);
+  assert.equal(calls[0].minimal_response, false);
   assert.equal(
     Date.parse(calls[0].end_time) - Date.parse(calls[0].start_time),
     1800000,

@@ -572,3 +572,9 @@ Before the corrective release published, the owner requested removing Metric thr
 Remove the redundant Last 30 min heading above the network legend; retain the graph's −30 min and Now axis labels. The footer uses one native chevron in both collapsed and expanded states, suppressing the shared plus/minus decoration in both states. Do not repeat System details inside the expanded body. Database-only details show the reading directly beneath the summary; retain a separator before database information when services precede it.
 
 Remove the System Availability entity selector from the visual configuration. Preserve existing availability bindings for compatibility; new configurations do not need one. Keep the uptime selector and automatic uptime display.
+
+## 46. System history loading and uptime-based status
+
+Request the complete recorded network history for the previous 30 minutes on first display, explicitly including the initial state and disabling significant-only and minimal-response filtering so repeated rate samples and attribute changes remain available. Preserve bounded batched loading, unit conversion, unknown gaps and cancellation. Do not fabricate earlier data if Recorder returns no samples. A recorded initial zero rate may span the full window.
+
+When no legacy availability binding exists, use a valid uptime value for the green online dot and adaptive uptime text. An unavailable uptime sensor shows Offline with a red error-colour dot; missing, unknown or invalid uptime shows Unknown without a status dot. Explicit offline/unavailable legacy availability states also use the red dot. Existing explicit availability bindings retain priority. This owner decision supersedes the earlier prohibition on deriving status from uptime. Sensor availability is the status signal, not an independent reachability probe.

@@ -141,7 +141,9 @@ export class Card extends ControlCard {
           start_time: new Date(now - 1800000).toISOString(),
           end_time: new Date(now).toISOString(),
           entity_ids: [...new Set(rows.map((row) => row.entity))],
-          minimal_response: true,
+          include_start_time_state: true,
+          significant_changes_only: false,
+          minimal_response: false,
           no_attributes: false,
         }),
         cancelled,
@@ -218,10 +220,17 @@ export class Card extends ControlCard {
     if (!this.entityIds.length)
       return note("Choose system metrics in the visual editor.");
     const availability = this.state(c.availability_entity);
+    const uptimeState = this.state(c.uptime_entity);
+    const seconds = uptimeSeconds(uptimeState);
     const status = c.availability_entity
       ? availabilityLabel(availability)
-      : undefined;
-    const seconds = uptimeSeconds(this.state(c.uptime_entity));
+      : seconds !== null
+        ? "Online"
+        : c.uptime_entity
+          ? uptimeState?.state === "unavailable"
+            ? "Offline"
+            : "Unknown"
+          : undefined;
     const uptime = uptimeLabel(
       seconds,
       this.hass?.locale?.language || this.hass?.language || "en",
@@ -249,8 +258,16 @@ export class Card extends ControlCard {
     }
     if (headline) {
       const statusNode = el("div", undefined, "system-status");
-      if (status === "Online") {
-        const dot = el("span", undefined, "system-online-dot");
+      if (
+        status === "Online" ||
+        status === "Offline" ||
+        status === "Unavailable"
+      ) {
+        const dot = el(
+          "span",
+          undefined,
+          status === "Online" ? "system-online-dot" : "system-offline-dot",
+        );
         dot.setAttribute("aria-hidden", "true");
         statusNode.append(dot);
       }

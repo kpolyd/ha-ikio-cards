@@ -14,7 +14,9 @@ export const systemStyles = `
 .ikio-system .system-header-meta button{min-height:44px;min-width:44px;background:none;border:0;padding:0;display:flex;align-items:center;gap:4px;color:inherit;font:inherit}
 .ikio-system .system-header-meta ha-icon{--mdc-icon-size:14px}
 .ikio-system .system-status{display:flex;gap:5px;align-items:center;overflow-wrap:anywhere}
-.ikio-system .system-online-dot{width:6px;height:6px;border-radius:50%;background:var(--ae-temperature);flex:none}
+.ikio-system .system-online-dot,.ikio-system .system-offline-dot{width:6px;height:6px;border-radius:50%;flex:none}
+.ikio-system .system-online-dot{background:var(--ae-temperature)}
+.ikio-system .system-offline-dot{background:var(--ae-error)}
 .ikio-system .ikio-resources{grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:8px}
 .ikio-system .ikio-resource{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center}
 .ikio-system .ikio-resources .ikio-resource>.system-ring-reading{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;min-height:0;width:100%}

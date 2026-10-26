@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## 0.5.10 — System network history and status dots
+
+- Request the initial network state and all recorded updates for the previous 30 minutes, including repeated values and attribute changes. Keep genuine missing history blank.
+- Use the uptime sensor for the online indicator when no legacy availability binding exists: green for valid uptime, red for unavailable/offline, and neutral for unknown or invalid values.
+
 ## 0.5.9 — System details cleanup
 
 - Remove the redundant Last 30 min heading above network readings, retaining the graph axis labels.
