@@ -50,6 +50,8 @@ export class IkioCard extends HTMLElement {
         (id) => previous?.states?.[id] !== value?.states?.[id],
       ) ||
       previous?.locale !== value?.locale ||
+      (this.config?.appearance?.theme === "ha" &&
+        previous?.themes?.darkMode !== value?.themes?.darkMode) ||
       previous?.entities !== value?.entities ||
       previous?.devices !== value?.devices ||
       previous?.areas !== value?.areas ||

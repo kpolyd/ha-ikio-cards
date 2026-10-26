@@ -613,3 +613,7 @@ Preserve each known interval through the timestamp where its state becomes unkno
 ## 52. Complete card renaming (0.6.0)
 
 The owner requests complete renaming, including YAML identifiers, editors, workspace packages, directories and individual bundles, without compatibility aliases. Use Lights, Electricity, Vehicle, Alarmo, Server Monitor, Climate, Media, Camera, Vacuum, Appliances and Graph. Preserve entity/configuration keys and behavior; require explicit YAML migration as documented in MIGRATION.md. Release as a breaking 0.6.0 minor version.
+
+## 53. Approved chart palette
+
+The owner approved the softer Electricity preview and requested implementation everywhere. Centralize mint/green/yellow/amber/coral/red/orchid hues in the shared graph package for Electricity history, device/Untracked sparklines and Graph. Retain all ten normalized stop positions, expected min/max, sRGB interpolation, line widths, scaling, missing-data handling and interactions. Light appearance uses the approved deeper equivalents; HA appearance follows HA darkMode, including live theme changes. Server Monitor traffic uses mint download and orchid upload with matching legend keys, preserving solid/dashed series identity, scaling and gaps. Categorical distribution rings and resource-status meanings stay unchanged. No configuration migration is needed. This implementation does not merge or release the change.

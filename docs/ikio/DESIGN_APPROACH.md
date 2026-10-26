@@ -60,7 +60,7 @@ Use the existing shared tokens in [styles.js](../../packages/ikio-card-ui/src/st
 | Power reading | `#F2D487` | `#775600` |
 | Fridge reading | `#B9E6FF` | `#245F73` |
 
-HA appearance follows the user's HA theme; verify those colours separately. Energy's multicolour value gradient is a special-purpose data encoding, not the general UI accent palette. Do not reuse the alarming/delay coral for ordinary active controls without a new decision. Pair state colour with text/icon; unknown must never look secure.
+HA appearance follows the user's HA theme; verify those colours separately. Chart value gradients use the owner-approved soft mint-to-orchid palette, with deeper light-mode equivalents, shared by Electricity and Graph. Server traffic uses its mint/orchid endpoints for series identity. These chart colours are special-purpose data encodings, not general UI accents. Do not reuse the alarming/delay coral for ordinary active controls without a new decision. Pair state colour with text/icon; unknown must never look secure.
 
 Use the HA/system font. Keep established 12 px card radii, 10 px card padding and thin dividers. Use the existing 4/6/8/10/12 px compact spacing vocabulary deliberately; larger section gaps should establish grouping rather than inflate every row. For the seven redesigned cards, start with a 16 px title, 18 px header icon, 18–24 px principal reading, 13–14 px ordinary values and 11–12 px supporting labels. The owner rejected the first spacious mock set: prefer grouped rows, inline labels and 6 px section gaps. These are project starting points, not a global stylesheet migration. Use the approved card-specific sizes where they differ.
 

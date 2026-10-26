@@ -345,7 +345,7 @@ test("device sparklines share one history request and auto-scale height while re
   assert.equal(plots[0].querySelectorAll("[data-extremum]").length, 0);
   assert.equal(
     plots[0].querySelector("stop:last-child").getAttribute("stop-color"),
-    "#d400ff",
+    "#c47dd4",
   );
   assert.ok(!plots[1].querySelector("path").getAttribute("d").includes("NaN"));
   const gradient = plots[1].querySelector("linearGradient");
@@ -359,6 +359,51 @@ test("device sparklines share one history request and auto-scale height while re
   card.remove();
 });
 
+test("Electricity main and device graphs share theme colours, including HA theme changes", (t) => {
+  const fixedNow = Date.now();
+  t.mock.method(Date, "now", () => fixedNow);
+  const card = energyFixture(
+    {
+      power_entity: "sensor.total",
+      circuits: [{ power_entity: "sensor.tv" }],
+      appearance: { theme: "ha" },
+    },
+    {
+      "sensor.total": energySensor(80, "W"),
+      "sensor.tv": energySensor(7, "W"),
+    },
+  );
+  const now = Date.now() / 1000;
+  card.history = Object.fromEntries(
+    ["sensor.total", "sensor.tv"].map((id) => [
+      id,
+      [
+        { lu: now - 100, s: "0", a: { unit_of_measurement: "W" } },
+        { lu: now, s: "80" },
+      ],
+    ]),
+  );
+  const colours = () =>
+    [...card.shadowRoot.querySelectorAll("defs > *")].map((g) =>
+      [...g.querySelectorAll("stop")].map((n) => n.getAttribute("stop-color")),
+    );
+  card.hass = { ...card.hass, themes: { darkMode: true } };
+  card.historyError = "";
+  card.update();
+  assert.equal(colours().length, 2);
+  assert.deepEqual(colours()[0], colours()[1]);
+  assert.equal(colours()[0][0], "#a4e4b8");
+  const path = card.shadowRoot.querySelector("path").getAttribute("d");
+  card.hass = { ...card.hass, themes: { darkMode: false } };
+  assert.deepEqual(colours()[0], colours()[1]);
+  assert.equal(colours()[0][0], "#48835b");
+  assert.equal(card.shadowRoot.querySelector("path").getAttribute("d"), path);
+  card.setConfig({ ...card.config, appearance: { theme: "dark" } });
+  assert.equal(card.graphStops[0][1], "#a4e4b8");
+  card.setConfig({ ...card.config, appearance: { theme: "light" } });
+  assert.equal(card.graphStops[0][1], "#48835b");
+  card.remove();
+});
 test("computed Untracked history aligns asynchronous changes and preserves missing-data gaps", async () => {
   const { untrackedHistory } = await import("../src/adapter.js");
   assert.deepEqual(

@@ -35,8 +35,8 @@ export const systemStyles = `
 .ikio-server-monitor .system-network-legend .ae-reading{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;padding:0}
 .ikio-server-monitor .system-network-legend .ae-label{font-size:11px}
 .ikio-server-monitor .system-network-legend .ae-value{font-size:12px}
-.ikio-server-monitor .system-network-key{width:14px;border-top:2px solid var(--ae-accent);flex:none}
-.ikio-server-monitor .system-network-key.upload{border-top:2px dashed var(--ae-temperature)}
+.ikio-server-monitor .system-network-key{width:14px;border-top:2px solid var(--ae-network-download);flex:none}
+.ikio-server-monitor .system-network-key.upload{border-top:2px dashed var(--ae-network-upload)}
 .ikio-server-monitor .system-network-plot{display:block;width:100%;height:32px;overflow:visible}
 .ikio-server-monitor .system-network-times{display:flex;justify-content:space-between;color:var(--ae-muted);font-size:11px}
 .ikio-server-monitor .system-footer>summary{font-size:13px;font-weight:500;color:var(--ae-text)}
@@ -144,8 +144,8 @@ export function networkPlot(rows, history, now, hass) {
         fill: "none",
         stroke:
           row.key === "network_tx"
-            ? "var(--ae-temperature)"
-            : "var(--ae-accent)",
+            ? "var(--ae-network-upload)"
+            : "var(--ae-network-download)",
         "stroke-width": 1,
         "vector-effect": "non-scaling-stroke",
         ...(row.key === "network_tx" ? { "stroke-dasharray": "4 3" } : {}),

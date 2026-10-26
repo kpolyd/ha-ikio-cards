@@ -56,6 +56,7 @@ export class Card extends HistoryCard {
           `ikio-line-sample ${i ? (i % 2 ? "dashed" : "dotted") : ""}`,
         );
         sample.setAttribute("aria-hidden", "true");
+        sample.style.borderTopColor = this.graphStops[0][1];
         entry.append(
           sample,
           reading(
