@@ -302,12 +302,22 @@ export class Card extends ControlCard {
               this.state(id),
               this.state(c[metric + "_used_entity"]),
               this.state(c[metric + "_total_entity"]),
+              this.state(c[metric + "_free_entity"]),
             );
-      if (id || c[metric + "_used_entity"] || c[metric + "_total_entity"]) {
+      if (
+        id ||
+        c[metric + "_used_entity"] ||
+        c[metric + "_total_entity"] ||
+        c[metric + "_free_entity"]
+      ) {
         const label = metric === "disk" ? "Disk" : metric.toUpperCase(),
           capacity =
             metric !== "cpu" && c[metric + "_used_entity"]
-              ? `${valueText(this.hass, c[metric + "_used_entity"])} / ${valueText(this.hass, c[metric + "_total_entity"])}`
+              ? c[metric + "_total_entity"]
+                ? `${valueText(this.hass, c[metric + "_used_entity"])} / ${valueText(this.hass, c[metric + "_total_entity"])}`
+                : c[metric + "_free_entity"]
+                  ? `${valueText(this.hass, c[metric + "_used_entity"])} used · ${valueText(this.hass, c[metric + "_free_entity"])} free`
+                  : `${valueText(this.hass, c[metric + "_used_entity"])} used`
               : "";
         const resource = group();
         resource.classList.add("ikio-resource");

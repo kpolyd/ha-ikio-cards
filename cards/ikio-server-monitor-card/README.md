@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.6.1**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.6.2**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.6.1` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-server-monitor-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.6.2` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-server-monitor-card.js`. Use only one route.
 
 Add card → Ikio Server Monitor. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -18,10 +18,12 @@ Add card → Ikio Server Monitor. Configure all fields through the visual editor
 | cpu_entity | CPU utilization |
 | temperature_entity | CPU temperature |
 | ram_used_entity | RAM used |
-| ram_total_entity | RAM total |
+| ram_free_entity | RAM remaining / available |
+| ram_total_entity | RAM total (optional with remaining) |
 | ram_percent_entity | RAM utilization |
 | disk_used_entity | Disk used |
-| disk_total_entity | Disk total |
+| disk_free_entity | Disk remaining |
+| disk_total_entity | Disk total (optional with remaining) |
 | disk_percent_entity | Disk utilization |
 | database_entity | Database size |
 | network_rx_entity | Network receive rate |
@@ -63,7 +65,7 @@ Existing network receive/transmit entities supply Download/Upload labels and one
 
 Select the uptime sensor directly; ISO timestamps, numeric durations with explicit units, simple duration text and H:MM:SS are detected automatically. Availability recognizes common online/offline values and problem-sensor semantics. The old Availability state and Uptime interpretation fields are no longer shown; legacy values are accepted but ignored. An unrecognized uptime format does not produce an invented duration.
 
-Rings scale with card width to match the approved proportions. Services uses a chevron. Database remains accessible in the collapsed footer, without an extra overview row. RAM/disk capacity captions require the corresponding used/total sensors; a percentage alone cannot provide a capacity. Zero recorded network traffic correctly draws a flat trace.
+Rings scale with card width to match the approved proportions. Services uses a chevron. Database remains accessible in the collapsed footer, without an extra overview row. RAM/disk accept used + remaining sensors without a total sensor: utilization is used / (used + remaining). Units are converted before adding, including MB/GB and MiB/GiB. A configured percentage remains authoritative, followed by used/total when a valid total is available. Used/remaining captions identify both readings explicitly; existing used/total captions remain supported. A percentage alone cannot provide a capacity. Zero recorded network traffic correctly draws a flat trace. The network graph shows the visible combined minimum and maximum on a compact left axis, in readable B/s, kB/s, MB/s or larger units, with subtle dashed guides. Download and upload share the observed scale; constant traffic uses one label and guide. Missing data stays blank.
 
 
 Metric thresholds are automatic too: warning starts at 70 and error at 85 (inclusive, above direction). These apply to utilization percentages and the selected temperature reading in its displayed unit. The threshold list is removed from the editor; existing threshold entries are accepted but ignored. Unknown measurements have no severity arc.

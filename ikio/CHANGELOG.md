@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## Unreleased
+
+- Server Monitor accepts used + remaining memory/disk sensors, with automatic utilization and visual editor support. Existing percentage and total sensors remain supported.
+- Add network graph minimum/maximum labels, readable rate units and subtle dashed guides based on the visible download/upload history.
+
 ## 0.6.2 — Theme-matched chart palette
 
 - Apply the approved softer mint-to-orchid palette to Electricity history, device/Untracked sparklines and the Graph card. Use deeper hues in light mode and follow live Home Assistant theme changes.

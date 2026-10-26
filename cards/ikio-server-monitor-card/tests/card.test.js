@@ -33,6 +33,8 @@ test("every schema field and repeating list has a visual editor and preserves HA
   const editor = await Card.getConfigElement();
   const config = {
     ...Card.getStubConfig(),
+    ram_free_entity: "sensor.memory_available",
+    disk_free_entity: "sensor.disk_free",
     grid_options: { columns: 6 },
     visibility: [{ condition: "user", users: ["owner"] }],
   };
@@ -50,6 +52,8 @@ test("every schema field and repeating list has a visual editor and preserves HA
     }),
   );
   assert.equal(saved.name, "Changed");
+  assert.equal(saved.ram_free_entity, config.ram_free_entity);
+  assert.equal(saved.disk_free_entity, config.disk_free_entity);
   assert.deepEqual(saved.grid_options, config.grid_options);
   assert.deepEqual(saved.visibility, config.visibility);
   assert.equal(config.name, undefined);
@@ -68,6 +72,69 @@ test("storage percentages convert compatible units and reject zero totals", asyn
   assert.equal(utilization(null, s(1, "GB"), s(0, "GB")), null);
   assert.equal(utilization(s(42, "%")), 42);
   assert.equal(threshold(90, { warning: 70, critical: 85 }), "critical");
+});
+test("used plus remaining derives storage utilization with compatible units and honest missing data", async () => {
+  const { utilization } = await import("../src/adapter.js");
+  const s = (state, unit) => ({
+    state: String(state),
+    attributes: { unit_of_measurement: unit },
+  });
+  assert.equal(utilization(null, s(1024, "MiB"), null, s(1, "GiB")), 50);
+  assert.equal(utilization(null, s(500, "MB"), null, s(0.5, "GB")), 50);
+  assert.equal(utilization(null, s(0, "GB"), null, s(1, "GB")), 0);
+  assert.equal(utilization(null, s(1, "GB"), null, s(0, "GB")), 100);
+  assert.equal(utilization(null, s(0, "GB"), null, s(0, "GB")), null);
+  assert.equal(utilization(null, s(1, "GB"), null, s(-1, "GB")), null);
+  assert.equal(utilization(null, s(-1, "GB"), null, s(2, "GB")), null);
+  assert.equal(
+    utilization(null, s(1, "GB"), null, s("unavailable", "GB")),
+    null,
+  );
+  assert.equal(utilization(null, s(1, "GB"), null, s(1, "W")), null);
+  assert.equal(utilization(s(25, "%"), s(1, "GB"), null, s(1, "GB")), 25);
+  assert.equal(utilization(null, s(1, "GB"), s(4, "GB"), s(1, "GB")), 25);
+});
+test("used/remaining sensors populate RAM and disk rings and react to live remaining changes", () => {
+  const s = (state, unit) => ({
+    state: String(state),
+    attributes: { unit_of_measurement: unit },
+  });
+  const card = systemFixture(
+    {
+      ram_percent_entity: undefined,
+      disk_percent_entity: undefined,
+      ram_used_entity: "sensor.memory_used",
+      ram_free_entity: "sensor.memory_free",
+      disk_used_entity: "sensor.storage_used",
+      disk_free_entity: "sensor.storage_free",
+    },
+    {
+      "sensor.memory_used": s(8, "GiB"),
+      "sensor.memory_free": s(8, "GiB"),
+      "sensor.storage_used": s(750, "GB"),
+      "sensor.storage_free": s(250, "GB"),
+    },
+  );
+  const resources = () => card.shadowRoot.querySelectorAll(".ikio-resource");
+  assert.match(resources()[1].textContent, /50%RAM8 GiB used · 8 GiB free/);
+  assert.match(resources()[2].textContent, /75%Disk750 GB used · 250 GB free/);
+  assert.ok(resources()[2].querySelector(".warning"));
+  assert.ok(card.entityIds.includes("sensor.memory_free"));
+  card.hass = {
+    ...card.hass,
+    states: { ...card.hass.states, "sensor.memory_free": s(0, "GiB") },
+  };
+  assert.match(resources()[1].textContent, /100%/);
+  assert.ok(resources()[1].querySelector(".critical"));
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "sensor.memory_free": s("unavailable", "GiB"),
+    },
+  };
+  assert.ok(resources()[1].querySelector(".unknown"));
+  card.remove();
 });
 
 test("service restart keeps confirmation inside the card and services stay disclosed", async () => {
@@ -554,7 +621,83 @@ test("network downsampling preserves gap boundaries and trailing unknowns", asyn
     {},
   );
   const d = svg.querySelector("path").getAttribute("d");
-  assert.match(d, /L100,16 M102.5,2 L150,2 $/);
+  assert.match(d, /L100,30 M102.5,2 L150,2 $/);
   assert.equal((d.match(/M/g) || []).length, 2);
   assert.doesNotMatch(d, /L300,/);
+});
+test("network axis uses visible combined min/max in normalized rate units and preserves gaps", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const chart = networkPlot(
+    [
+      { entity: "sensor.rx", key: "network_rx", unit: "Mbit/s" },
+      { entity: "sensor.tx", key: "network_tx", unit: "MB/s" },
+    ],
+    {
+      "sensor.rx": [
+        { lu: 0, s: "8" },
+        { lu: 900, s: "16" },
+        { lu: 1200, s: "unknown" },
+        { lu: 1500, s: "8" },
+      ],
+      "sensor.tx": [
+        { lu: 0, s: "1.5" },
+        { lu: 1800, s: "1.75" },
+        { lu: 1900, s: "1000" },
+      ],
+    },
+    1800000,
+    {},
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="min"]').textContent,
+    "1 MB/s",
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="max"]').textContent,
+    "2 MB/s",
+  );
+  assert.equal(chart.querySelectorAll("[data-guide]").length, 2);
+  assert.equal(chart.querySelectorAll("path").length, 2);
+  assert.ok(
+    chart.querySelector("path").getAttribute("d").split("M").length > 2,
+  );
+  assert.equal(
+    chart.querySelectorAll("path")[1].getAttribute("stroke-dasharray"),
+    "4 3",
+  );
+  assert.equal(
+    chart.querySelector('[data-guide="min"]').getAttribute("y1"),
+    "30",
+  );
+  assert.equal(
+    chart.querySelector('[data-guide="max"]').getAttribute("y1"),
+    "2",
+  );
+});
+test("constant network history has one extremum and zero traffic remains a visible flat line", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const rows = [{ entity: "sensor.rx", key: "network_rx", unit: "B/s" }];
+  for (const value of [0, 0.5, 1000]) {
+    const chart = networkPlot(
+      rows,
+      { "sensor.rx": [{ lu: 0, s: String(value) }] },
+      1800000,
+      {},
+    );
+    assert.equal(chart.querySelectorAll("[data-extremum]").length, 1);
+    assert.equal(chart.querySelectorAll("[data-guide]").length, 1);
+    assert.doesNotMatch(
+      chart.querySelector("path").getAttribute("d"),
+      /NaN|Infinity/,
+    );
+  }
+  assert.equal(
+    networkPlot(
+      rows,
+      { "sensor.rx": [{ lu: 0, s: "unavailable" }] },
+      1800000,
+      {},
+    ),
+    null,
+  );
 });
