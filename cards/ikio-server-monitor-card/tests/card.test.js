@@ -747,3 +747,26 @@ test("constant network history has one extremum and zero traffic remains a visib
     null,
   );
 });
+test("network extrema show at most one decimal while keeping precise plot values", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const chart = networkPlot(
+    [{ entity: "sensor.rx", key: "network_rx", unit: "MB/s" }],
+    {
+      "sensor.rx": [
+        { lu: 0, s: "1.24" },
+        { lu: 1800, s: "2.36" },
+      ],
+    },
+    1800000,
+    { locale: { language: "en" } },
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="min"]').textContent,
+    "1.2 MB/s",
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="max"]').textContent,
+    "2.4 MB/s",
+  );
+  assert.equal(chart.querySelector("path").getAttribute("d"), "M0,30 L300,2 ");
+});

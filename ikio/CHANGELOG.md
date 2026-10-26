@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Restore Server Monitor RAM/disk used / total captions, deriving total from used + remaining when needed. Round displayed readings and network extrema to whole numbers while preserving calculation precision.
+- Restore Server Monitor RAM/disk used / total captions, deriving total from used + remaining when needed. Round displayed readings to whole numbers and show at most one decimal on network min/max labels while preserving calculation precision.
 
 ## 0.6.3 — Server storage and network extrema
 
