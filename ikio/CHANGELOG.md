@@ -1,5 +1,9 @@
 # Ikio changelog
 
+## 0.6.1 — Automated card previews
+
+- Generate actual compiled-card galleries, screenshots and PR comparisons in CI. Gate releases on immutable versioned preview publication and link exact-version screenshots from the README.
+
 ## 0.6.0 — Card names and YAML migration
 
 - Breaking: rename Light to Lights, Energy to Electricity, Drive to Vehicle, Security to Alarmo, System to Server Monitor, Comfort to Climate, Cleaning to Vacuum and Appliance to Appliances. Rename their custom element/editor IDs, workspace packages, source directories and individual bundle filenames. Media, Camera and Graph retain their identifiers.
