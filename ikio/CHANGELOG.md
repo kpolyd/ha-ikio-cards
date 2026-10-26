@@ -1,6 +1,6 @@
 # Ikio changelog
 
-## 0.5.14
+## 0.5.14 — System network history gaps
 
 - Fix System network history losing valid intervals before unknown/unavailable readings. Preserve zero and nonzero intervals up to the exact gap boundary, including after downsampling, without filling missing data.
 
