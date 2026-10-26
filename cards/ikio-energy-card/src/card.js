@@ -60,6 +60,7 @@ export class Card extends HistoryCard {
       .ae-device-reading>.ae-label{grid-column:1/-1}
       .ae-device-sparkline{height:18px;min-width:0;overflow:hidden;pointer-events:none}
       .ae-device-sparkline .ae-graph{height:18px;width:100%}
+      .ae-energy>.ae-grid:not(:empty){border-top:1px solid var(--ae-border);margin-top:4px;padding-top:4px}
       @container(max-width:350px){.ae-energy-summary{gap:7px}.ae-energy-tariffs,.ae-energy-bills{padding-inline-start:6px}.ae-energy-summary .ae-hero .ae-value{font-size:28px}}
     `,
       ),

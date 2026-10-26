@@ -1,5 +1,9 @@
 # Ikio changelog
 
+## 0.5.13 — Energy section separator
+
+- Separate the main power history from individual device readings with the same thin divider, colour and compact spacing used above the distribution rings. Show it only when device readings exist; add no extra heading or empty row.
+
 ## 0.5.12 — Live Energy distribution rings
 
 - Add optional cron-based billing cycles using Home Assistant's timezone, only for inclusive displayed period labels, with automatic reset-boundary rollover. Energy, bill and forecast values and validity rules remain sensor-driven. Existing timestamp bindings remain compatible.
