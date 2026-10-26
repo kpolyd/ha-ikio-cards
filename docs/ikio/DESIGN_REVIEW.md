@@ -42,7 +42,7 @@ The order below prioritizes hierarchy and interaction improvements. Preserve eve
 
 ### 1. Comfort — clear room reading and active device control
 
-Source: [Comfort card](../../cards/ikio-comfort-card/src/card.js), especially `render()`, `target()` and the final settings collection.
+Source: [Comfort card](../../cards/ikio-climate-card/src/card.js), especially `render()`, `target()` and the final settings collection.
 
 **Current:** room temperature is a hero reading; humidity and fridge join the same readings row. Device selection is a row of buttons. HVAC targets, modes and settings then appear as ranges/selects before select/button children are collected into another row. Feature guards and dual setpoint limits already exist.
 
@@ -66,7 +66,7 @@ Do not invent artwork, seeking, volume or transport support. Retain the capabili
 
 ### 3. Cleaning — state and one obvious action
 
-Source: [Cleaning card](../../cards/ikio-cleaning-card/src/card.js), and its existing state-to-primary-action adapter.
+Source: [Cleaning card](../../cards/ikio-vacuum-card/src/card.js), and its existing state-to-primary-action adapter.
 
 **Current:** header combines state/battery; primary action, dock and suction share a row; maintenance/missions already use a native details disclosure. Error/status lines are separate.
 
@@ -78,7 +78,7 @@ Do not add a map, cleaning progress, duration or room coverage without a real co
 
 ### 4. Appliance — distinguish timed runs from manual operation
 
-Source: [Appliance card](../../cards/ikio-appliance-card/src/card.js).
+Source: [Appliance card](../../cards/ikio-appliances-card/src/card.js).
 
 **Current:** power/energy readings are grouped; each configured timed run contributes a start action and optional timer reading; manual on/off and stop share an action row. Configured manual-on confirmation uses a popup. A general backend-schedule note is always shown when timed runs exist.
 
@@ -90,7 +90,7 @@ Do not silently replace one-tap timed scripts with a mandatory select-then-start
 
 ### 5. System — resource summary before service management
 
-Source: [System card](../../cards/ikio-system-card/src/card.js).
+Source: [System card](../../cards/ikio-server-monitor-card/src/card.js).
 
 **Current:** temperature/uptime are grouped, then CPU/RAM/disk each append a reading and progress bar. Capacity and percentage can share a long string. Database/network readings, threshold notes and service groups follow. Restart confirmation uses the shared popup.
 

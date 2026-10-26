@@ -15,8 +15,8 @@ async function fixture() {
     "ikio/CHANGELOG.md": "# Changes",
     "ikio/themes/ikio.yaml": "Ikio Dark: {}",
     "docs/ikio/INSTALLATION.md": "# Install",
-    "cards/ikio-light-card/README.md": "# Lights",
-    "cards/ikio-light-card/src/index.js": "// source",
+    "cards/ikio-lights-card/README.md": "# Lights",
+    "cards/ikio-lights-card/src/index.js": "// source",
     "scripts/ikio-version.mjs": "// version",
   };
   for (const [name, value] of Object.entries(files)) {
@@ -25,22 +25,22 @@ async function fixture() {
   }
   execFileSync("git", ["init", "--quiet"], { cwd: root });
   execFileSync("git", ["add", "."], { cwd: root });
-  await mkdir(join(root, "cards/ikio-light-card/dist/chunks"), {
+  await mkdir(join(root, "cards/ikio-lights-card/dist/chunks"), {
     recursive: true,
   });
-  await mkdir(join(root, "cards/ikio-light-card/dist/licenses"), {
+  await mkdir(join(root, "cards/ikio-lights-card/dist/licenses"), {
     recursive: true,
   });
   await writeFile(
-    join(root, "cards/ikio-light-card/dist/ikio-light-card.js"),
+    join(root, "cards/ikio-lights-card/dist/ikio-lights-card.js"),
     "import './chunks/editor.js';",
   );
   await writeFile(
-    join(root, "cards/ikio-light-card/dist/chunks/editor.js"),
+    join(root, "cards/ikio-lights-card/dist/chunks/editor.js"),
     "// editor",
   );
   await writeFile(
-    join(root, "cards/ikio-light-card/dist/licenses/NOTICE.txt"),
+    join(root, "cards/ikio-lights-card/dist/licenses/NOTICE.txt"),
     "Notice",
   );
   await mkdir(join(root, "dist/licenses"), { recursive: true });
@@ -59,7 +59,7 @@ test("distribution preserves lazy chunks/notices and includes only tracked repro
     const { output, zip } = await packageCollection(root);
     assert.match(
       await readFile(join(output, "ikio.js"), "utf8"),
-      /ikio-light-card\.js\?v=0\.3\.0/,
+      /ikio-lights-card\.js\?v=0\.3\.0/,
     );
     const entries = JSON.parse(
       execFileSync(
@@ -76,12 +76,12 @@ test("distribution preserves lazy chunks/notices and includes only tracked repro
       "ikio.js",
       "ha-ikio-cards.js",
       "licenses/NOTICE.txt",
-      "ikio-light-card/chunks/editor.js",
-      "ikio-light-card/licenses/NOTICE.txt",
+      "ikio-lights-card/chunks/editor.js",
+      "ikio-lights-card/licenses/NOTICE.txt",
       "themes/ikio.yaml",
       "design/INSTALLATION.md",
       "source/package-lock.json",
-      "source/cards/ikio-light-card/src/index.js",
+      "source/cards/ikio-lights-card/src/index.js",
       "source/scripts/ikio-version.mjs",
     ])
       assert.ok(entries.includes(`ikio-v0.3.0/${name}`), name);
@@ -101,7 +101,7 @@ test("distribution preserves lazy chunks/notices and includes only tracked repro
 test("missing built card entry fails packaging instead of silently shipping an unusable loader", async () => {
   const root = await fixture();
   try {
-    await rm(join(root, "cards/ikio-light-card/dist/ikio-light-card.js"));
+    await rm(join(root, "cards/ikio-lights-card/dist/ikio-lights-card.js"));
     await assert.rejects(packageCollection(root), /ENOENT/);
   } finally {
     await rm(root, { recursive: true, force: true });

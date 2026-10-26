@@ -101,16 +101,16 @@
     }
     customElements.define("ha-icon", FixtureIcon);
     const types = [
-      "light",
-      "comfort",
-      "appliance",
+      "lights",
+      "climate",
+      "appliances",
       "media",
-      "cleaning",
-      "security",
+      "vacuum",
+      "alarmo",
       "camera",
-      "energy",
-      "system",
-      "drive",
+      "electricity",
+      "server-monitor",
+      "vehicle",
       "graph",
     ];
     for (const type of types)
@@ -225,7 +225,7 @@
       sensor(id, value, unit);
     state("binary_sensor.host", "on");
     const configs = {
-      light: {
+      "lights": {
         name: "Living room lights",
         lights: [
           { entity: "light.strip", name: "Ceiling strip" },
@@ -233,14 +233,14 @@
           { entity: "switch.entrance", name: "Entrance" },
         ],
       },
-      comfort: {
+      "climate": {
         name: "Living room comfort",
         temperature_entity: "sensor.temperature",
         humidity_entity: "sensor.humidity",
         climate_entity: "climate.room",
         humidifier_entity: "humidifier.room",
       },
-      appliance: {
+      "appliances": {
         name: "Water heater",
         entity: "switch.heater",
         power_entity: "sensor.heater",
@@ -249,8 +249,8 @@
         ],
       },
       media: { name: "Chromecast", entity: "media_player.tv" },
-      cleaning: { name: "Roborock Q8 Max", entity: "vacuum.robot" },
-      security: {
+      "vacuum": { name: "Roborock Q8 Max", entity: "vacuum.robot" },
+      "alarmo": {
         name: "Home security",
         entity: "alarm_control_panel.home",
         persons: [{ entity: "person.owner", name: "Resident" }],
@@ -263,7 +263,7 @@
         snapshot_automation: "automation.snapshots",
         snapshot_script: "script.snapshot",
       },
-      energy: {
+      "electricity": {
         name: "Home energy",
         power_entity: "sensor.total",
         day_entity: "sensor.day",
@@ -283,7 +283,7 @@
         non_overlapping: true,
         hours: 6,
       },
-      system: {
+      "server-monitor": {
         name: "Home Assistant server",
         availability_entity: "binary_sensor.host",
         cpu_entity: "sensor.cpu",
@@ -293,7 +293,7 @@
         uptime_entity: "sensor.uptime",
         database_entity: "sensor.database",
       },
-      drive: {
+      "vehicle": {
         name: "Car",
         range_entity: "sensor.range",
         fuel_entity: "sensor.fuel",

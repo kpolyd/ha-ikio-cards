@@ -1,23 +1,23 @@
 import icons from "./mdi-preview-icons.json";
 const types = [
-  "comfort",
+  "climate",
   "media",
-  "cleaning",
-  "appliance",
-  "system",
+  "vacuum",
+  "appliances",
+  "server-monitor",
   "camera",
   "graph",
 ];
 const descriptions = {
-  comfort:
+  "climate":
     "Room readings first, smaller fridge temperature, and advanced device settings tucked away.",
   media:
     "Compact track information, paired audio controls, and a quiet extras footer.",
-  cleaning:
+  "vacuum":
     "One obvious cleaning action, quieter battery status, and collapsible maintenance/missions.",
-  appliance:
+  "appliances":
     "Direct timed-run choices, distinct manual control, and inline confirmation.",
-  system:
+  "server-monitor":
     "One resource strip, paired supporting readings, and services tucked away.",
   camera:
     "Explicit on-demand live view, a quiet control strip, and expandable automation settings.",
@@ -148,7 +148,7 @@ for (const [id, value, unit] of [
 ])
   sensor(id, value, unit);
 const configs = {
-  comfort: {
+  "climate": {
     name: "Room comfort",
     temperature_entity: "sensor.temperature",
     humidity_entity: "sensor.humidity",
@@ -163,13 +163,13 @@ const configs = {
     power_entity: "sensor.media_power",
     backlight_entity: "light.glow",
   },
-  cleaning: {
+  "vacuum": {
     name: "Robot vacuum",
     entity: "vacuum.robot",
     maintenance: [{ entity: "sensor.brush", name: "Main brush remaining" }],
     missions: [{ entity: "script.clean_kitchen", label: "Clean kitchen" }],
   },
-  appliance: {
+  "appliances": {
     name: "Water heater",
     entity: "switch.appliance",
     power_entity: "sensor.appliance_power",
@@ -185,7 +185,7 @@ const configs = {
     ],
     stop_script: "script.stop_run",
   },
-  system: {
+  "server-monitor": {
     name: "Home server",
     availability_entity: "binary_sensor.host",
     cpu_entity: "sensor.cpu",
@@ -345,7 +345,7 @@ for (const type of types) {
   section.dataset.card = type;
   const h = document.createElement("h2");
   h.textContent =
-    type === "appliance" ? "Appliance" : type[0].toUpperCase() + type.slice(1);
+    type === "appliances" ? "Appliances" : type[0].toUpperCase() + type.slice(1);
   const card = document.createElement("ikio-" + type + "-card");
   const caption = document.createElement("p");
   caption.textContent = descriptions[type];

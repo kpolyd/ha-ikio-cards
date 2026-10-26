@@ -27,7 +27,7 @@
     h2 {
       font-size: 14px;
     }
-    ikio-light-card {
+    ikio-lights-card {
       width: 100%;
       max-width: 100%;
     }
@@ -53,7 +53,7 @@
   <main></main>
   <pre id="log" role="status"></pre>
   <script type="module">
-    import "../../cards/ikio-light-card/dist/ikio-light-card.js";
+    import "../../cards/ikio-lights-card/dist/ikio-lights-card.js";
     const states = {
       "light.strip": {
         entity_id: "light.strip",
@@ -147,7 +147,7 @@
       section.style.width = `${width}px`;
       const title = document.createElement("h2");
       title.textContent = `${width}px container`;
-      const card = document.createElement("ikio-light-card");
+      const card = document.createElement("ikio-lights-card");
       section.append(title, card);
       document.querySelector("main").append(section);
       cards.push(card);
