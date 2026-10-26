@@ -24,7 +24,7 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 For UI work, see the [Ikio design approach](docs/ikio/DESIGN_APPROACH.md) and [current design review](docs/ikio/DESIGN_REVIEW.md). Light, Energy, Drive and Security are the approved reference designs; the review proposes refinements for the other seven cards.
 
-Current collection version: **0.5.12**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
+Current collection version: **0.5.13**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
 ### HACS (recommended)
 
@@ -41,7 +41,7 @@ This is a HACS **custom repository**, not a default-catalog listing. The optiona
 
 ### Manual installation
 
-Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.5.12` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
+Download `ha-ikio-cards.js` from the tagged repository using the raw link in the latest GitHub release, copy it to `/config/www/ikio/`, and add `/local/ikio/ha-ikio-cards.js?v=0.5.13` as a JavaScript module. Alternatively the reproducible ZIP includes individual card builds and the original loader. Use only one resource installation route.
 
 See the [installation guide](docs/ikio/INSTALLATION.md), [Aethora migration guide](docs/ikio/MIGRATION.md), [design specification](docs/ikio/SPECIFICATION.md) and [validation status](docs/ikio/STATUS.md).
 
