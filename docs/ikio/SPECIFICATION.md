@@ -583,3 +583,13 @@ When no legacy availability binding exists, use a valid uptime value for the gre
 ## 47. Ikio brand logo
 
 Use the approved original option B: four asymmetric rounded dashboard tiles forming a house, referring to Greek οικία and the card collection. Preserve the original artwork in assets/branding/ikio-logo.png and display it in the root README for GitHub and HACS repository details. HACS dashboard listings use a generic category icon; do not add unsupported logo manifest keys or change the repository category.
+
+## 48. Optional Energy distribution rings (0.5.12)
+
+Implement the owner's approved compact double-ring diagram with direct device labels and fine external leader lines, appended below the existing Energy card device grid. Keep the existing card's summary, history, grid and interactions unchanged. The visual-editor switch `show_power_distribution` defaults off. Reuse existing total/device/untracked sensors and confirm non-overlapping circuits; no Energy dashboard configuration or extra history request is required.
+
+Inner ring: Home Assistant areas, resolving entity area before device area, with Unassigned as fallback. Outer ring: individual devices, with a different shade of the area's base colour. Angles show each measured consumer's unrounded share of total current watts. The centre initially shows total power; tapping a device, its label or an area shows that segment's watts. Tapping it again or the centre returns to total. Support keyboard selection, native entity details on hold for bound segments/centre, and selection persistence across live updates. Reset stale selection when a segment disappears or configuration changes; never operate real devices for tests.
+
+Keep the normal diagram to 184 px plus its compact separator; omit a duplicated heading, legend, area captions and external watt/percentage labels. Wrap long labels rather than shrinking or clipping them. Expand height only when needed to avoid label collisions. `distribution_max_devices` (visual editor, integer 1–20, default 8) retains the largest devices and groups smaller ones into an Other segment within their own area, conserving each area total. Untracked is a distinct grey remainder. Validate missing/unit/negative/duplicate/overlapping and non-reconciling readings; do not mask bad sensors as zero. Genuine zero has a neutral empty ring and a zero centre. Native floor/source flows and historical energy are not part of this approved two-level consumption view.
+
+The owner subsequently authorized committing, merging and publishing this change as ikio-v0.5.12. Synchronize all package versions and preserve asset-free HACS delivery. Automated DOM/behaviour checks do not constitute browser geometry or native Home Assistant/device verification.

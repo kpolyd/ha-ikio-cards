@@ -40,6 +40,13 @@ export const fields = [
   entity("untracked_entity", "Existing untracked-power sensor", "sensor"),
   bool("show_untracked", "Show calculated untracked power"),
   bool("non_overlapping", "Selected circuits do not overlap"),
+  bool("show_power_distribution", "Show labelled power distribution rings"),
+  number(
+    "distribution_max_devices",
+    "Distribution device limit (smaller devices become Other)",
+    1,
+    20,
+  ),
   number("hours", "Power history hours", 1, 168),
   number("expected_min", "Expected minimum power", -1e9, 1e9, 0.01),
   number("expected_max", "Expected maximum power", -1e9, 1e9, 0.01),
@@ -58,6 +65,11 @@ export const lists = [
 ];
 export function validate(c) {
   validateConfig(c, fields, lists);
+  if (
+    c.distribution_max_devices !== undefined &&
+    !Number.isInteger(c.distribution_max_devices)
+  )
+    throw Error("Distribution device limit must be a whole number");
   if ((c.expected_min ?? 0) >= (c.expected_max ?? 3500))
     throw Error("Expected minimum must be less than maximum");
 }

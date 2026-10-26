@@ -2,11 +2,11 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.5.11**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version **0.5.12**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.11` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-energy-card.js`. Use only one route.
+From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.5.12` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-energy-card.js`. Use only one route.
 
 Add card → Ikio Energy. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
 
@@ -29,6 +29,8 @@ Add card → Ikio Energy. Configure all fields through the visual editor. No YAM
 | untracked_entity | Existing untracked-power sensor |
 | show_untracked | Show calculated untracked power |
 | non_overlapping | Selected circuits do not overlap |
+| show_power_distribution | Show the optional labelled double-ring power diagram (default off) |
+| distribution_max_devices | Number of individual devices to label before grouping smaller consumers into Other (1–20, default 8) |
 | hours | Power history hours |
 | expected_min | Expected minimum power |
 | expected_max | Expected maximum power |
@@ -60,3 +62,13 @@ Device power readings include compact sparklines beside their watt values withou
 In 0.5.4 the estimated bill and forecast labels/values align to the right edge of their column. Day/Night/Total each display exactly one decimal and a smaller kWh suffix. Compatible source units are converted before display; totals use unrounded inputs. Missing/incompatible data and billing-cycle safeguards remain.
 
 Device sparklines hold each recorded value until its next update, then step to the new reading. This avoids a false diagonal ramp when a sensor stays unchanged for a long time. Missing data still breaks the line; no initial zero is invented.
+
+## Optional live power distribution
+
+Enable **Show labelled power distribution rings** in the visual editor to append the diagram below the existing device grid. All existing summary, history and grid content stays unchanged. It uses the configured Device power list and current total, with no additional history request or Energy dashboard setup. Confirm **Selected circuits do not overlap**; do not select a breaker together with its downstream devices.
+
+The inner ring groups consumption by Home Assistant area (entity area takes priority over device area; missing assignments use Unassigned). The outer ring shows individual devices in shades of their area's colour. Segment angles use unrounded watts relative to the total. Untracked is the grey remainder, independently of whether the existing grid's calculated Untracked row is enabled. A configured untracked sensor must reconcile within 1 W; the graph conserves the exact total using the remainder.
+
+Only device names and fine leader lines appear around the rings. Tap a device, its label or an area to replace the centre total with its current whole watts. Tap the same segment again or the centre to restore the total. Arrow keys explore areas/devices; Escape or Home restores total. Hold a bound device segment/label or the centre for native entity details. Area and calculated aggregate segments do not invent entities or operate devices. Selection survives live updates and resets when its segment disappears or configuration changes.
+
+The diagram is normally 184 px tall plus a compact divider; it has no repeated heading or separate legend. Long names wrap at readable size, and only crowded labels expand the diagram enough to remain legible. The device limit retains the largest consumers and combines the rest into **Other (area)** within each original area, preserving all watts and area totals. Other contains measured devices; Untracked is a separate remainder. Zero-watt devices have no segment. Missing, incompatible, negative or non-reconciling data produces a short explanation instead of misleading shares; genuine zero total remains zero.

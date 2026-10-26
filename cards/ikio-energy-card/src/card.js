@@ -15,6 +15,11 @@ import {
 } from "@ikio/card-ui";
 import { validate } from "./config.js";
 import {
+  distributionModel,
+  distributionView,
+  distributionStyles,
+} from "./distribution.js";
+import {
   untracked,
   untrackedHistory,
   cycleTotal,
@@ -31,6 +36,7 @@ export class Card extends HistoryCard {
       el(
         "style",
         `
+      ${distributionStyles}
       .ae-energy{gap:4px}.ae-energy-header{display:flex;align-items:center;gap:8px;justify-content:space-between}
       .ae-energy-header h2{min-width:0;margin:0;font-size:14px;font-weight:600;overflow-wrap:anywhere}.ae-energy-header .ae-note{text-align:right;max-width:55%}
       .ae-energy-summary{display:grid;gap:10px;align-items:start;min-width:0}
@@ -66,12 +72,46 @@ export class Card extends HistoryCard {
       expected_max: 3500,
       circuits: [],
       show_untracked: false,
+      show_power_distribution: false,
       same_cycle: false,
     };
   }
   static async getConfigElement() {
     await import("./editor.js");
     return document.createElement("ikio-energy-card-editor");
+  }
+  onConfig() {
+    this.distributionSelection = null;
+    super.onConfig();
+  }
+  afterRender() {
+    super.afterRender();
+    const section = this.content.querySelector(".ae-power-distribution");
+    if (
+      section === this.distributionSection &&
+      (this.distributionObserver || !section || !this.isConnected)
+    )
+      return;
+    this.distributionObserver?.disconnect();
+    this.distributionObserver = null;
+    this.distributionSection = section;
+    if (section && this.isConnected && globalThis.ResizeObserver) {
+      this.distributionObserver = new ResizeObserver(([entry]) => {
+        if (!this.isConnected || section !== this.distributionSection) return;
+        const width = Math.round(entry.contentRect.width);
+        if (width > 0 && width !== this.distributionWidth) {
+          this.distributionWidth = width;
+          this.update();
+        }
+      });
+      this.distributionObserver.observe(section);
+    }
+  }
+  onDisconnect() {
+    super.onDisconnect();
+    this.distributionObserver?.disconnect();
+    this.distributionObserver = null;
+    this.distributionSection = null;
   }
   historyEntities() {
     const c = this.config;
@@ -292,6 +332,24 @@ export class Card extends HistoryCard {
       if (calc.reason) result.append(note(calc.reason, "ae-warn"));
     }
     result.append(grid);
+    if (c.show_power_distribution) {
+      const model = distributionModel(c, this.hass);
+      if (!model.items?.some((item) => item.id === this.distributionSelection))
+        this.distributionSelection = null;
+      result.append(
+        distributionView(model, {
+          hass: this.hass,
+          width: this.distributionWidth || 300,
+          selection: this.distributionSelection,
+          totalEntity: c.power_entity,
+          onSelect: (id) => {
+            this.distributionSelection =
+              this.distributionSelection === id ? null : id;
+            this.update();
+          },
+        }),
+      );
+    }
     return result;
   }
 }
