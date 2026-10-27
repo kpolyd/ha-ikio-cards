@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## 0.11.0 — Dehumidifier card
+
+- Add Ikio Dehumidifier with the approved compact target-humidity semicircle, native device modes, off/on controls, independent current humidity and whole-watt power readings, optional tank-full warning and collapsed fan-speed settings.
+- Configure every field through the visual editor; follow Home Assistant language with bundled English and Greek strings. Keep integration mode labels and service values unchanged.
+- Use the standard chevron for Climate device-settings expansion, preserving its existing controls and layout.
+- Include the thirteenth card in the HACS bundle, manual package and versioned interactive previews.
+
 ## 0.10.1 — Standard release tags and HACS verification
 
 - Publish releases as `vX.Y.Z` so GitHub can recognize the standard version format. Preserve existing `ikio-v` releases and tags.

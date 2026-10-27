@@ -4,7 +4,7 @@ This guide applies to the whole repository. Read the applicable `cards/<card>/AG
 
 ## Structure
 
-- Twelve cards live in separate `cards/ikio-*-card` npm workspaces.
+- Thirteen cards live in separate `cards/ikio-*-card` npm workspaces.
 - `packages/ikio-card-ui` and `packages/ikio-graph` provide shared code. Keep domain-specific capabilities in card adapters.
 - The root lockfile is shared. Never introduce workspace lockfiles or runtime CDN imports.
 - Edit source, then rebuild; generated `dist/` and `release/` output is ignored. The root `ha-ikio-cards.js` and `licenses/` are intentionally tracked for HACS raw-file delivery. Update them with `npm run prepare:hacs` and verify with `npm run check:hacs`; do not edit the minified bundle by hand.

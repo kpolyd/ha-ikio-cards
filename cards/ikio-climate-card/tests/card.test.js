@@ -233,6 +233,10 @@ test("settings disclosure survives HA updates and legacy configuration migrates 
   assert.deepEqual(card.config.grid_options, { columns: 6 });
   let details = card.content.querySelector("details");
   assert.equal(details.open, false);
+  assert.equal(
+    details.querySelector(".settings-chevron").getAttribute("icon"),
+    "mdi:chevron-down",
+  );
   details.open = true;
   details.dispatchEvent(new dom.window.Event("toggle"));
   card.hass = {

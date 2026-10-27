@@ -447,15 +447,18 @@ export class Card extends ControlCard {
           ),
         );
     settings.push(this.position("horizontal"), this.position("vertical"));
-    if (settings.some(Boolean))
-      result.append(
-        disclosure(
-          this,
-          "climate-settings",
-          t(this.hass, "Device settings"),
-          ...settings,
-        ),
+    if (settings.some(Boolean)) {
+      const settingsView = disclosure(
+        this,
+        "climate-settings",
+        t(this.hass, "Device settings"),
+        ...settings,
       );
+      const chevron = glyph("mdi:chevron-down");
+      chevron.classList.add("settings-chevron");
+      settingsView.querySelector("summary").append(chevron);
+      result.append(settingsView);
+    }
     if (this.pending.size || this.requests.size)
       result.append(note(t(this.hass, "Updating device…")));
     return result;

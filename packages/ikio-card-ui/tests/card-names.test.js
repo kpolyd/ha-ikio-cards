@@ -19,6 +19,7 @@ test("all renamed cards and editors register with current names and no legacy al
     alarmo: "Alarmo",
     "server-monitor": "Server Monitor",
     climate: "Climate",
+    dehumidifier: "Dehumidifier",
     media: "Media",
     camera: "Camera",
     vacuum: "Vacuum",
@@ -44,7 +45,7 @@ test("all renamed cards and editors register with current names and no legacy al
     assert.ok(card.shadowRoot.textContent.length, id);
     card.remove();
   }
-  assert.equal(window.customCards.length, 12);
+  assert.equal(window.customCards.length, 13);
   for (const old of [
     "light",
     "energy",
