@@ -65,9 +65,9 @@ Run a focused workspace command with, for example, `npm test --workspace @ikio/e
 
 Serve the repository root after building and open `dev/previews/collection.html` for the simulated interactive gallery. It never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
 
-The collection version is defined only in `ikio/package.json`. Private card and shared-library workspaces have no independent versions; internal dependencies use local `file:` workspace links. After changing the collection version, update the changelog, run `npm run preview:readme` and `npm run prepare:hacs`, then validate. `npm run check:ikio-version` rejects duplicate workspace versions and non-local internal dependencies.
+The collection version is defined only in `ikio/package.json`. Private card and shared-library workspaces have no independent versions; internal dependencies use local `file:` workspace links. Release Please prepares version changes, the changelog, README preview links and the tracked HACS bundle in a release PR. `npm run check:ikio-version` rejects duplicate workspace versions and non-local internal dependencies.
 
-Version selection is manual: Conventional Commit messages do not calculate or bump it. CI automatically publishes the chosen version after checks pass on `main`; an already published version is skipped. Use patch increments for compatible fixes, minor increments for features, and minor increments for breaking changes during 0.x.
+Write clear Conventional Commits: `fix(media): hide the source while off` produces a patch release; `feat(media): add artwork` produces a minor release. Breaking changes also produce a minor release during 0.x. Maintenance-only commits do not initiate a release. The bot prepares the release after successful main CI; publishing requires explicitly merging the release PR. The [release guide](docs/ikio/RELEASING.md) covers the one-action release workflow and CI status.
 
 ## Distribution and licensing
 

@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_pr:
+        description: Release PR number (set by the release bot)
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -14,11 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Validate individual commit messages
+        if: github.event_name == 'pull_request' || inputs.release_pr != ''
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: npm run check:commits -- "$BASE_SHA" "$HEAD_SHA"
       - run: npm run check:ikio-version
       - run: npm test
       - run: npm run test:scripts
@@ -130,10 +143,17 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: npm run preview:check
       - run: npm run preview:build && npm run preview:generate
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-checks-${{ github.sha }}
+          path: dist/browser-checks
+          if-no-files-found: warn
       - name: Compare target branch
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || inputs.release_pr != ''
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'origin/main' }}
         run: |
           git worktree add ../preview-base "$BASE_SHA"
           git config --global --add safe.directory "$(cd ../preview-base && pwd)"
