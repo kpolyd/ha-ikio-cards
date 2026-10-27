@@ -69,3 +69,7 @@ Rings scale with card width to match the approved proportions. Services uses a c
 
 
 Metric thresholds are automatic too: warning starts at 70 and error at 85 (inclusive, above direction). These apply to utilization percentages and the selected temperature reading in its displayed unit. The threshold list is removed from the editor; existing threshold entries are accepted but ignored. Unknown measurements have no severity arc.
+
+### Compact services
+
+Expanded services use two compact tiles per row on mobile and three on cards with at least 480 px of content width. Each tile shows a status dot, name and optional icon-sized power/restart controls with 44 px touch targets. Running status is available to assistive technology without repeated visible text; stopped, unavailable, unknown, custom and error states retain visible text. The configured health entity takes precedence over the power switch, including when health is unavailable. Tap/hold the name to open native entity details. Restart retains inline confirmation, pending and unavailable controls remain disabled, and services with both actions have a second compact control row. The existing expandable section, database details and service configuration are unchanged.

@@ -216,7 +216,7 @@ test("service restart keeps confirmation inside the card and services stay discl
   assert.equal(details.open, false);
   details.open = true;
   details.dispatchEvent(new dom.window.Event("toggle"));
-  card.shadowRoot.querySelector('[aria-label="Restart"]').click();
+  card.shadowRoot.querySelector('[aria-label="Restart Example"]').click();
   assert.equal(calls.length, 0);
   assert.equal(card.shadowRoot.querySelector("dialog"), null);
   assert.match(
@@ -788,4 +788,142 @@ test("network extrema show at most one decimal while keeping precise plot values
     "2.4 MB/s",
   );
   assert.equal(chart.querySelector("path").getAttribute("d"), "M0,30 L300,2 ");
+});
+
+test("service grid hides healthy repetition, retains exceptions and uses the configured health source", async () => {
+  const card = document.createElement("ikio-server-monitor-card");
+  const services = Array.from({ length: 6 }, (_, i) => ({
+    name: `Demo service ${i}`,
+    status_entity: `binary_sensor.service_${i}`,
+    control_entity: `switch.service_${i}`,
+  }));
+  card.setConfig({ services, database_entity: "sensor.demo_db" });
+  const states = {
+    "sensor.demo_db": { state: "2", attributes: { unit_of_measurement: "MB" } },
+  };
+  for (let i = 0; i < 6; i++)
+    states[`switch.service_${i}`] = { state: "on", attributes: {} };
+  for (const [i, state] of [
+    "on",
+    "off",
+    "unavailable",
+    "unknown",
+    "unhealthy",
+  ].entries())
+    states[`binary_sensor.service_${i}`] = { state, attributes: {} };
+  const calls = [];
+  card.hass = { states, callService: async (...args) => calls.push(args) };
+  document.body.append(card);
+  const tiles = () => [...card.shadowRoot.querySelectorAll(".system-service")];
+  assert.equal(tiles().length, 6);
+  assert.equal(tiles()[0].querySelector(".system-service-state"), null);
+  assert.equal(
+    tiles()[0]
+      .querySelector(".system-service-identity")
+      .getAttribute("aria-label"),
+    "Demo service 0: Running",
+  );
+  assert.match(tiles()[1].textContent, /Stopped/);
+  assert.match(tiles()[2].textContent, /Unavailable/);
+  assert.match(tiles()[3].textContent, /Unknown/);
+  assert.match(tiles()[4].textContent, /unhealthy/);
+  assert.match(
+    tiles()[5].textContent,
+    /Unknown/,
+    "missing health must not fall back to an on switch",
+  );
+  assert.equal(
+    card.shadowRoot
+      .querySelector(".system-service-grid")
+      .textContent.includes("Health"),
+    false,
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(
+      '.system-service-grid [data-entity="sensor.demo_db"]',
+    ),
+    null,
+  );
+  let opened;
+  card.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+  tiles()[0].querySelector(".system-service-identity").click();
+  assert.equal(opened, "binary_sensor.service_0");
+  assert.equal(calls.length, 0);
+  tiles()[0].querySelector(".system-service-controls button").click();
+  await Promise.resolve();
+  assert.equal(calls[0][1], "turn_off");
+  assert.equal(calls[0][2].entity_id, "switch.service_0");
+  assert.equal(
+    tiles()[0].querySelector(".system-service-controls button").disabled,
+    true,
+    "pending action must remain disabled",
+  );
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...states,
+      "binary_sensor.service_1": { state: "on", attributes: {} },
+    },
+  };
+  assert.equal(tiles()[1].querySelector(".system-service-state"), null);
+  card.remove();
+});
+
+test("service controls remain optional and unavailable switches cannot be operated", async () => {
+  const card = document.createElement("ikio-server-monitor-card");
+  card.setConfig({
+    services: [
+      { name: "Read only", status_entity: "sensor.health" },
+      { name: "Power only", control_entity: "switch.power" },
+      {
+        name: "Both",
+        control_entity: "switch.other",
+        restart_action: "script.restart",
+      },
+      { name: "No bindings" },
+    ],
+  });
+  const calls = [];
+  card.hass = {
+    states: {
+      "sensor.health": { state: "running", attributes: {} },
+      "switch.power": { state: "unavailable", attributes: {} },
+      "switch.other": { state: "on", attributes: {} },
+      "script.restart": { state: "off", attributes: {} },
+    },
+    callService: async (...args) => calls.push(args),
+  };
+  document.body.append(card);
+  const tiles = card.shadowRoot.querySelectorAll(".system-service");
+  assert.equal(tiles[0].querySelector(".system-service-controls"), null);
+  assert.equal(
+    tiles[1].querySelector(".system-service-controls button").disabled,
+    true,
+  );
+  assert.equal(
+    tiles[2].querySelectorAll(".system-service-controls button").length,
+    2,
+  );
+  assert.ok(tiles[2].classList.contains("multiple-controls"));
+  assert.match(tiles[3].textContent, /Unknown/);
+  tiles[1].querySelector('button[aria-label^="Power"]').click();
+  await Promise.resolve();
+  assert.equal(calls.length, 0);
+  card.remove();
+});
+
+test("service problem sensors never show a healthy dot while reporting a problem", async () => {
+  const { serviceHealth } = await import("../src/adapter.js");
+  assert.deepEqual(
+    serviceHealth({ state: "on", attributes: { device_class: "problem" } }),
+    { level: "stopped", text: "Problem" },
+  );
+  assert.deepEqual(
+    serviceHealth({ state: "off", attributes: { device_class: "problem" } }),
+    { level: "running", text: "Running" },
+  );
+  assert.deepEqual(serviceHealth({ state: "starting", attributes: {} }), {
+    level: "unknown",
+    text: "starting",
+  });
 });

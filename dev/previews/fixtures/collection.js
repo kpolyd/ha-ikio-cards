@@ -68,6 +68,10 @@ state("light.strip", "on", {
 state("light.glow", "on", { supported_color_modes: ["onoff"] });
 state("switch.entrance", "off");
 state("switch.heater", "off");
+for (let i = 0; i < 6; i++) {
+  state(`binary_sensor.demo_service_${i}`, i === 2 ? "off" : "on");
+  state(`switch.demo_service_${i}`, i === 2 ? "off" : "on");
+}
 state("script.timed_heater", "off");
 state("script.snapshot", "off");
 state("automation.snapshots", "on");
@@ -233,6 +237,18 @@ const configs = {
     hours: 6,
   },
   "server-monitor": {
+    services: [
+      "Immich",
+      "Jellyfin",
+      "Mealie",
+      "Nextcloud",
+      "Cloudflare",
+      "Tailscale",
+    ].map((name, i) => ({
+      name,
+      status_entity: `binary_sensor.demo_service_${i}`,
+      control_entity: `switch.demo_service_${i}`,
+    })),
     name: "Home Assistant server",
     network_rx_entity: "sensor.network_rx",
     network_tx_entity: "sensor.network_tx",

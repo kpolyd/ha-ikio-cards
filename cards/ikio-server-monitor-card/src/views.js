@@ -47,6 +47,22 @@ export const systemStyles = `
 .ikio-server-monitor .system-footer>summary>ha-icon{--mdc-icon-size:18px;flex:none}
 .ikio-server-monitor .system-footer[open]>summary>ha-icon{transform:rotate(180deg)}
 .ikio-server-monitor .system-error-note{color:var(--ae-error)}
+.ikio-server-monitor .system-service-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}
+.ikio-server-monitor .system-service{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;min-height:52px;padding:0 0 0 8px;border-radius:8px;background:var(--ae-well);min-width:0}
+.ikio-server-monitor .system-service-identity{display:flex;align-items:center;gap:6px;min-height:44px;min-width:0;padding:0;border:0;border-radius:0;background:transparent;color:var(--ae-text);font:inherit;text-align:left}
+.ikio-server-monitor .system-service-caption{display:grid;gap:0;min-width:0;padding-block:4px}
+.ikio-server-monitor .system-service-name{font-size:12px;font-weight:500;overflow-wrap:anywhere}
+.ikio-server-monitor .system-service-state{font-size:11px;color:var(--ae-muted);overflow-wrap:anywhere}
+.ikio-server-monitor .system-service-dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--ae-muted)}
+.ikio-server-monitor .system-service.running .system-service-dot{background:var(--ae-temperature)}
+.ikio-server-monitor .system-service.stopped .system-service-dot{background:var(--ae-error)}
+.ikio-server-monitor .system-service.stopped .system-service-state{color:var(--ae-error)}
+.ikio-server-monitor .system-service-controls{display:flex;align-items:center}
+.ikio-server-monitor .system-service-controls .ae-button{width:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;background:transparent;border:0;color:var(--ae-muted)}
+.ikio-server-monitor .system-service-controls ha-icon{--mdc-icon-size:17px}
+.ikio-server-monitor .system-service.multiple-controls .system-service-identity{grid-column:1/-1}
+.ikio-server-monitor .system-service.multiple-controls .system-service-controls{grid-column:1/-1;justify-content:flex-end}
+@container(min-width:480px){.ikio-server-monitor .system-service-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .ikio-server-monitor .system-extra-details{border-top:1px solid var(--ae-border);padding-top:6px}
 @container(max-width:310px){.ikio-server-monitor .system-header-meta{max-width:145px;gap:0 6px}.ikio-server-monitor>header>.ae-title,.ikio-server-monitor>header>h2{font-size:15px}}
 `;

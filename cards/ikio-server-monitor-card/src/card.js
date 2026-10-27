@@ -26,6 +26,7 @@ import {
   utilization,
   capacityText,
   metricLevel,
+  serviceHealth,
   uptimeSeconds,
   uptimeLabel,
   rateFactor,
@@ -357,53 +358,76 @@ export class Card extends ControlCard {
         );
     }
     const services = [];
-    for (const service of c.services || []) {
-      const block = group(note(service.name || "Service"));
-      block.classList.add("ikio-service");
-      if (service.status_entity)
-        block.append(
-          reading(
-            "Health",
-            stateText(this.hass, service.status_entity),
-            service.status_entity,
-          ),
+    const serviceGrid = el("div", undefined, "system-service-grid");
+    for (const [index, service] of (c.services || []).entries()) {
+      const name = service.name || "Service";
+      const statusId = service.status_entity || service.control_entity;
+      const health = serviceHealth(this.state(statusId));
+      const block = el(
+        "div",
+        undefined,
+        `system-service ${health.level}`,
+        `service-${index}`,
+      );
+      const identity = statusId
+        ? button("", () => details(this, statusId), {
+            entity: statusId,
+            key: `service-details-${index}`,
+          })
+        : el("div");
+      identity.classList.add("system-service-identity");
+      identity.setAttribute("aria-label", `${name}: ${health.text}`);
+      const dot = el("span", undefined, "system-service-dot");
+      dot.setAttribute("aria-hidden", "true");
+      const caption = el("span", undefined, "system-service-caption");
+      caption.append(el("span", name, "system-service-name"));
+      if (health.level !== "running")
+        caption.append(el("span", health.text, "system-service-state"));
+      identity.replaceChildren(dot, caption);
+      block.append(identity);
+      const controls = el("div", undefined, "system-service-controls");
+      if (service.control_entity) {
+        const power = button(
+          `Power ${name}: ${stateText(this.hass, service.control_entity)}`,
+          () => this.toggle(service.control_entity),
+          {
+            icon: "mdi:power",
+            entity: service.control_entity,
+            key: `service-power-${index}`,
+            disabled: this.blocked(service.control_entity),
+          },
         );
-      if (service.control_entity)
-        block.append(
-          button(
-            `Power: ${stateText(this.hass, service.control_entity)}`,
-            () => this.toggle(service.control_entity),
-            {
-              icon: "mdi:power",
-              disabled: this.blocked(service.control_entity),
-            },
-          ),
+        controls.append(power);
+      }
+      if (service.restart_action) {
+        const restart = button(
+          `Restart ${name}`,
+          () =>
+            requestReview(
+              this,
+              service.restart_action,
+              `Restart ${name}`,
+              "The service may be temporarily unavailable while restarting.",
+              () => this.action(service.restart_action, `Restart ${name}`),
+            ),
+          {
+            icon: "mdi:restart",
+            entity: service.restart_action,
+            key: `service-restart-${index}`,
+            disabled: this.blocked(service.restart_action),
+          },
         );
-      if (service.restart_action)
-        block.append(
-          button(
-            "Restart",
-            () =>
-              requestReview(
-                this,
-                service.restart_action,
-                `Restart ${service.name || "service"}`,
-                "The service may be temporarily unavailable while restarting.",
-                () =>
-                  this.action(
-                    service.restart_action,
-                    `Restart ${service.name || "service"}`,
-                  ),
-              ),
-            {
-              icon: "mdi:restart",
-              disabled: this.blocked(service.restart_action),
-            },
-          ),
-        );
-      services.push(block);
+        controls.append(restart);
+      }
+      if (controls.childElementCount) {
+        block.append(controls);
+        if (controls.childElementCount > 1)
+          block.classList.add("multiple-controls");
+      }
+      serviceGrid.append(block);
     }
-    const serviceCount = services.length;
+    const serviceCount = serviceGrid.childElementCount;
+    if (serviceCount) services.push(serviceGrid);
     if (c.database_entity) {
       const extra = group(
         reading(
