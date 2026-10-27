@@ -9,6 +9,7 @@ const fixture = await build({
   bundle: true,
   write: false,
   format: "iife",
+  loader: { ".png": "dataurl" },
 });
 const source = await readFile("dev/previews/collection.html", "utf8");
 const shell = source.slice(0, source.indexOf('<script type="module">'));

@@ -31,3 +31,10 @@ Replace the YAML `type` values below. Update individual bundle resource filename
 | `custom:ikio-comfort-card` | `custom:ikio-climate-card` |
 | `custom:ikio-cleaning-card` | `custom:ikio-vacuum-card` |
 | `custom:ikio-appliance-card` | `custom:ikio-appliances-card` |
+
+
+## 0.12.0 Media configuration
+
+The locked Media redesign always displays available artwork as a background behind the playing title, transport and timeline. `show_artwork` is removed. Volume becomes a compact minus/mute-and-percentage/plus control; `volume_step` defaults to 5 percentage points, used for known numeric volume with volume-set support. Native step-only players retain their integration's native step. Existing player/name/volume/source/power/appearance bindings and dashboard metadata remain. Source and volume are hidden while off.
+
+Replace the fixed `backlight_entity` and `shortcuts` with the new repeatable `more_controls` list of `{ entity, name? }` entries. Accept light/switch/scene/script entities. If the new list is absent, normalization puts the old backlight first and then old shortcuts in their existing order, mapping each shortcut `label` to `name`. An explicitly configured new list, including `[]`, wins. Saving the visual editor removes legacy keys without mutating the input object. No manual migration or new resource is needed.
