@@ -42,7 +42,7 @@ export const systemStyles = `
 .ikio-server-monitor .system-network-chart{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:6px;padding-block:4px}
 .ikio-server-monitor .system-network-axis{display:grid;position:relative;height:32px;font-size:11px;line-height:1;color:var(--ae-muted);font-variant-numeric:tabular-nums}
 .ikio-server-monitor .system-network-axis span{position:absolute;inset-inline-start:0;white-space:nowrap;transform:translateY(-50%)}
-.ikio-server-monitor .system-network-times{display:flex;justify-content:space-between;color:var(--ae-muted);font-size:11px}
+.ikio-server-monitor .system-network-times{grid-column:2;display:flex;justify-content:space-between;color:var(--ae-muted);font-size:11px}
 .ikio-server-monitor .system-footer>summary{font-size:13px;font-weight:500;color:var(--ae-text)}
 .ikio-server-monitor .system-footer>summary:after,.ikio-server-monitor .system-footer[open]>summary:after{content:none}
 .ikio-server-monitor .system-footer>summary>ha-icon{--mdc-icon-size:18px;flex:none}

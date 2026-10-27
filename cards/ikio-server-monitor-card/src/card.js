@@ -209,7 +209,7 @@ export class Card extends ControlCard {
         el("span", t(this.hass, "−30 min")),
         el("span", t(this.hass, "Now")),
       );
-      section.append(times);
+      plot.append(times);
     } else
       section.append(
         note(
