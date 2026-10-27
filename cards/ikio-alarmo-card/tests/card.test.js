@@ -1350,3 +1350,220 @@ test("activity refresh queries only new time and preserves a scrolled reader and
   );
   card.remove();
 });
+
+async function liveActivityFixture({ reject = false, pending = false } = {}) {
+  const { card } = fixture();
+  card.visible = true;
+  const listeners = new Map(),
+    subscriptions = [],
+    requests = [];
+  const connection = {
+    addEventListener: (type, callback) => listeners.set(type, callback),
+    removeEventListener: (type, callback) => {
+      if (listeners.get(type) === callback) listeners.delete(type);
+    },
+    subscribeMessage: (callback, message, options) => {
+      if (message.type !== "logbook/event_stream")
+        return Promise.resolve(() => {});
+      const sub = { callback, message, options, closed: false };
+      subscriptions.push(sub);
+      if (reject) return Promise.reject(Error("Unsupported stream"));
+      const unsubscribe = () => {
+        sub.closed = true;
+      };
+      if (pending)
+        return new Promise((resolve) => {
+          sub.resolve = () => resolve(unsubscribe);
+        });
+      return Promise.resolve(unsubscribe);
+    },
+  };
+  const now = Date.now() / 1000;
+  card.hass = {
+    ...card.hass,
+    connection,
+    callWS: async (message) => {
+      requests.push(message);
+      if (message.type !== "logbook/get_events") throw Error("Not Alarmo");
+      return Array.from({ length: 20 }, (_, i) => ({
+        entity_id: sensorId,
+        state: i % 2 ? "on" : "off",
+        when: now - i - 10,
+        context_id: `recorded-${i}`,
+      })).filter(
+        (entry) =>
+          entry.when * 1000 >= Date.parse(message.start_time) &&
+          entry.when * 1000 <= Date.parse(message.end_time),
+      );
+    },
+  };
+  card.setConfig({ ...card.config, show_activity: true });
+  await new Promise((r) => setTimeout(r, 0));
+  return { card, listeners, subscriptions, requests };
+}
+
+test("live activity filters subscriptions, batches events and avoids periodic history queries while connected", async () => {
+  const { card, subscriptions, requests } = await liveActivityFixture();
+  assert.equal(subscriptions.length, 1);
+  assert.deepEqual(
+    subscriptions[0].message.entity_ids.sort(),
+    [panelId, sensorId].sort(),
+  );
+  assert.equal(
+    subscriptions[0].message.end_time,
+    undefined,
+    "subscription must remain live",
+  );
+  assert.deepEqual(subscriptions[0].options, { resubscribe: false });
+  assert.equal(card.activity.liveState, "active");
+  const before = requests.filter((r) => r.type === "logbook/get_events").length;
+  await card.activity.tick();
+  assert.equal(
+    requests.filter((r) => r.type === "logbook/get_events").length,
+    before,
+  );
+  const viewport = card.shadowRoot.querySelector(".security-activity-scroll");
+  viewport.scrollTop = 120;
+  const originalUpdate = card.update.bind(card);
+  let renders = 0;
+  card.update = () => {
+    renders++;
+    originalUpdate();
+  };
+  const entry = {
+    entity_id: sensorId,
+    state: "on",
+    when: Date.now() / 1000,
+    context_id: "live",
+  };
+  const callback = subscriptions[0].callback;
+  callback({
+    events: [
+      entry,
+      entry,
+      { ...entry, entity_id: "binary_sensor.unrelated" },
+      { ...entry, when: "invalid" },
+    ],
+  });
+  callback({ events: [entry] });
+  assert.equal(card.activity.entries.length, 20, "live rendering is coalesced");
+  card.activity.flushLive();
+  assert.equal(card.activity.entries.length, 21);
+  assert.equal(
+    viewport.scrollTop,
+    120,
+    "live updates retain the reader position",
+  );
+  assert.equal(renders, 1, "multiple incoming messages render once per batch");
+  assert.equal(card.activity.entries[0].context_id, "live");
+  assert.equal(
+    card.shadowRoot.querySelectorAll(".security-activity-row").length,
+    21,
+  );
+  callback({ events: [entry] });
+  card.activity.flushLive();
+  assert.equal(card.activity.entries.length, 21);
+  assert.equal(renders, 1, "duplicate-only replay must not redraw the card");
+  card.remove();
+  await Promise.resolve();
+  assert.equal(subscriptions[0].closed, true);
+});
+
+test("activity reconnects with overlap and deduplication, removing listeners and ignoring stale callbacks", async () => {
+  const { card, listeners, subscriptions } = await liveActivityFixture();
+  const entry = {
+    entity_id: panelId,
+    state: "armed_away",
+    when: Date.now() / 1000,
+    context_id: "before-reconnect",
+  };
+  subscriptions[0].callback({ events: [entry] });
+  card.activity.flushLive();
+  const watermark = card.activity.liveEnd;
+  listeners.get("disconnected")();
+  await Promise.resolve();
+  assert.equal(subscriptions[0].closed, true);
+  listeners.get("ready")();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(subscriptions.length, 2);
+  assert.equal(
+    Date.parse(subscriptions[1].message.start_time),
+    watermark - 2000,
+  );
+  subscriptions[0].callback({ events: [{ ...entry, context_id: "stale" }] });
+  subscriptions[1].callback({
+    events: [
+      entry,
+      {
+        ...entry,
+        state: "disarmed",
+        context_id: "after-reconnect",
+        when: entry.when + 0.001,
+      },
+    ],
+  });
+  card.activity.flushLive();
+  assert.equal(
+    card.activity.entries.filter((e) => e.context_id === "before-reconnect")
+      .length,
+    1,
+  );
+  assert.equal(
+    card.activity.entries.some((e) => e.context_id === "after-reconnect"),
+    true,
+  );
+  assert.equal(
+    card.activity.entries.some((e) => e.context_id === "stale"),
+    false,
+  );
+  card.remove();
+  await Promise.resolve();
+  assert.equal(listeners.size, 0);
+  assert.equal(subscriptions[1].closed, true);
+});
+
+test("hidden activity closes its stream, resumes without losing history and disabled activity stays stopped", async () => {
+  const { card, listeners, subscriptions } = await liveActivityFixture();
+  const count = card.activity.entries.length;
+  card.visible = false;
+  card.onVisibility();
+  await Promise.resolve();
+  assert.equal(subscriptions[0].closed, true);
+  assert.equal(listeners.size, 0);
+  assert.equal(card.activity.timer, undefined);
+  assert.equal(card.activity.liveFlushTimer, undefined);
+  card.visible = true;
+  card.onVisibility();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(subscriptions.length, 2);
+  assert.equal(card.activity.entries.length, count);
+  card.setConfig({ ...card.config, show_activity: false });
+  await Promise.resolve();
+  assert.equal(subscriptions[1].closed, true);
+  assert.equal(listeners.size, 0);
+  const total = subscriptions.length;
+  card.update();
+  assert.equal(subscriptions.length, total);
+  card.remove();
+});
+
+test("rejected live streams use polling while a late subscription acknowledgement is safely closed", async () => {
+  const fallback = await liveActivityFixture({ reject: true });
+  assert.equal(fallback.card.activity.liveState, "fallback");
+  const before = fallback.requests.filter(
+    (r) => r.type === "logbook/get_events",
+  ).length;
+  await fallback.card.activity.tick();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.ok(
+    fallback.requests.filter((r) => r.type === "logbook/get_events").length >
+      before,
+  );
+  fallback.card.remove();
+  const late = await liveActivityFixture({ pending: true });
+  late.card.remove();
+  late.subscriptions[0].resolve();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(late.subscriptions[0].closed, true);
+  assert.equal(late.card.activity.liveState, "idle");
+});
