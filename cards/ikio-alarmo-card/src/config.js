@@ -2,6 +2,7 @@ import {
   entity,
   text,
   bool,
+  number,
   choice,
   validateConfig,
 } from "@ikio/card-ui/schema-editor";
@@ -14,6 +15,8 @@ export const fields = [
     true,
   ),
   bool("allow_override", "Show Alarmo open-sensor override"),
+  bool("show_activity", "Show activity"),
+  number("activity_hours", "Activity hours to show", 1, 168),
 ];
 export const lists = [
   {

@@ -73,7 +73,10 @@ state("script.snapshot", "off");
 state("automation.snapshots", "on");
 state("switch.camera", "off");
 state("camera.room", "unavailable");
-state("person.owner", "home");
+state("person.owner", "home", {
+  user_id: "demo-user",
+  friendly_name: "Demo resident",
+});
 state("alarm_control_panel.home", "disarmed", {
   supported_features: 3,
   code_arm_required: false,
@@ -195,6 +198,7 @@ const configs = {
   media: { name: "Chromecast", entity: "media_player.tv" },
   vacuum: { name: "Roborock Q8 Max", entity: "vacuum.robot" },
   alarmo: {
+    show_activity: true,
     name: "Home security",
     entity: "alarm_control_panel.home",
     persons: [{ entity: "person.owner", name: "Resident" }],
@@ -289,6 +293,31 @@ const hass = {
   services: { alarmo: { arm: {} } },
   config: { time_zone: "Europe/Athens" },
   callWS: async (msg) => {
+    if (msg.type === "logbook/get_events")
+      return [
+        {
+          entity_id: "alarm_control_panel.home",
+          state: "disarmed",
+          context_user_id: "demo-user",
+          when: Date.now() / 1000 - 20,
+        },
+        {
+          entity_id: "binary_sensor.demo_motion",
+          state: "off",
+          when: Date.now() / 1000 - 30,
+        },
+        {
+          entity_id: "binary_sensor.demo_balcony",
+          state: "on",
+          when: Date.now() / 1000 - 45,
+        },
+        {
+          entity_id: "alarm_control_panel.home",
+          state: "armed_away",
+          context_user_id: "demo-user",
+          when: Date.now() / 1000 - 400,
+        },
+      ];
     if (msg.type === "alarmo/entities")
       return [{ entity_id: "alarm_control_panel.home", area_id: 1 }];
     if (msg.type === "alarmo/sensors")
