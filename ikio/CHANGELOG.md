@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.13.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.13.0...v0.13.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **cards:** restore vacuum themes and tighten device power spacing ([1851bee](https://github.com/kpolyd/ha-ikio-cards/commit/1851bee6fa0376d6ce22947abf243d900ee54743))
+
 ## [0.13.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.12.0...v0.13.0) (2026-10-27)
 
 
