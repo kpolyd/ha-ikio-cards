@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { publishRelease } from "../publish-release.mjs";
+import { publishRelease, verifyReleaseOrder } from "../publish-release.mjs";
 
 function api({ published = false, conflictingTag = false } = {}) {
   const calls = [];
@@ -16,7 +16,7 @@ function api({ published = false, conflictingTag = false } = {}) {
       data: {
         id: 7,
         assets: [],
-        html_url: "https://github.com/owner/repo/releases/tag/ikio-v0.3.2",
+        html_url: "https://github.com/owner/repo/releases/tag/v0.3.2",
       },
     };
   };
@@ -26,6 +26,7 @@ function api({ published = false, conflictingTag = false } = {}) {
       paginate: async () => [],
       rest: {
         repos: {
+          listReleases: async () => ({ data: [{ tag_name: "v0.3.2" }] }),
           getReleaseByTag: published
             ? async () => ({ data: { draft: false, html_url: "existing" } })
             : missing,
@@ -83,7 +84,7 @@ test("release uses checked tagged source and attaches no assets so HACS falls ba
     );
     assert.equal(mock.calls[0].payload.draft, true);
     assert.equal(mock.calls[0].payload.target_commitish, "verified");
-    assert.equal(mock.calls[0].payload.tag_name, "ikio-v0.3.2");
+    assert.equal(mock.calls[0].payload.tag_name, "v0.3.2");
     assert.equal(mock.calls.at(-1).payload.draft, false);
     assert.match(mock.calls[0].payload.body, /raw.githubusercontent.com/);
   });
@@ -121,7 +122,7 @@ test("an asset-free draft resumes on the same source without creating a duplicat
     mock.github.paginate = async () => [
       {
         id: 7,
-        tag_name: "ikio-v0.3.2",
+        tag_name: "v0.3.2",
         draft: true,
         target_commitish: "verified",
         assets: [],
@@ -139,7 +140,7 @@ test("an existing draft from different source cannot be overwritten", async () =
     mock.github.paginate = async () => [
       {
         id: 7,
-        tag_name: "ikio-v0.3.2",
+        tag_name: "v0.3.2",
         draft: true,
         target_commitish: "different",
         assets: [],
@@ -157,7 +158,7 @@ test("a draft with assets is rejected because HACS would still use release redir
     mock.github.paginate = async () => [
       {
         id: 7,
-        tag_name: "ikio-v0.3.2",
+        tag_name: "v0.3.2",
         draft: true,
         target_commitish: "verified",
         assets: [{ name: "source.zip" }],
@@ -183,5 +184,73 @@ test("publishing errors propagate without changing source tags or attaching asse
       mock.calls.map((c) => c.name),
       ["create"],
     );
+  });
+});
+
+test("HACS order check skips drafts/prereleases and retries stale lists", async () => {
+  let reads = 0;
+  let waits = 0;
+  const github = {
+    rest: {
+      repos: {
+        listReleases: async () => ({
+          data:
+            ++reads === 1
+              ? [{ tag_name: "v0.3.1" }]
+              : [
+                  { tag_name: "v0.4.0", draft: true },
+                  { tag_name: "v0.4.1", prerelease: true },
+                  { tag_name: "v0.3.2" },
+                ],
+        }),
+      },
+    },
+  };
+  await verifyReleaseOrder({
+    github,
+    ...context.repo,
+    tag: "v0.3.2",
+    wait: async () => {
+      waits++;
+    },
+  });
+  assert.equal(reads, 2);
+  assert.equal(waits, 1);
+});
+test("HACS order check fails if the published version stays below an older release", async () => {
+  const { github } = api();
+  await assert.rejects(
+    verifyReleaseOrder({
+      github,
+      ...context.repo,
+      tag: "v0.3.3",
+      attempts: 2,
+      wait: async () => {},
+    }),
+    /expected v0.3.3, found v0.3.2/,
+  );
+});
+test("rerunning a published standard release verifies order without republishing", async () => {
+  await run({ published: true }, async (root, mock) => {
+    mock.github.rest.repos.getReleaseByTag = async () => ({
+      data: { draft: false, tag_name: "v0.3.2", html_url: "existing" },
+    });
+    assert.equal(
+      (await publishRelease({ ...mock, context, root })).skipped,
+      true,
+    );
+    assert.deepEqual(mock.calls, []);
+  });
+});
+test("legacy published tags prevent duplicate releases during migration", async () => {
+  await run({}, async (root, mock) => {
+    mock.github.paginate = async () => [
+      { tag_name: "ikio-v0.3.2", draft: false, html_url: "legacy" },
+    ];
+    assert.equal(
+      (await publishRelease({ ...mock, context, root })).url,
+      "legacy",
+    );
+    assert.deepEqual(mock.calls, []);
   });
 });

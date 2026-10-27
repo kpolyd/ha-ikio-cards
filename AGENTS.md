@@ -39,7 +39,7 @@ Run affected workspace checks for focused changes; run all workspaces after shar
 ## Versions and delivery
 
 - `ikio/package.json` is the only collection version definition. Private card and shared-package manifests must omit `version`; use local `file:` references for internal dependencies. Run `npm run check:ikio-version` to validate manifests and lockfile. Version selection is manual; Conventional Commits do not automatically bump it. Keep one collection changelog.
-- Use `ikio-vX.Y.Z` release names. Do not overwrite tags. During 0.x, breaking changes bump the minor version.
+- Use `vX.Y.Z` release names. Do not overwrite tags. During 0.x, breaking changes bump the minor version.
 - Keep installation URLs and documentation aligned with the current version. Use Conventional Commits.
 - `npm run package:ikio` creates an installation folder and a ZIP containing compiled cards, lazy chunks, notices, theme, docs and reproducible tracked source. Stage new files before packaging. Keep source and design documents outside Home Assistant's public www directory.
 - CI validates and publishes one versioned GitHub release on main. HACS installs the tracked root `ha-ikio-cards.js` named in `hacs.json` from raw tagged content. Releases must have no attached assets: HACS 2.0.5 would prefer the release-download route if any assets exist. ZIPs remain in CI artifacts. Individual builds remain available in the ZIP. Never add required external imports to the HACS bundle; never overwrite published releases/tags. Keep unrelated release automation out of this repository.

@@ -10,6 +10,31 @@ async function optional(request) {
   }
 }
 
+/** HACS selects the first stable release, independently of GitHub's latest flag. */
+export async function verifyReleaseOrder({
+  github,
+  owner,
+  repo,
+  tag,
+  attempts = 6,
+  wait = () => new Promise((resolve) => setTimeout(resolve, 10000)),
+}) {
+  let first;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const { data } = await github.rest.repos.listReleases({
+      owner,
+      repo,
+      per_page: 30,
+    });
+    first = data.find((item) => !item.draft && !item.prerelease)?.tag_name;
+    if (first === tag) return;
+    if (attempt + 1 < attempts) await wait();
+  }
+  throw Error(
+    `HACS release ordering check failed: expected ${tag}, found ${first ?? "no stable release"}. The release remains published; inspect GitHub's release list before retrying.`,
+  );
+}
+
 /** Publish only checked source; no attached assets, so HACS uses raw tagged files. */
 export async function publishRelease({
   github,
@@ -21,7 +46,7 @@ export async function publishRelease({
     await readFile(`${root}/ikio/package.json`, "utf8"),
   );
   if (!/^\d+\.\d+\.\d+$/.test(version)) throw Error("Invalid release version");
-  const tag = `ikio-v${version}`;
+  const tag = `v${version}`;
   let release = await optional(() =>
     github.rest.repos.getReleaseByTag({ owner, repo, tag }),
   );
@@ -32,11 +57,18 @@ export async function publishRelease({
       repo,
       per_page: 100,
     });
-    release = releases.find((item) => item.tag_name === tag);
+    release =
+      releases.find((item) => item.tag_name === tag) ??
+      releases.find(
+        (item) => item.tag_name === `ikio-v${version}` && !item.draft,
+      );
   }
   // Later documentation commits must not modify an already published version.
-  if (release && !release.draft)
+  if (release && !release.draft) {
+    if (release.tag_name === tag)
+      await verifyReleaseOrder({ github, owner, repo, tag });
     return { skipped: true, url: release.html_url };
+  }
   const ref = await optional(() =>
     github.rest.git.getRef({ owner, repo, ref: `tags/${tag}` }),
   );
@@ -90,5 +122,6 @@ export async function publishRelease({
     draft: false,
     make_latest: "true",
   });
+  await verifyReleaseOrder({ github, owner, repo, tag });
   return { skipped: false, url: published.data.html_url };
 }

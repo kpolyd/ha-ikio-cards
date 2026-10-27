@@ -69,7 +69,7 @@ jobs:
             const fs = require('fs');
             const {version} = JSON.parse(fs.readFileSync('ikio/package.json'));
             const releases = await github.paginate(github.rest.repos.listReleases, context.repo);
-            core.setOutput('publish', !releases.some(r => r.tag_name === `ikio-v${version}` && !r.draft));
+            core.setOutput('publish', !releases.some(r => [`v${version}`, `ikio-v${version}`].includes(r.tag_name) && !r.draft));
       - name: Read retained preview site
         if: steps.eligibility.outputs.publish == 'true'
         run: |

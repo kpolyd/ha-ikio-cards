@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.10.1 — Standard release tags and HACS verification
+
+- Publish releases as `vX.Y.Z` so GitHub can recognize the standard version format. Preserve existing `ikio-v` releases and tags.
+- Verify that the published version is the first stable release returned to HACS, with bounded retries for indexing delays. Re-running publication verifies existing standard releases without modifying them.
+- Keep card functionality unchanged; includes the English/Greek translations and electricity demo improvements from 0.10.0.
+
 ## 0.10.0 — English/Greek translations and realistic electricity demos
 
 - Follow the Home Assistant user language across all twelve cards, the Chip badge and visual editors. Bundle English and Greek catalogs locally; use English for missing translations, unsupported languages and demo defaults.
