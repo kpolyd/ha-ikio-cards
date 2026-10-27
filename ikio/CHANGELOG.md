@@ -1,5 +1,10 @@
 # Ikio changelog
 
+## 0.8.1 — Centered, tighter Server Monitor chips
+
+- Center Extra readings chips in Server Monitor, including each wrapped row.
+- Reduce their padding from 5 px / 10 px to 4 px / 8 px while retaining 44 px touch targets. Standalone Chip card styling is unchanged.
+
 ## 0.8.0 — Sensor chips and compact Server Monitor
 
 - Add Ikio Chip: a standalone sensor card with native icon, optional name, stacked name/value, shared themes and tap/hold entity details.
