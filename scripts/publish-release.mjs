@@ -1,6 +1,17 @@
 import { readFile } from "node:fs/promises";
 import { validateHacsBundle } from "./check-hacs.mjs";
 
+export function changelogSection(changelog, version) {
+  const sections = changelog
+    .split(/^#{2,3} (?=\[?v?\d+\.\d+\.\d+(?:\]|\s|$))/m)
+    .slice(1);
+  return sections.find((section) => {
+    const heading = section.split("\n")[0];
+    const found = heading.match(/^\[?v?(\d+\.\d+\.\d+)(?:\]|\s|$)/);
+    return found?.[1] === version;
+  });
+}
+
 async function optional(request) {
   try {
     return (await request()).data;
@@ -91,10 +102,7 @@ export async function publishRelease({
   if (release && release.target_commitish !== context.sha)
     throw Error("Existing draft targets different source; bump the version");
   const changelog = await readFile(`${root}/ikio/CHANGELOG.md`, "utf8");
-  const section = changelog
-    .split(/^## /m)
-    .slice(1)
-    .find((s) => s.startsWith(`${version} `));
+  const section = changelogSection(changelog, version);
   if (!section) throw Error("Current version is missing from the changelog");
   await validateHacsBundle(root);
   // Any attached asset makes HACS 2.0.5 select the release-download path.

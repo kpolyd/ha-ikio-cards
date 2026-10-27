@@ -1,0 +1,50 @@
+name: Ship release
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Release Please PR number
+        required: true
+        type: string
+      action:
+        description: Read status or merge and publish this release
+        required: true
+        type: choice
+        options: [status, release]
+        default: status
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  actions: write
+
+concurrency:
+  group: ship-release
+  cancel-in-progress: false
+
+jobs:
+  ship:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: actions/github-script@v7
+        env:
+          RELEASE_PR: ${{ inputs.pr }}
+          RELEASE_ACTION: ${{ inputs.action }}
+        with:
+          script: |
+            const {releaseStatus, shipRelease} = await import(`${process.env.GITHUB_WORKSPACE}/scripts/ship-release.mjs`);
+            const number = Number(process.env.RELEASE_PR);
+            if (!Number.isSafeInteger(number) || number < 1) throw Error('Invalid PR number');
+            const action = process.env.RELEASE_ACTION === 'release' ? shipRelease : releaseStatus;
+            const result = await action({github, context, number});
+            core.info(JSON.stringify(result));
+            await core.summary.addCodeBlock(JSON.stringify(result, null, 2), 'json').write();
