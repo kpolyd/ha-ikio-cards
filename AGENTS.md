@@ -32,7 +32,7 @@ Run affected workspace checks for focused changes; run all workspaces after shar
 
 ## Versions and delivery
 
-- `ikio/package.json` is the collection version authority. All eleven cards and both shared packages use the same Semantic Version and one changelog. Run `node scripts/ikio-version.mjs` after changing the authority; `--check` validates manifests and lockfile.
+- `ikio/package.json` is the only collection version definition. Private card and shared-package manifests must omit `version`; use local `file:` references for internal dependencies. Run `npm run check:ikio-version` to validate manifests and lockfile. Version selection is manual; Conventional Commits do not automatically bump it. Keep one collection changelog.
 - Use `ikio-vX.Y.Z` release names. Do not overwrite tags. During 0.x, breaking changes bump the minor version.
 - Keep installation URLs and documentation aligned with the current version. Use Conventional Commits.
 - `npm run package:ikio` creates an installation folder and a ZIP containing compiled cards, lazy chunks, notices, theme, docs and reproducible tracked source. Stage new files before packaging. Keep source and design documents outside Home Assistant's public www directory.
@@ -41,5 +41,5 @@ Run affected workspace checks for focused changes; run all workspaces after shar
 
 ## Pull request merge policy
 
-- The owner prefers visible merge commits on main. Merge PRs using GitHub's `merge` method; do not squash or rebase unless the owner explicitly requests an exception. Preserve existing published history.
+- The owner prefers visible merge commits on main. Keep semi-linear history: rebase the PR branch onto the latest main before merging, verify main is an ancestor and the PR range contains no merge commits, then use GitHub's `merge` method. Do not squash or use GitHub's rebase merge method. Preserve existing published history.
 - Delete the source branch after a successful merge. The merged-branch cleanup workflow handles repository branches whose current head exactly matches a PR merged into main. Keep main, gh-pages, protected branches, unmerged work and branches with commits added after merging.

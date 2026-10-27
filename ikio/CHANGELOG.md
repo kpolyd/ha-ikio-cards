@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## 0.7.0 — Alarmo area groups and activity timeline
+
+- Group Alarmo sensor alerts by Home Assistant area with compact, wrapping chips and native sensor icons. Preserve bypassed/unavailable alerts and entity details.
+- Add optional always-visible sensor activity, automatically including the alarm panel and monitored sensors. Show recorded states, date/time with seconds, area, and user name/avatar when available. Configure Show activity and an optional 1–168 hour window (default 24).
+- Refresh activity every minute while visible, stop requests when disabled/hidden, and show explicit empty/error states. Render at most 200 recent events.
+- Define the collection version only in ikio/package.json; private workspace manifests and local dependencies no longer repeat release versions.
+
 ## 0.6.4 — Server capacity display and graph precision
 
 - Restore compact Server Monitor RAM/disk used / total captions, deriving total from used + remaining when needed. Round these capacities and RAM/disk percentages to whole numbers without changing calculations or thresholds.

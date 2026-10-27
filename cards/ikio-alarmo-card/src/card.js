@@ -11,6 +11,7 @@ import {
   details,
   event,
 } from "@ikio/card-ui";
+import { SensorActivity } from "./activity.js";
 import { validate } from "./config.js";
 import { alarmModes, forceData } from "./adapter.js";
 
@@ -34,6 +35,7 @@ export class Card extends ControlCard {
   constructor() {
     super();
     this.resetInput();
+    this.activity = new SensorActivity(this);
     this.shadowRoot.prepend(
       el(
         "style",
@@ -70,10 +72,35 @@ export class Card extends ControlCard {
       .security-sensor-summary.clear{color:var(--security-green)}
       button.security-sensor-summary{width:100%;min-height:44px;border:0;padding:0;background:transparent;font:inherit;font-size:13px;text-align:left;cursor:pointer}
       .security-sensor-chevron{margin-left:auto}
-      .security-chips{display:flex;flex-wrap:wrap;gap:0 12px}
+      .security-chips{display:grid;gap:0;border-top:1px solid var(--ae-border)}
+      .security-sensor-area{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;padding:4px 0;align-items:start}
+      .security-sensor-area+.security-sensor-area{border-top:1px solid var(--ae-border)}
+      .security-sensor-area h3{margin:14px 0 0;font-size:11px;font-weight:500;line-height:16px;color:var(--ae-muted);overflow-wrap:anywhere}
+      .security-area-chips{display:flex;flex-wrap:wrap;gap:0 6px;min-width:0}
+      .security-chip-content{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;padding:4px 7px;border-radius:7px;background:var(--ae-well)}
+      .security-chip-label{min-width:0;overflow-wrap:anywhere}
+      @container(max-width:300px){.security-sensor-area{grid-template-columns:62px minmax(0,1fr);gap:6px}}
       .security-chips[hidden]{display:none}
-      .security-chips button{display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;padding:0;border:0;background:transparent;color:var(--ae-warning);font:inherit;font-size:12px;text-align:left;overflow-wrap:anywhere}
-      .security-chips ha-state-icon{--mdc-icon-size:17px;flex:none}
+      .security-chips button{display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;max-width:100%;padding:0;border:0;background:transparent;color:var(--ae-text);font:inherit;font-size:12px;text-align:left;overflow-wrap:anywhere}
+      .security-chips ha-state-icon{--mdc-icon-size:14px;flex:none;color:var(--ae-error)}
+      .security-activity{border-top:1px solid var(--ae-border);padding-top:10px;min-width:0}
+      .security-activity>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+      .security-activity h3{font-size:13px;font-weight:500;margin:0}
+      .security-activity>header>span,.security-activity h4{font-size:11px;color:var(--ae-muted);font-weight:500}
+      .security-activity h4{margin:10px 0 4px}
+      .security-activity-row.ae-button{width:100%;display:grid;grid-template-columns:18px minmax(0,1fr) minmax(65px,auto);gap:8px;align-items:center;min-height:48px;border:0;border-radius:0;background:transparent;padding:5px 0;text-align:left;font:inherit;font-size:12px}
+      .security-activity-row>ha-state-icon{--mdc-icon-size:16px;color:var(--ae-muted)}
+      .security-activity-content,.security-activity-end{display:grid;gap:2px;min-width:0;overflow-wrap:anywhere}
+      .security-activity-name{font-weight:500}
+      .security-activity-meta{display:flex;flex-wrap:wrap;align-items:center;gap:3px 7px;font-size:11px;color:var(--ae-muted)}
+      .security-activity-actor{display:inline-flex;align-items:center;gap:4px;min-width:0}
+      .security-activity-actor img{width:16px;height:16px;object-fit:cover;border-radius:50%}
+      .security-activity-actor ha-icon{--mdc-icon-size:16px}
+      .security-activity-end{text-align:right}
+      .security-activity-end time{font-size:11px;color:var(--ae-muted);font-variant-numeric:tabular-nums}
+      .activity-triggered>ha-state-icon,.activity-triggered .security-activity-end>span{color:var(--ae-error)}
+      .activity-active>ha-state-icon{color:var(--ae-warning)}
+      .activity-armed>ha-state-icon{color:var(--security-green)}
       .security-pin{border-top:1px solid var(--ae-border);padding-top:14px;display:grid;gap:10px}
       .security-pin label{display:grid;gap:8px;color:var(--ae-muted);font-size:13px}
       .security-pin input{width:100%;min-width:0;min-height:40px;font:inherit;font-size:20px;letter-spacing:7px;text-align:center;color:var(--ae-text);background:transparent;border:1px solid var(--ae-border);border-radius:8px;padding:6px}
@@ -108,6 +135,9 @@ export class Card extends ControlCard {
     this.armIntent = null;
   }
   onConfig() {
+    this.activity.stop();
+    this.activity.entries = [];
+    this.activity.usersLoaded = false;
     this.sensorsExpanded = false;
     this.stopCountdown();
     this.resetInput();
@@ -122,6 +152,7 @@ export class Card extends ControlCard {
   }
   onVisibility() {
     if (!this.visible) {
+      this.activity.stop();
       this.stopCountdown();
       this.stopAlarmo();
       this.resetInput();
@@ -133,20 +164,39 @@ export class Card extends ControlCard {
     }
   }
   afterRender() {
+    this.activity.sync();
     this.loadAlarmo();
     this.entityIds = [
       ...new Set([
         ...this.entityIds,
         ...this.sensorRows().map((r) => r.entity),
+        ...(this.config.show_activity
+          ? Object.keys(this.hass?.states || {}).filter((id) =>
+              id.startsWith("person."),
+            )
+          : []),
       ]),
     ];
     for (const glyph of this.content.querySelectorAll("ha-state-icon")) {
       glyph.hass = this.hass;
-      glyph.stateObj = this.state(glyph.dataset.sensor);
+      glyph.stateObj = glyph.dataset.activityEntity
+        ? {
+            ...this.state(glyph.dataset.activityEntity),
+            entity_id: glyph.dataset.activityEntity,
+            state: glyph.dataset.activityState,
+            attributes: {
+              ...this.state(glyph.dataset.activityEntity)?.attributes,
+              ...(glyph.dataset.activityIcon
+                ? { icon: glyph.dataset.activityIcon }
+                : {}),
+            },
+          }
+        : this.state(glyph.dataset.sensor);
     }
     this.syncCountdown();
   }
   onDisconnect() {
+    this.activity.stop();
     this.stopAlarmo();
     this.stopCountdown();
     this.resetInput();
@@ -447,6 +497,36 @@ export class Card extends ControlCard {
     return deviceName && !label.toLowerCase().includes(deviceName.toLowerCase())
       ? `${deviceName} ${label}`
       : label;
+  }
+  sensorGroups(rows) {
+    const groups = new Map();
+    const typeOrder = (row) => {
+      const type =
+        this.state(row.entity)?.attributes?.device_class || row.alarmo?.type;
+      if (type === "door" || type === "garage_door") return 0;
+      if (type === "window") return 1;
+      if (row.kind === "opening" || type === "opening") return 2;
+      if (row.kind === "motion" || type === "motion" || type === "occupancy")
+        return 3;
+      return 4;
+    };
+    for (const row of rows) {
+      const entry = this.hass?.entities?.[row.entity];
+      const areaId =
+        entry?.area_id || this.hass?.devices?.[entry?.device_id]?.area_id;
+      const area = this.hass?.areas?.[areaId];
+      const key = area ? areaId : null;
+      if (!groups.has(key))
+        groups.set(key, { name: area?.name || "Unassigned", rows: [] });
+      groups.get(key).rows.push(row);
+    }
+    for (const group of groups.values())
+      group.rows.sort(
+        (a, b) =>
+          typeOrder(a) - typeOrder(b) ||
+          this.sensorLabel(a).localeCompare(this.sensorLabel(b)),
+      );
+    return [...groups.values()];
   }
   sensorRows() {
     const c = this.config,
@@ -840,26 +920,39 @@ export class Card extends ControlCard {
       const chips = el("div", undefined, "security-chips");
       chips.id = "security-sensor-details";
       chips.hidden = !this.sensorsExpanded;
-      for (const r of alerts) {
-        const suffix = bypassed.has(r.entity)
-          ? "bypassed"
-          : !available(this.state(r.entity))
-            ? "unavailable"
-            : r.kind === "motion"
-              ? "motion detected"
-              : "open";
-        const chip = button(
-          this.sensorLabel(r),
-          () => details(this, r.entity),
-          { key: r.entity, entity: r.entity },
-        );
-        chip.setAttribute("aria-label", `${this.sensorLabel(r)}: ${suffix}`);
-        const glyph = el("ha-state-icon");
-        glyph.dataset.sensor = r.entity;
-        glyph.setAttribute("aria-hidden", "true");
-        glyph.setAttribute("data-native", "");
-        chip.prepend(glyph);
-        chips.append(chip);
+      for (const group of this.sensorGroups(alerts)) {
+        const area = el("section", undefined, "security-sensor-area");
+        area.setAttribute("aria-label", group.name);
+        area.append(el("h3", group.name));
+        const areaChips = el("div", undefined, "security-area-chips");
+        for (const r of group.rows) {
+          const suffix = bypassed.has(r.entity)
+            ? "bypassed"
+            : !available(this.state(r.entity))
+              ? "unavailable"
+              : r.kind === "motion"
+                ? "motion detected"
+                : "open";
+          const chip = button(
+            this.sensorLabel(r),
+            () => details(this, r.entity),
+            { key: r.entity, entity: r.entity },
+          );
+          chip.setAttribute("aria-label", `${this.sensorLabel(r)}: ${suffix}`);
+          const glyph = el("ha-state-icon");
+          glyph.dataset.sensor = r.entity;
+          glyph.setAttribute("aria-hidden", "true");
+          glyph.setAttribute("data-native", "");
+          const label = el("span", this.sensorLabel(r), "security-chip-label");
+          if (suffix === "bypassed" || suffix === "unavailable")
+            label.append(document.createTextNode(` · ${suffix}`));
+          const content = el("span", undefined, "security-chip-content");
+          content.append(glyph, label);
+          chip.replaceChildren(content);
+          areaChips.append(chip);
+        }
+        area.append(areaChips);
+        chips.append(area);
       }
       sensors.append(chips);
     }
@@ -904,6 +997,7 @@ export class Card extends ControlCard {
     result.append(selector);
     if (live && s.state !== "disarmed") result.append(this.pinView());
     else if (live && this.armIntent) result.append(this.pinView(true));
+    if (c.show_activity) result.append(this.activity.view());
     return result;
   }
 }

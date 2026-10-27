@@ -2,7 +2,7 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Part of the Ikio collection, version 0.5.4 (in development).
+Part of the Ikio collection; see [the shared version](../../ikio/package.json).
 
 Build from the root with `npm ci && npm run build`. For the collection installation layout run `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from `release/ikio-v0.5.4` to `/config/www/ikio`. Add `/local/ikio/ikio.js?v=0.6.1` under **Settings → Dashboards → Resources**, JavaScript module. Preserve the lazy `chunks/` directory. Alternatively install just this card's entire `dist` and add its `ikio-lights-card.js` resource. Do not install both routes.
 

@@ -897,3 +897,258 @@ test("armed bypass details are collapsible while their count and the PIN pad rem
   assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, true);
   card.remove();
 });
+
+test("alert chips group by HA entity area before device area and retain details and live regrouping", () => {
+  const door = "binary_sensor.test_door";
+  const motion = "binary_sensor.test_motion";
+  const unassigned = "binary_sensor.test_unassigned";
+  const closed = "binary_sensor.test_closed";
+  const state = (entity_id, device_class, state = "on") => ({
+    entity_id,
+    state,
+    attributes: { friendly_name: entity_id, device_class },
+  });
+  const { card, calls } = fixture(
+    "disarmed",
+    {},
+    {
+      contacts: [
+        { entity: sensorId },
+        { entity: door },
+        { entity: unassigned },
+        { entity: closed },
+      ],
+      motion: [{ entity: motion }],
+    },
+    {
+      [door]: state(door, "door"),
+      [motion]: state(motion, "motion"),
+      [unassigned]: state(unassigned, "window"),
+      [closed]: state(closed, "door", "off"),
+    },
+  );
+  card.hass = {
+    ...card.hass,
+    entities: {
+      [sensorId]: { area_id: "living", device_id: "window" },
+      [door]: { device_id: "entry" },
+      [motion]: { area_id: "living" },
+      [unassigned]: { area_id: "missing" },
+      [closed]: { area_id: "living" },
+    },
+    devices: { window: { area_id: "office" }, entry: { area_id: "living" } },
+    areas: {
+      living: { name: "Test living room" },
+      office: { name: "Test office" },
+    },
+  };
+  const groups = () => [
+    ...card.shadowRoot.querySelectorAll(".security-sensor-area"),
+  ];
+  assert.deepEqual(
+    groups().map((g) => g.querySelector("h3").textContent),
+    ["Test living room", "Unassigned"],
+  );
+  assert.deepEqual(
+    [...groups()[0].querySelectorAll("button")].map((b) => b.dataset.entity),
+    [door, sensorId, motion],
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(`[data-entity="${closed}"]`),
+    null,
+  );
+  press(card, "toggle-sensors");
+  let detailEntity;
+  card.addEventListener("hass-more-info", (e) => {
+    detailEntity = e.detail.entityId;
+  });
+  groups()[0].querySelector("button").click();
+  assert.equal(detailEntity, door);
+  assert.deepEqual(calls, []);
+  assert.equal(
+    groups()[0].querySelector("ha-state-icon").stateObj,
+    card.hass.states[door],
+  );
+  card.hass = {
+    ...card.hass,
+    entities: { ...card.hass.entities, [door]: { area_id: "office" } },
+  };
+  assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, false);
+  assert.equal(
+    groups()
+      .find((g) => g.getAttribute("aria-label") === "Test office")
+      .querySelector("button").dataset.entity,
+    door,
+  );
+  card.remove();
+});
+
+test("grouped alert chips keep exceptional statuses visible and never treat Alarmo areas as HA rooms", () => {
+  const missing = "binary_sensor.test_missing";
+  const { card } = fixture(
+    "armed_away",
+    { bypassed_sensors: [sensorId] },
+    {
+      contacts: [{ entity: sensorId }, { entity: missing }],
+    },
+  );
+  card.alarmoSensors = [
+    { entity: sensorId, kind: "opening", alarmo: { area: "living" } },
+  ];
+  card.hass = {
+    ...card.hass,
+    areas: { living: { name: "Not the sensor room" } },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector(".security-sensor-area h3").textContent,
+    "Unassigned",
+  );
+  const chips = [...card.shadowRoot.querySelectorAll(".security-chips button")];
+  assert.ok(chips.some((c) => c.textContent.includes("bypassed")));
+  assert.ok(chips.some((c) => c.textContent.includes("unavailable")));
+  card.remove();
+});
+
+test("activity is opt-in and queries only the panel and monitored sensors with an exact time window", async () => {
+  const { card } = fixture();
+  card.visible = true;
+  const requests = [];
+  card.hass = {
+    ...card.hass,
+    callWS: async (msg) => {
+      requests.push(msg);
+      if (msg.type === "logbook/get_events") return [];
+      throw Error("Not Alarmo");
+    },
+  };
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(
+    requests.some((r) => r.type === "logbook/get_events"),
+    false,
+  );
+  card.setConfig({ ...card.config, show_activity: true, activity_hours: 6 });
+  await new Promise((r) => setTimeout(r, 0));
+  const request = requests.find((r) => r.type === "logbook/get_events");
+  assert.deepEqual(request.entity_ids.sort(), [panelId, sensorId].sort());
+  assert.equal(
+    Date.parse(request.end_time) - Date.parse(request.start_time),
+    6 * 3600000,
+  );
+  assert.match(
+    card.shadowRoot.querySelector(".security-activity").textContent,
+    /No recorded activity/,
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(".security-activity summary"),
+    null,
+  );
+  card.setConfig({ ...card.config, show_activity: false });
+  assert.equal(card.shadowRoot.querySelector(".security-activity"), null);
+  assert.equal(card.activity.timer, undefined);
+  card.remove();
+});
+
+test("activity renders recorded order, historical states, user avatars and icon fallbacks", async () => {
+  const { card } = fixture();
+  card.visible = true;
+  const now = Date.now() / 1000;
+  card.hass = {
+    ...card.hass,
+    user: { id: "operator", name: "Test operator", is_admin: true },
+    config: { time_zone: "Europe/Athens" },
+    entities: { [sensorId]: { area_id: "test" } },
+    areas: { test: { name: "Test room" } },
+    states: {
+      ...card.hass.states,
+      "person.operator": {
+        entity_id: "person.operator",
+        state: "home",
+        attributes: {
+          user_id: "operator",
+          friendly_name: "Person",
+          entity_picture: "/api/image/serve/test/128x128",
+        },
+      },
+    },
+    callWS: async (msg) => {
+      if (msg.type === "config/auth/list")
+        return [
+          { id: "operator", name: "Test operator" },
+          { id: "other", name: "Other user" },
+        ];
+      if (msg.type !== "logbook/get_events") throw Error("Not Alarmo");
+      return [
+        { entity_id: sensorId, state: "off", when: now - 30 },
+        {
+          entity_id: panelId,
+          state: "disarmed",
+          context_user_id: "operator",
+          when: now - 5,
+        },
+        {
+          entity_id: panelId,
+          state: "armed_away",
+          context_user_id: "other",
+          when: now - 50,
+        },
+        { entity_id: "binary_sensor.unrelated", state: "on", when: now - 1 },
+      ];
+    },
+  };
+  card.setConfig({ ...card.config, show_activity: true });
+  await new Promise((r) => setTimeout(r, 0));
+  const section = card.shadowRoot.querySelector(".security-activity");
+  const rows = [...section.querySelectorAll(".security-activity-row")];
+  assert.equal(rows.length, 3);
+  assert.match(rows[0].textContent, /Disarmed/);
+  assert.match(rows[0].textContent, /Test operator/);
+  assert.match(rows[1].textContent, /Closed/);
+  assert.match(rows[1].textContent, /Test room/);
+  assert.equal(rows[1].querySelector("ha-state-icon").stateObj.state, "off");
+  assert.equal(
+    rows[0].querySelector("img").getAttribute("src"),
+    "/api/image/serve/test/128x128",
+  );
+  assert.ok(rows[2].querySelector(".security-activity-actor ha-icon"));
+  rows[0].querySelector("img").dispatchEvent(new dom.window.Event("error"));
+  assert.ok(rows[0].querySelector(".security-activity-actor ha-icon"));
+  assert.equal(rows[1].querySelector(".security-activity-actor"), null);
+  let opened;
+  card.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+  rows[1].click();
+  assert.equal(opened, sensorId);
+  card.remove();
+  assert.equal(card.activity.timer, undefined);
+});
+
+test("activity failures are explicit and late responses cannot repopulate a disabled card", async () => {
+  const { card } = fixture();
+  card.visible = true;
+  let resolve;
+  card.hass = {
+    ...card.hass,
+    callWS: (msg) =>
+      msg.type === "logbook/get_events"
+        ? new Promise((r) => (resolve = r))
+        : Promise.reject(Error("Not Alarmo")),
+  };
+  card.setConfig({ ...card.config, show_activity: true });
+  card.setConfig({ ...card.config, show_activity: false });
+  resolve([{ entity_id: sensorId, state: "on", when: Date.now() / 1000 }]);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(card.activity.entries, []);
+  assert.equal(card.shadowRoot.querySelector(".security-activity"), null);
+  card.hass = {
+    ...card.hass,
+    callWS: async () => {
+      throw Error("Denied");
+    },
+  };
+  card.setConfig({ ...card.config, show_activity: true });
+  await new Promise((r) => setTimeout(r, 0));
+  assert.match(
+    card.shadowRoot.querySelector(".security-activity").textContent,
+    /Activity unavailable/,
+  );
+  card.remove();
+});

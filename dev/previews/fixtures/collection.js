@@ -73,12 +73,27 @@ state("script.snapshot", "off");
 state("automation.snapshots", "on");
 state("switch.camera", "off");
 state("camera.room", "unavailable");
-state("person.owner", "home");
+state("person.owner", "home", {
+  user_id: "demo-user",
+  friendly_name: "Demo resident",
+});
 state("alarm_control_panel.home", "disarmed", {
   supported_features: 3,
   code_arm_required: false,
 });
-state("binary_sensor.window", "on");
+state("binary_sensor.window", "on", { device_class: "window" });
+state("binary_sensor.demo_balcony", "on", {
+  friendly_name: "Balcony",
+  device_class: "door",
+});
+state("binary_sensor.demo_motion", "on", {
+  friendly_name: "Motion",
+  device_class: "motion",
+});
+state("binary_sensor.demo_entrance", "on", {
+  friendly_name: "Front door",
+  device_class: "door",
+});
 state("lock.car", "locked");
 state("binary_sensor.car_door", "off");
 state("binary_sensor.car_window", "on");
@@ -183,6 +198,7 @@ const configs = {
   media: { name: "Chromecast", entity: "media_player.tv" },
   vacuum: { name: "Roborock Q8 Max", entity: "vacuum.robot" },
   alarmo: {
+    show_activity: true,
     name: "Home security",
     entity: "alarm_control_panel.home",
     persons: [{ entity: "person.owner", name: "Resident" }],
@@ -255,22 +271,61 @@ const connection = {},
 const hass = {
   states,
   entities: {
+    "binary_sensor.window": { area_id: "kitchen" },
+    "binary_sensor.demo_balcony": { area_id: "living" },
+    "binary_sensor.demo_motion": { area_id: "living" },
+    "binary_sensor.demo_entrance": { device_id: "demo_contact" },
     "light.strip": { device_id: "living_lamp" },
     "light.glow": { area_id: "living" },
     "switch.entrance": { area_id: "hall" },
   },
-  devices: { living_lamp: { area_id: "living" } },
-  areas: { living: { name: "Living room" }, hall: { name: "Entrance" } },
+  devices: {
+    living_lamp: { area_id: "living" },
+    demo_contact: { area_id: "hall" },
+  },
+  areas: {
+    living: { name: "Living room" },
+    hall: { name: "Entrance" },
+    kitchen: { name: "Kitchen" },
+  },
   connection,
   locale: { language: "en" },
   services: { alarmo: { arm: {} } },
   config: { time_zone: "Europe/Athens" },
   callWS: async (msg) => {
+    if (msg.type === "logbook/get_events")
+      return [
+        {
+          entity_id: "alarm_control_panel.home",
+          state: "disarmed",
+          context_user_id: "demo-user",
+          when: Date.now() / 1000 - 20,
+        },
+        {
+          entity_id: "binary_sensor.demo_motion",
+          state: "off",
+          when: Date.now() / 1000 - 30,
+        },
+        {
+          entity_id: "binary_sensor.demo_balcony",
+          state: "on",
+          when: Date.now() / 1000 - 45,
+        },
+        {
+          entity_id: "alarm_control_panel.home",
+          state: "armed_away",
+          context_user_id: "demo-user",
+          when: Date.now() / 1000 - 400,
+        },
+      ];
     if (msg.type === "alarmo/entities")
       return [{ entity_id: "alarm_control_panel.home", area_id: 1 }];
     if (msg.type === "alarmo/sensors")
       return {
-        "binary_sensor.window": { enabled: true, area: 1, name: "Window" },
+        "binary_sensor.window": { enabled: true, area: 1, type: "window" },
+        "binary_sensor.demo_balcony": { enabled: true, area: 1, type: "door" },
+        "binary_sensor.demo_motion": { enabled: true, area: 1, type: "motion" },
+        "binary_sensor.demo_entrance": { enabled: true, area: 1, type: "door" },
       };
     if (msg.type === "alarmo/countdown") return { delay: 30, remaining: 18 };
     if (msg.type !== "history/history_during_period")

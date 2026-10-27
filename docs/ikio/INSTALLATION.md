@@ -1,6 +1,6 @@
 # Installing Ikio Cards
 
-All eleven cards share the Ikio colour tokens, typography, spacing, controls and interaction helpers. Each is independently registered and has a full visual editor. The shared collection version is 0.6.4; this is not yet a live-device-verified release.
+All eleven cards share the Ikio colour tokens, typography, spacing, controls and interaction helpers. Each is independently registered and has a full visual editor. See [the shared collection version](../../ikio/package.json); this is not yet a live-device-verified release.
 
 ## HACS
 

@@ -2,7 +2,7 @@
 
 Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
 
-Collection version **0.6.1**. Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Collection version: see [the shared version](../../ikio/package.json). Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
 
 ## Installation
 
@@ -60,3 +60,13 @@ Discovery is retained in memory while the card is hidden; returning immediately 
 During exit/entry delay the header shows remaining seconds and a shrinking coral ring around the smaller shield. Open-sensor warnings remain amber; the armed state turns green only after confirmation from Alarmo. Timing comes from `alarmo/countdown`, with local one-second ticks and a background resync every 15 seconds. Returning to the card resyncs the actual remaining time. If timing is unavailable the state and PIN controls remain usable without invented seconds. The static configured-delay note is removed. Reduced-motion settings disable ring transitions.
 
 Sensor names and icons are collapsed by default. Tap the sensor count/status row to expand or collapse the details. Alert counts and the bypass checkbox remain visible, and the PIN pad stays independent of the disclosure. Expansion persists during live updates and resets after all alerts clear or the card is reconfigured.
+
+### Area-grouped sensor details
+
+The existing expandable alert list groups sensor chips by Home Assistant area (entity assignment first, then device assignment; Unassigned if neither resolves). Area labels stay on the left, with subtle chips flowing and wrapping on the right. Within an area, sensors are ordered by door, window, other opening, motion and other types, then name. Native HA icons, entity details, collapsed-by-default behavior and bypass consent remain available. Bypassed and unavailable alerts retain explicit labels. Alarmo security areas are not used as room assignments. No additional configuration is required.
+
+### Optional activity timeline
+
+Enable **Show activity** in the visual editor to show an always-visible timeline below the alarm controls. **Activity hours to show** defaults to 24 (1–168 hours). The panel, automatically discovered Alarmo sensors and optional extra sensors are included without a second entity list. Events show recorded state, area, date and time with seconds, newest first in Home Assistant's timezone. User actions show a name and linked person picture when available; otherwise a person icon is shown. User names come from linked person entities, the current user, or the user directory when the viewer has permission; unresolved actors display Unknown user. Sensor events without user attribution have no user badge.
+
+The timeline uses HA's Logbook API and requires recorded activity and access to it. It refreshes every minute while the card is visible, stops when hidden/disconnected/disabled, times out failed requests, and displays explicit loading/empty/error states. At most 200 recent events are rendered, with a notice when truncated. An unavailable activity service does not disable alarm controls. This is a recent-activity view, not a separately preserved incident archive.
