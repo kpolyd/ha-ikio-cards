@@ -666,3 +666,7 @@ For all future new cards and redesigns, obtain explicit owner agreement on both 
 ## 64. Generic cards as a standing design requirement
 
 Every card must be generic and reusable rather than built around the owner’s personal use case. Household examples must not dictate fixed entity slots, cardinalities, names or defaults. Design configuration around general tasks and actual HA entity capabilities, using repeatable lists where appropriate and explicitly identifying real supported-domain limits. Apply this principle together with the requirement to agree on both mock and configuration before implementing new cards or redesigns.
+
+## 65. Chip as a dashboard badge
+
+Expose the already approved sensor chip in Home Assistant’s badge picker as Ikio Chip, type custom:ikio-chip-badge, alongside the existing custom:ikio-chip-card. Reuse its renderer, visual editor, sensor/name/theme configuration, native icons and tap/hold details without a new design or additional resource. Use a distinct custom-element subclass to register the badge and remove inline-size containment so it can size to content in a badge row. Keep the card registration and twelve-card package inventory intact. This explicitly requested reuse does not authorize the Climate redesign or a release.
