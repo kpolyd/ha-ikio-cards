@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## 0.7.1 — Compact, incremental Alarmo activity
+
+- Keep activity in a scrollable region showing roughly 5–6 normal entries, with natural height for shorter lists and a subtle scrollbar.
+- Load older activity near the bottom in batches of 20. Search progressively older time ranges and reuse cached events instead of downloading the entire configured history upfront.
+- Refresh only new time ranges, preserve the reader’s position, retain loaded history across visibility pauses, and deduplicate overlapping boundaries.
+- Preserve user attribution, avatars, native icons and entity details. No configuration changes are required.
+
 ## 0.7.0 — Alarmo area groups and activity timeline
 
 - Group Alarmo sensor alerts by Home Assistant area with compact, wrapping chips and native sensor icons. Preserve bypassed/unavailable alerts and entity details.
