@@ -201,3 +201,52 @@ export function availabilityLabel(state) {
 
 export const metricThresholds = Object.freeze({ warning: 70, critical: 85 });
 export const metricLevel = (value) => threshold(value, metricThresholds);
+
+// Prefer the explicitly configured health sensor; never mask its missing state
+// with a healthy power switch. Unknown/custom states retain visible text.
+export function serviceHealth(state) {
+  const raw = String(state?.state || "")
+    .trim()
+    .toLowerCase();
+  if (!state || !raw || raw === "unknown")
+    return { level: "unknown", text: "Unknown" };
+  if (raw === "unavailable") return { level: "unknown", text: "Unavailable" };
+  if (
+    state.attributes?.device_class === "problem" &&
+    ["on", "off"].includes(raw)
+  )
+    return raw === "on"
+      ? { level: "stopped", text: "Problem" }
+      : { level: "running", text: "Running" };
+  if (
+    [
+      "on",
+      "running",
+      "online",
+      "healthy",
+      "up",
+      "active",
+      "true",
+      "1",
+    ].includes(raw)
+  )
+    return { level: "running", text: "Running" };
+  if (
+    [
+      "off",
+      "stopped",
+      "not running",
+      "not_running",
+      "offline",
+      "down",
+      "inactive",
+      "exited",
+      "false",
+      "0",
+    ].includes(raw)
+  )
+    return { level: "stopped", text: "Stopped" };
+  if (["error", "failed", "unhealthy"].includes(raw))
+    return { level: "stopped", text: state.state };
+  return { level: "unknown", text: state.state };
+}

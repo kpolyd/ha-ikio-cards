@@ -36,7 +36,7 @@ test("preview inventory and hashes bind captures to exact source", async () => {
     await save();
     assert.equal(
       (await validatePreview(root, "abc", "bundle")).captures.length,
-      88,
+      cards.length * 8,
     );
     await assert.rejects(
       validatePreview(root, "different", "bundle"),

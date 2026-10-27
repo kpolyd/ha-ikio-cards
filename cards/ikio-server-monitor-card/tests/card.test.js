@@ -216,7 +216,7 @@ test("service restart keeps confirmation inside the card and services stay discl
   assert.equal(details.open, false);
   details.open = true;
   details.dispatchEvent(new dom.window.Event("toggle"));
-  card.shadowRoot.querySelector('[aria-label="Restart"]').click();
+  card.shadowRoot.querySelector('[aria-label="Restart Example"]').click();
   assert.equal(calls.length, 0);
   assert.equal(card.shadowRoot.querySelector("dialog"), null);
   assert.match(
@@ -575,7 +575,7 @@ test("automatic uptime and availability replace both editor options, including l
   card.remove();
 });
 
-test("database stays available inside collapsed details without an extra overview row or an inflated service count", () => {
+test("legacy database migrates into an extra-reading chip above resources without inflating service count", () => {
   const card = systemFixture(
     {
       database_entity: "sensor.database",
@@ -596,7 +596,9 @@ test("database stays available inside collapsed details without an extra overvie
     details.querySelector("summary ha-icon").getAttribute("icon"),
     "mdi:chevron-down",
   );
-  const database = details.querySelector('[data-entity="sensor.database"]');
+  const database = card.shadowRoot.querySelector(
+    '.system-extra-readings [data-entity="sensor.database"]',
+  );
   assert.match(database.textContent, /871.44 MB/);
   assert.equal(
     card.shadowRoot.querySelector(".ikio-server-monitor-metadata"),
@@ -788,4 +790,241 @@ test("network extrema show at most one decimal while keeping precise plot values
     "2.4 MB/s",
   );
   assert.equal(chart.querySelector("path").getAttribute("d"), "M0,30 L300,2 ");
+});
+
+test("service grid hides healthy repetition, retains exceptions and uses the configured health source", async () => {
+  const card = document.createElement("ikio-server-monitor-card");
+  const services = Array.from({ length: 6 }, (_, i) => ({
+    name: `Demo service ${i}`,
+    status_entity: `binary_sensor.service_${i}`,
+    control_entity: `switch.service_${i}`,
+  }));
+  card.setConfig({ services, database_entity: "sensor.demo_db" });
+  const states = {
+    "sensor.demo_db": { state: "2", attributes: { unit_of_measurement: "MB" } },
+  };
+  for (let i = 0; i < 6; i++)
+    states[`switch.service_${i}`] = { state: "on", attributes: {} };
+  for (const [i, state] of [
+    "on",
+    "off",
+    "unavailable",
+    "unknown",
+    "unhealthy",
+  ].entries())
+    states[`binary_sensor.service_${i}`] = { state, attributes: {} };
+  const calls = [];
+  card.hass = { states, callService: async (...args) => calls.push(args) };
+  document.body.append(card);
+  const tiles = () => [...card.shadowRoot.querySelectorAll(".system-service")];
+  assert.equal(tiles().length, 6);
+  assert.equal(tiles()[0].querySelector(".system-service-state"), null);
+  assert.equal(
+    tiles()[0]
+      .querySelector(".system-service-identity")
+      .getAttribute("aria-label"),
+    "Demo service 0: Running",
+  );
+  assert.match(tiles()[1].textContent, /Stopped/);
+  assert.match(tiles()[2].textContent, /Unavailable/);
+  assert.match(tiles()[3].textContent, /Unknown/);
+  assert.match(tiles()[4].textContent, /unhealthy/);
+  assert.match(
+    tiles()[5].textContent,
+    /Unknown/,
+    "missing health must not fall back to an on switch",
+  );
+  assert.equal(
+    card.shadowRoot
+      .querySelector(".system-service-grid")
+      .textContent.includes("Health"),
+    false,
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(
+      '.system-service-grid [data-entity="sensor.demo_db"]',
+    ),
+    null,
+  );
+  let opened;
+  card.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+  tiles()[0].querySelector(".system-service-identity").click();
+  assert.equal(opened, "binary_sensor.service_0");
+  assert.equal(calls.length, 0);
+  tiles()[0].querySelector(".system-service-controls button").click();
+  await Promise.resolve();
+  assert.equal(calls[0][1], "turn_off");
+  assert.equal(calls[0][2].entity_id, "switch.service_0");
+  assert.equal(
+    tiles()[0].querySelector(".system-service-controls button").disabled,
+    true,
+    "pending action must remain disabled",
+  );
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...states,
+      "binary_sensor.service_1": { state: "on", attributes: {} },
+    },
+  };
+  assert.equal(tiles()[1].querySelector(".system-service-state"), null);
+  card.remove();
+});
+
+test("service controls remain optional and unavailable switches cannot be operated", async () => {
+  const card = document.createElement("ikio-server-monitor-card");
+  card.setConfig({
+    services: [
+      { name: "Read only", status_entity: "sensor.health" },
+      { name: "Power only", control_entity: "switch.power" },
+      {
+        name: "Both",
+        control_entity: "switch.other",
+        restart_action: "script.restart",
+      },
+      { name: "No bindings" },
+    ],
+  });
+  const calls = [];
+  card.hass = {
+    states: {
+      "sensor.health": { state: "running", attributes: {} },
+      "switch.power": { state: "unavailable", attributes: {} },
+      "switch.other": { state: "on", attributes: {} },
+      "script.restart": { state: "off", attributes: {} },
+    },
+    callService: async (...args) => calls.push(args),
+  };
+  document.body.append(card);
+  const tiles = card.shadowRoot.querySelectorAll(".system-service");
+  assert.equal(tiles[0].querySelector(".system-service-controls"), null);
+  assert.equal(
+    tiles[1].querySelector(".system-service-controls button").disabled,
+    true,
+  );
+  assert.equal(
+    tiles[2].querySelectorAll(".system-service-controls button").length,
+    2,
+  );
+  assert.ok(tiles[2].classList.contains("multiple-controls"));
+  assert.match(tiles[3].textContent, /Unknown/);
+  tiles[1].querySelector('button[aria-label^="Power"]').click();
+  await Promise.resolve();
+  assert.equal(calls.length, 0);
+  card.remove();
+});
+
+test("service problem sensors never show a healthy dot while reporting a problem", async () => {
+  const { serviceHealth } = await import("../src/adapter.js");
+  assert.deepEqual(
+    serviceHealth({ state: "on", attributes: { device_class: "problem" } }),
+    { level: "stopped", text: "Problem" },
+  );
+  assert.deepEqual(
+    serviceHealth({ state: "off", attributes: { device_class: "problem" } }),
+    { level: "running", text: "Running" },
+  );
+  assert.deepEqual(serviceHealth({ state: "starting", attributes: {} }), {
+    level: "unknown",
+    text: "starting",
+  });
+});
+
+test("extra readings reuse chips above resource rings in configured order and update native icons", () => {
+  const config = {
+    cpu_entity: "sensor.cpu",
+    extra_readings: [
+      { entity: "sensor.db", name: "DB" },
+      { entity: "sensor.count" },
+    ],
+    database_entity: "sensor.ignored",
+  };
+  const c = systemFixture(config, {
+    "sensor.cpu": { state: "5", attributes: { unit_of_measurement: "%" } },
+    "sensor.db": {
+      entity_id: "sensor.db",
+      state: "42",
+      attributes: { unit_of_measurement: "MB", icon: "mdi:database" },
+    },
+    "sensor.count": {
+      entity_id: "sensor.count",
+      state: "12",
+      attributes: { friendly_name: "Containers" },
+    },
+  });
+  const chips = c.shadowRoot.querySelectorAll(
+    ".system-extra-readings .ikio-sensor-chip",
+  );
+  assert.equal(chips.length, 2);
+  assert.equal(chips[0].querySelector(".ikio-chip-name").textContent, "DB");
+  assert.equal(
+    chips[1].querySelector(".ikio-chip-name").textContent,
+    "Containers",
+  );
+  assert.equal(
+    chips[0].querySelector("ha-state-icon").stateObj,
+    c.hass.states["sensor.db"],
+  );
+  const group = c.shadowRoot.querySelector(".ikio-server-monitor");
+  const children = [...group.children];
+  assert.ok(
+    children.indexOf(c.shadowRoot.querySelector(".system-extra-readings")) <
+      children.indexOf(c.shadowRoot.querySelector(".ikio-resources")),
+  );
+  assert.equal(
+    c.shadowRoot.querySelector("details"),
+    null,
+    "extra readings do not need a disclosure",
+  );
+  assert.equal(
+    config.database_entity,
+    "sensor.ignored",
+    "migration must not mutate input",
+  );
+  c.hass = {
+    ...c.hass,
+    states: {
+      ...c.hass.states,
+      "sensor.db": { entity_id: "sensor.db", state: "unknown", attributes: {} },
+    },
+  };
+  assert.equal(
+    c.shadowRoot.querySelector(".ikio-chip-value").textContent,
+    "unknown",
+  );
+  c.remove();
+});
+
+test("legacy DB is editable as Extra readings and can be removed without returning", async () => {
+  const Class = customElements.get("ikio-server-monitor-card");
+  const editor = await Class.getConfigElement();
+  editor.setConfig({
+    database_entity: "sensor.database",
+    grid_options: { columns: 6 },
+  });
+  editor.hass = { states: {} };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(editor.config.extra_readings, [
+    { name: "Database", entity: "sensor.database" },
+  ]);
+  assert.equal(editor.config.database_entity, undefined);
+  assert.ok(editor.shadowRoot.textContent.includes("Extra readings"));
+  assert.equal(
+    editor.shadowRoot
+      .querySelector("ha-form")
+      .schema.some((f) => f.name === "database_entity"),
+    false,
+  );
+  let saved;
+  editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  [...editor.shadowRoot.querySelectorAll("button")]
+    .find((b) => b.textContent === "Remove")
+    .click();
+  assert.deepEqual(saved.extra_readings, []);
+  assert.deepEqual(saved.grid_options, { columns: 6 });
+  const card = systemFixture(saved, {});
+  assert.equal(card.shadowRoot.querySelector(".system-extra-readings"), null);
+  card.remove();
+  editor.remove();
 });

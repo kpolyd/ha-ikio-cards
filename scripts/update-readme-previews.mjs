@@ -14,6 +14,7 @@ const names = [
   "Vacuum",
   "Appliances",
   "Graph",
+  "Chip",
 ];
 const block =
   `<!-- IKIO_PREVIEWS_START -->\n## Card previews · ${version}\n\nActual compiled cards with simulated Home Assistant data. Click an image to open the interactive gallery.\n\n` +

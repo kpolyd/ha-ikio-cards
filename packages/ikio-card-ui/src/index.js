@@ -9,3 +9,4 @@ export {
 } from "./editor.js";
 export * from "./controls.js";
 export * from "./refinement.js";
+export { chipStyles, sensorChip, updateChipIcons } from "./chip.js";

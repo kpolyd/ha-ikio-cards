@@ -11,7 +11,6 @@ const metrics = [
   ["disk_free", "Disk remaining", "sensor"],
   ["disk_total", "Disk total (optional with remaining)", "sensor"],
   ["disk_percent", "Disk utilization", "sensor"],
-  ["database", "Database size", "sensor"],
   ["network_rx", "Network receive rate", "sensor"],
   ["network_tx", "Network transmit rate", "sensor"],
 ];
@@ -19,6 +18,15 @@ export const fields = [
   ...metrics.map(([k, label, domain]) => entity(k + "_entity", label, domain)),
 ];
 export const lists = [
+  {
+    name: "extra_readings",
+    label: "Extra readings",
+    item: "reading",
+    fields: [
+      entity("entity", "Sensor", "sensor", true),
+      text("name", "Name (optional)"),
+    ],
+  },
   {
     name: "services",
     label: "Service status and controls",
@@ -34,3 +42,15 @@ export const lists = [
   },
 ];
 export const validate = (c) => validateConfig(c, fields, lists);
+
+// Preserve legacy DB bindings without duplicating them or resurrecting a removed chip.
+export function migrateConfig(config) {
+  if (!config || typeof config !== "object") return config;
+  const result = { ...config };
+  if (result.extra_readings === undefined && result.database_entity)
+    result.extra_readings = [
+      { name: "Database", entity: result.database_entity },
+    ];
+  delete result.database_entity;
+  return result;
+}

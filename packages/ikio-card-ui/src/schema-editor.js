@@ -73,13 +73,19 @@ export function validateConfig(config, fields, lists = []) {
     for (const row of config[l.name] || []) check(row, l.fields);
   }
 }
-export function defineEditor(tag, fields, lists = []) {
+export function defineEditor(
+  tag,
+  fields,
+  lists = [],
+  normalizeConfig = (c) => c,
+) {
   class Editor extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({ mode: "open" });
     }
     setConfig(config) {
+      config = normalizeConfig(config);
       if (sameConfig(this.config, config)) return;
       this.config = structuredClone(config);
       this.render();
