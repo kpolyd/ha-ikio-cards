@@ -317,7 +317,19 @@ const hass = {
           context_user_id: "demo-user",
           when: Date.now() / 1000 - 400,
         },
-      ];
+        ...Array.from({ length: 50 }, (_, i) => ({
+          entity_id:
+            i % 2 ? "binary_sensor.demo_motion" : "binary_sensor.demo_balcony",
+          state: i % 4 < 2 ? "on" : "off",
+          when: Date.now() / 1000 - 60 - i * 15,
+          context_id: `demo-activity-${i}`,
+        })),
+      ].filter(
+        (entry) =>
+          msg.entity_ids.includes(entry.entity_id) &&
+          entry.when * 1000 >= Date.parse(msg.start_time) &&
+          entry.when * 1000 <= Date.parse(msg.end_time),
+      );
     if (msg.type === "alarmo/entities")
       return [{ entity_id: "alarm_control_panel.home", area_id: 1 }];
     if (msg.type === "alarmo/sensors")

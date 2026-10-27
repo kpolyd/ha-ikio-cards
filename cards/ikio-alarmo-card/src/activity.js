@@ -1,10 +1,29 @@
 import { el, button, details, event } from "@ikio/card-ui";
 
-const LIMIT = 200;
+const BATCH = 20;
+const INITIAL_WINDOW = 5 * 60000;
+const MAX_WINDOW = 6 * 3600000;
+const identity = (entry) =>
+  JSON.stringify([
+    entry.when,
+    entry.entity_id,
+    entry.state,
+    entry.message,
+    entry.context_id,
+    entry.context_user_id,
+    entry.domain,
+    entry.source,
+  ]);
+const merge = (...groups) =>
+  [...new Map(groups.flat().map((e) => [identity(e), e])).values()].sort(
+    (a, b) => b.when - a.when,
+  );
+
 export class SensorActivity {
   constructor(card) {
     this.card = card;
     this.entries = [];
+    this.pending = [];
     this.users = [];
   }
   stop() {
@@ -15,6 +34,15 @@ export class SensorActivity {
     this.cancel = undefined;
     this.key = undefined;
     this.loading = false;
+  }
+  reset() {
+    this.stop();
+    this.cacheKey = undefined;
+    this.entries = [];
+    this.pending = [];
+    this.users = [];
+    this.usersLoaded = false;
+    this.anchor = undefined;
   }
   sync() {
     const c = this.card;
@@ -36,29 +64,103 @@ export class SensorActivity {
       this.callWS === c.hass?.callWS
     )
       return;
+    const reuse =
+      this.cacheKey === key &&
+      this.connection === c.hass?.connection &&
+      this.callWS === c.hass?.callWS;
     this.stop();
     this.key = key;
+    this.cacheKey = key;
     this.connection = c.hass?.connection;
     this.callWS = c.hass?.callWS;
-    this.entries = [];
-    this.users = [];
-    this.usersLoaded = false;
+    this.entities = entities;
+    if (!reuse) {
+      this.entries = [];
+      this.pending = [];
+      this.users = [];
+      this.usersLoaded = false;
+      this.liveEnd = Date.now();
+      this.cursor = this.liveEnd;
+      this.window = INITIAL_WINDOW;
+      this.anchor = undefined;
+    }
     this.error = undefined;
     if (!entities.length || !this.callWS) {
       this.error = "Activity unavailable";
       c.update();
       return;
     }
-    const generation = this.generation;
-    this.load(entities, generation);
+    this.run(reuse && this.entries.length ? "refresh" : "more");
   }
-  async load(entities, generation) {
-    const c = this.card;
-    if (generation !== this.generation) return;
+  floor() {
+    return Date.now() - (this.card.config.activity_hours || 24) * 3600000;
+  }
+  hasMore() {
+    return this.pending.length > 0 || this.cursor > this.floor();
+  }
+  rememberScroll() {
+    const viewport = this.card.content.querySelector(
+      ".security-activity-scroll",
+    );
+    if (!viewport || viewport.scrollTop <= 1) return;
+    const top = viewport.getBoundingClientRect().top;
+    const first = [...viewport.querySelectorAll(".security-activity-row")].find(
+      (n) => n.getBoundingClientRect().bottom > top,
+    );
+    this.anchor = {
+      key: first?.dataset.key,
+      offset: first ? first.getBoundingClientRect().top - top : 0,
+      scrollTop: viewport.scrollTop,
+    };
+  }
+  afterRender() {
+    if (!this.anchor) return;
+    const viewport = this.card.content.querySelector(
+      ".security-activity-scroll",
+    );
+    if (!viewport) return;
+    const first = [...viewport.querySelectorAll(".security-activity-row")].find(
+      (n) => n.dataset.key === this.anchor.key,
+    );
+    viewport.scrollTop = first
+      ? viewport.scrollTop +
+        first.getBoundingClientRect().top -
+        viewport.getBoundingClientRect().top -
+        this.anchor.offset
+      : this.anchor.scrollTop;
+    this.anchor = undefined;
+  }
+  onScroll(viewport) {
+    if (
+      viewport.clientHeight > 0 &&
+      viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop < 96 &&
+      !this.loading &&
+      this.hasMore()
+    )
+      this.run("more");
+  }
+  async run(mode) {
+    if (
+      this.loading ||
+      !this.key ||
+      !this.card.visible ||
+      !this.card.isConnected
+    )
+      return;
+    if (mode === "more" && !this.hasMore()) return;
+    const c = this.card,
+      generation = this.generation;
+    const operation = (this.operation = (this.operation || 0) + 1);
+    const valid = () =>
+      this.generation === generation &&
+      this.operation === operation &&
+      !!this.key;
     this.loading = true;
+    this.mode = mode;
+    this.error = undefined;
+    clearTimeout(this.timer);
+    this.timer = undefined;
     c.update();
-    const end = Date.now();
-    const start = end - (c.config.activity_hours || 24) * 3600000;
     let timeout;
     const cancelled = new Promise((resolve, reject) => {
       this.cancel = () => resolve(null);
@@ -67,51 +169,84 @@ export class SensorActivity {
         10000,
       );
     });
+    const query = async (start, end) => {
+      const response = await c.hass.callWS({
+        type: "logbook/get_events",
+        start_time: new Date(start).toISOString(),
+        end_time: new Date(end).toISOString(),
+        entity_ids: this.entities,
+      });
+      if (!valid()) throw Error("Cancelled");
+      if (!Array.isArray(response)) throw Error("Invalid activity response");
+      return response.filter(
+        (e) =>
+          e &&
+          this.entities.includes(e.entity_id) &&
+          Number.isFinite(e.when) &&
+          e.when * 1000 >= start &&
+          e.when * 1000 <= end,
+      );
+    };
+    const load = async () => {
+      if (c.hass.user?.is_admin && !this.usersLoaded) {
+        const users = await c.hass
+          .callWS({ type: "config/auth/list" })
+          .catch(() => []);
+        if (!valid()) return;
+        this.users = Array.isArray(users)
+          ? users.map(({ id, name }) => ({ id, name }))
+          : [];
+        this.usersLoaded = true;
+      }
+      if (mode === "refresh") {
+        const end = Date.now(),
+          floor = this.floor();
+        const recent = await query(Math.max(this.liveEnd, floor), end);
+        if (!valid()) return;
+        this.rememberScroll();
+        this.entries = merge(recent, this.entries).filter(
+          (e) => e.when * 1000 >= floor,
+        );
+        this.pending = this.pending.filter((e) => e.when * 1000 >= floor);
+        this.liveEnd = end;
+      } else {
+        while (this.pending.length < BATCH && this.cursor > this.floor()) {
+          const end = this.cursor,
+            start = Math.max(this.floor(), end - this.window);
+          const older = await query(start, end);
+          if (!valid()) return;
+          const loaded = new Set(this.entries.map(identity));
+          this.pending = merge(this.pending, older).filter(
+            (e) => !loaded.has(identity(e)),
+          );
+          this.cursor = start;
+          this.window =
+            older.length < BATCH
+              ? Math.min(this.window * 2, MAX_WINDOW)
+              : INITIAL_WINDOW;
+        }
+        if (!valid()) return;
+        this.rememberScroll();
+        this.entries = merge(this.entries, this.pending.splice(0, BATCH));
+      }
+    };
     try {
-      const response = await Promise.race([
-        Promise.all([
-          c.hass.callWS({
-            type: "logbook/get_events",
-            start_time: new Date(start).toISOString(),
-            end_time: new Date(end).toISOString(),
-            entity_ids: entities,
-          }),
-          c.hass.user?.is_admin && !this.usersLoaded
-            ? c.hass.callWS({ type: "config/auth/list" }).catch(() => [])
-            : Promise.resolve(this.users),
-        ]),
-        cancelled,
-      ]);
-      if (!response || generation !== this.generation) return;
-      const [entries, users] = response;
-      if (!Array.isArray(entries)) throw Error("Invalid activity response");
-      this.users = Array.isArray(users)
-        ? users.map(({ id, name }) => ({ id, name }))
-        : [];
-      this.usersLoaded = true;
-      this.entries = entries
-        .filter(
-          (e) =>
-            entities.includes(e.entity_id) &&
-            Number.isFinite(e.when) &&
-            e.when * 1000 >= start &&
-            e.when * 1000 <= end,
-        )
-        .sort((a, b) => b.when - a.when);
-      this.truncated = this.entries.length > LIMIT;
-      this.entries = this.entries.slice(0, LIMIT);
-      this.error = undefined;
+      await Promise.race([load(), cancelled]);
     } catch {
-      if (generation === this.generation)
+      if (valid())
         this.error =
           "Activity unavailable. Check Recorder/Activity access; retrying automatically.";
     } finally {
       clearTimeout(timeout);
-      if (generation === this.generation) {
+      if (valid()) {
+        this.operation++;
         this.cancel = undefined;
         this.loading = false;
         c.update();
-        this.timer = setTimeout(() => this.load(entities, generation), 60000);
+        this.timer = setTimeout(
+          () => this.run(this.error ? mode : "refresh"),
+          60000,
+        );
       }
     }
   }
@@ -154,6 +289,20 @@ export class SensorActivity {
         );
       return section;
     }
+    const viewport = el(
+      "div",
+      undefined,
+      "security-activity-scroll",
+      "activity-scroll",
+    );
+    viewport.setAttribute("role", "region");
+    viewport.tabIndex = 0;
+    viewport.setAttribute(
+      "aria-label",
+      "Sensor activity; scroll for older events",
+    );
+    event(viewport, "scroll", (e) => this.onScroll(e.currentTarget));
+    section.append(viewport);
     const locale = c.hass?.locale?.language || c.hass?.language || "en";
     const options = { timeZone: c.hass?.config?.time_zone };
     const dateFormat = new Intl.DateTimeFormat(locale, {
@@ -174,7 +323,9 @@ export class SensorActivity {
       const date = new Date(entry.when * 1000);
       const dateLabel = dateFormat.format(date);
       if (dateLabel !== day) {
-        section.append(el("h4", dateLabel));
+        viewport.append(
+          el("h4", dateLabel, undefined, `activity-date-${dateLabel}`),
+        );
         day = dateLabel;
       }
       const state = c.state(entry.entity_id);
@@ -276,10 +427,22 @@ export class SensorActivity {
         "aria-label",
         `${label}: ${description}, ${dateLabel} ${time.textContent}${actor ? `, ${actor.name}` : ""}`,
       );
-      section.append(row);
+      viewport.append(row);
     }
-    if (this.truncated)
-      section.append(el("p", `Showing the latest ${LIMIT} events.`, "ae-note"));
+    const footer = el(
+      "p",
+      this.loading
+        ? this.mode === "refresh"
+          ? "Updating activity…"
+          : "Loading older activity…"
+        : this.hasMore()
+          ? "Scroll for older activity"
+          : "End of activity",
+      "ae-note",
+      "activity-footer",
+    );
+    footer.setAttribute("role", "status");
+    viewport.append(footer);
     return section;
   }
 }

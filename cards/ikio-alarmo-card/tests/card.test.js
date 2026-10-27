@@ -1009,7 +1009,7 @@ test("grouped alert chips keep exceptional statuses visible and never treat Alar
   card.remove();
 });
 
-test("activity is opt-in and queries only the panel and monitored sensors with an exact time window", async () => {
+test("activity is opt-in and searches bounded time windows for only the panel and monitored sensors", async () => {
   const { card } = fixture();
   card.visible = true;
   const requests = [];
@@ -1032,7 +1032,20 @@ test("activity is opt-in and queries only the panel and monitored sensors with a
   assert.deepEqual(request.entity_ids.sort(), [panelId, sensorId].sort());
   assert.equal(
     Date.parse(request.end_time) - Date.parse(request.start_time),
-    6 * 3600000,
+    5 * 60000,
+  );
+  const activityRequests = requests.filter(
+    (r) => r.type === "logbook/get_events",
+  );
+  assert.ok(
+    activityRequests.every(
+      (r) =>
+        Date.parse(r.start_time) >= Date.parse(request.end_time) - 6 * 3600000,
+    ),
+  );
+  assert.ok(
+    Date.parse(activityRequests.at(-1).start_time) <=
+      Date.parse(request.end_time) - 6 * 3600000 + 1000,
   );
   assert.match(
     card.shadowRoot.querySelector(".security-activity").textContent,
@@ -1149,6 +1162,191 @@ test("activity failures are explicit and late responses cannot repopulate a disa
   assert.match(
     card.shadowRoot.querySelector(".security-activity").textContent,
     /Activity unavailable/,
+  );
+  card.remove();
+});
+
+test("activity adds twenty entries at a time, using cached window results before fetching older windows", async () => {
+  const { card } = fixture();
+  card.visible = true;
+  const now = Date.now() / 1000;
+  const events = Array.from({ length: 55 }, (_, i) => ({
+    entity_id: sensorId,
+    state: i % 2 ? "on" : "off",
+    when: now - i - 1,
+    context_id: `demo-${i}`,
+  }));
+  const requests = [];
+  card.hass = {
+    ...card.hass,
+    callWS: async (msg) => {
+      if (msg.type !== "logbook/get_events") throw Error("Not Alarmo");
+      requests.push(msg);
+      return events.filter(
+        (e) =>
+          e.when * 1000 >= Date.parse(msg.start_time) &&
+          e.when * 1000 <= Date.parse(msg.end_time),
+      );
+    },
+  };
+  card.setConfig({ ...card.config, show_activity: true });
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(card.activity.entries.length, 20);
+  assert.equal(
+    requests.length,
+    1,
+    "initial request must not fetch the full history window",
+  );
+  const viewport = card.shadowRoot.querySelector(".security-activity-scroll");
+  assert.equal(viewport.tabIndex, 0);
+  Object.defineProperties(viewport, {
+    clientHeight: { value: 288, configurable: true },
+    scrollHeight: { get: () => 1200, configurable: true },
+  });
+  viewport.scrollTop = 200;
+  viewport.dispatchEvent(new dom.window.Event("scroll"));
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(
+    card.activity.entries.length,
+    20,
+    "scrolling away from bottom must not load",
+  );
+  viewport.scrollTop = 900;
+  viewport.dispatchEvent(new dom.window.Event("scroll"));
+  viewport.dispatchEvent(new dom.window.Event("scroll"));
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(card.activity.entries.length, 40);
+  assert.equal(
+    requests.length,
+    1,
+    "next twenty can come from the current window buffer",
+  );
+  await card.activity.run("more");
+  assert.equal(card.activity.entries.length, 55);
+  assert.equal(
+    new Set(card.activity.entries.map((e) => e.context_id)).size,
+    55,
+  );
+  assert.ok(
+    requests.length > 1,
+    "older time windows are fetched only when needed",
+  );
+  assert.equal(card.activity.hasMore(), false);
+  assert.equal(
+    viewport,
+    card.shadowRoot.querySelector(".security-activity-scroll"),
+    "preserve actual scroll element across updates",
+  );
+  card.remove();
+});
+
+test("activity window boundaries are deduplicated and sparse history is searched back to the configured limit", async () => {
+  const { card } = fixture();
+  card.visible = true;
+  const now = Date.now() / 1000;
+  const events = [
+    { entity_id: sensorId, state: "on", when: now - 300 },
+    { entity_id: sensorId, state: "off", when: now - 5400 },
+  ];
+  const ranges = [];
+  card.hass = {
+    ...card.hass,
+    callWS: async (msg) => {
+      if (msg.type !== "logbook/get_events") throw Error("Not Alarmo");
+      ranges.push([Date.parse(msg.start_time), Date.parse(msg.end_time)]);
+      return events.filter(
+        (e) =>
+          e.when * 1000 >= Date.parse(msg.start_time) &&
+          e.when * 1000 <= Date.parse(msg.end_time),
+      );
+    },
+  };
+  card.setConfig({ ...card.config, show_activity: true, activity_hours: 2 });
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(card.activity.entries.length, 2);
+  for (let i = 1; i < ranges.length; i++)
+    assert.equal(ranges[i][1], ranges[i - 1][0]);
+  assert.equal(card.activity.hasMore(), false);
+  const count = ranges.length;
+  await card.activity.run("more");
+  assert.equal(ranges.length, count);
+  card.remove();
+});
+
+test("activity refresh queries only new time and preserves a scrolled reader and loaded history", async () => {
+  const { card } = fixture();
+  card.visible = true;
+  const now = Date.now() / 1000;
+  let fresh = false;
+  const events = Array.from({ length: 30 }, (_, i) => ({
+    entity_id: sensorId,
+    state: i % 2 ? "on" : "off",
+    when: now - i - 10,
+    context_id: String(i),
+  }));
+  const requests = [];
+  card.hass = {
+    ...card.hass,
+    callWS: async (msg) => {
+      if (msg.type !== "logbook/get_events") throw Error("Not Alarmo");
+      requests.push(msg);
+      const data = fresh
+        ? [
+            {
+              entity_id: panelId,
+              state: "disarmed",
+              when: Date.now() / 1000,
+              context_id: "new",
+            },
+            ...events,
+          ]
+        : events;
+      return data.filter(
+        (e) =>
+          e.when * 1000 >= Date.parse(msg.start_time) &&
+          e.when * 1000 <= Date.parse(msg.end_time),
+      );
+    },
+  };
+  card.setConfig({ ...card.config, show_activity: true });
+  await new Promise((r) => setTimeout(r, 0));
+  const viewport = card.shadowRoot.querySelector(".security-activity-scroll");
+  viewport.scrollTop = 170;
+  viewport.getBoundingClientRect = () => ({ top: 0 });
+  const anchor = viewport.querySelector(".security-activity-row");
+  anchor.getBoundingClientRect = () => ({
+    top: -20 + (card.activity.entries.length > 20 ? 48 : 0),
+    bottom: 28 + (card.activity.entries.length > 20 ? 48 : 0),
+  });
+  const anchorKey = anchor.dataset.key;
+  const restoreScroll = card.activity.afterRender.bind(card.activity);
+  card.activity.afterRender = () => {
+    const current = [
+      ...viewport.querySelectorAll(".security-activity-row"),
+    ].find((row) => row.dataset.key === anchorKey);
+    if (current) current.getBoundingClientRect = anchor.getBoundingClientRect;
+    restoreScroll();
+  };
+  const oldEnd = card.activity.liveEnd;
+  fresh = true;
+  await card.activity.run("refresh");
+  assert.equal(Date.parse(requests.at(-1).start_time), oldEnd);
+  assert.equal(card.activity.entries.length, 21);
+  assert.equal(
+    viewport.scrollTop,
+    218,
+    "new rows above the reader must be compensated by their height",
+  );
+  assert.equal(card.activity.entries[0].context_id, "new");
+  card.visible = false;
+  card.onVisibility();
+  const count = card.activity.entries.length;
+  card.visible = true;
+  card.onVisibility();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.ok(
+    card.activity.entries.length >= count,
+    "visibility resume must retain loaded history",
   );
   card.remove();
 });
