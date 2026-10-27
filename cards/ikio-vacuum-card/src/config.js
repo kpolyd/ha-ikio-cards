@@ -5,7 +5,6 @@ export function normalize(config) {
   const result = structuredClone(config);
   for (const key of [
     "name",
-    "appearance",
     "battery_entity",
     "status_entity",
     "maintenance",

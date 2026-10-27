@@ -29,7 +29,7 @@ test("card registers and safely renders an empty visual-editor stub", () => {
   assert.ok(window.customCards.some((c) => c.type === "ikio-vacuum-card"));
   card.remove();
 });
-test("editor exposes only the vacuum and removes retired options while preserving HA metadata", async () => {
+test("editor exposes vacuum and appearance while preserving HA metadata", async () => {
   const Card = customElements.get("ikio-vacuum-card");
   const editor = await Card.getConfigElement();
   const config = {
@@ -49,7 +49,7 @@ test("editor exposes only the vacuum and removes retired options while preservin
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
-  assert.equal(forms.length, 1);
+  assert.equal(forms.length, 2);
   assert.deepEqual(
     forms[0].schema.map((f) => f.name),
     ["entity"],
@@ -64,9 +64,14 @@ test("editor exposes only the vacuum and removes retired options while preservin
     }),
   );
   assert.equal(saved.entity, "vacuum.second");
+  assert.deepEqual(saved.appearance, { theme: "light" });
+  assert.equal(forms[1].data.theme, "light");
+  forms[1].dispatchEvent(
+    new CustomEvent("value-changed", { detail: { value: { theme: "ha" } } }),
+  );
+  assert.deepEqual(saved.appearance, { theme: "ha" });
   for (const key of [
     "name",
-    "appearance",
     "battery_entity",
     "status_entity",
     "missions",
@@ -176,7 +181,7 @@ function change(card, state, attributes = {}) {
   };
 }
 
-test("entity name/icon and HA theme replace retired overrides without mutating input", () => {
+test("entity name/icon replace retired overrides and preserve appearance without mutating input", () => {
   const config = {
     name: "Old override",
     appearance: { theme: "light" },
@@ -186,7 +191,7 @@ test("entity name/icon and HA theme replace retired overrides without mutating i
     grid_options: { columns: 6 },
   };
   const card = mounted("cleaning", {}, config);
-  assert.equal(card.getAttribute("appearance"), "ha");
+  assert.equal(card.getAttribute("appearance"), "light");
   assert.equal(card.content.querySelector(".vacuum-name").textContent, "Robot");
   const icon = card.content.querySelector("ha-state-icon");
   assert.equal(icon.stateObj.attributes.icon, "mdi:robot-vacuum");
@@ -199,6 +204,24 @@ test("entity name/icon and HA theme replace retired overrides without mutating i
   card.addEventListener("hass-more-info", (e) => (entity = e.detail.entityId));
   card.content.querySelector(".vacuum-name").click();
   assert.equal(entity, "vacuum.robot");
+  card.remove();
+});
+
+test("appearance defaults to Ikio dark and supports the collection themes", () => {
+  const card = mounted("docked");
+  assert.equal(card.getAttribute("appearance"), "dark");
+  for (const theme of ["light", "ha", "dark"]) {
+    card.setConfig({ entity: "vacuum.robot", appearance: { theme } });
+    assert.equal(card.getAttribute("appearance"), theme);
+  }
+  assert.throws(
+    () =>
+      card.setConfig({
+        entity: "vacuum.robot",
+        appearance: { theme: "invalid" },
+      }),
+    /Unsupported appearance/,
+  );
   card.remove();
 });
 

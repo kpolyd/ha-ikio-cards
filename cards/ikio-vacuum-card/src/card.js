@@ -25,12 +25,7 @@ export class Card extends ControlCard {
     this.shadowRoot.prepend(el("style", vacuumStyles));
   }
   setConfig(config) {
-    const normalized = normalize(config);
-    super.setConfig(
-      normalized && typeof normalized === "object" && !Array.isArray(normalized)
-        ? { ...normalized, appearance: { theme: "ha" } }
-        : normalized,
-    );
+    super.setConfig(normalize(config));
   }
   static getStubConfig() {
     return { schema_version: 1 };

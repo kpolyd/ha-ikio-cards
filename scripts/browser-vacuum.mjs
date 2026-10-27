@@ -56,7 +56,29 @@ export async function checkVacuum(browser, out) {
           { theme, width },
         );
         await card.scrollIntoViewIfNeeded();
-        assert.equal(await card.getAttribute("appearance"), "ha");
+        assert.equal(await card.getAttribute("appearance"), theme);
+        if (theme !== "ha") {
+          const colours = await page.evaluate(() => {
+            const palette = (selector) => {
+              const style = getComputedStyle(document.querySelector(selector));
+              return [
+                "--ae-surface",
+                "--ae-text",
+                "--ae-accent",
+                "--ae-temperature",
+              ].map((token) => style.getPropertyValue(token).trim());
+            };
+            return [
+              palette("ikio-vacuum-card"),
+              palette("ikio-electricity-card"),
+            ];
+          });
+          assert.deepEqual(
+            colours[0],
+            colours[1],
+            `${theme}: vacuum differs from Ikio palette`,
+          );
+        }
         const box = await card.boundingBox();
         assert.ok(
           box.height >= 100 && box.height <= 120,
@@ -81,6 +103,15 @@ export async function checkVacuum(browser, out) {
           "rgba(0, 0, 0, 0)",
         );
       }
+    await card.evaluate((c) =>
+      c.style.setProperty("--ha-card-background", "rgb(51, 34, 68)"),
+    );
+    assert.equal(
+      await card
+        .locator("ha-card")
+        .evaluate((n) => getComputedStyle(n).backgroundColor),
+      "rgb(51, 34, 68)",
+    );
     await page.evaluate(() =>
       window.ikioPreview.configure({ theme: "dark", width: 360 }),
     );

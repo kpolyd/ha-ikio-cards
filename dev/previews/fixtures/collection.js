@@ -510,7 +510,7 @@ const hass = {
     setTimeout(update, 150);
   },
 };
-// Vacuum follows HA; provide simulated HA tokens without changing other cards.
+// Provide simulated HA tokens for the Vacuum Follow Home Assistant preview.
 function applyVacuumTheme(card, theme) {
   if (card.localName !== "ikio-vacuum-card") return;
   const light = theme === "light";
