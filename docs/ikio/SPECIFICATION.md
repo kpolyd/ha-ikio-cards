@@ -662,3 +662,7 @@ Replace normal one-minute recent-history polling with a filtered logbook/event_s
 ## 63. Mandatory design agreement and Climate redesign
 
 For all future new cards and redesigns, obtain explicit owner agreement on both the visual mock and configuration before implementation. The owner requests a from-scratch Climate redesign; discard the unapproved device-list implementation draft and restart design. Retain the requested direction of removing the fridge temperature selector and allowing multiple devices without fixed one-per-type slots as inputs to the configuration proposal, not as an approved final design. The separately committed live Alarmo activity change remains available for review.
+
+## 64. Generic cards as a standing design requirement
+
+Every card must be generic and reusable rather than built around the owner’s personal use case. Household examples must not dictate fixed entity slots, cardinalities, names or defaults. Design configuration around general tasks and actual HA entity capabilities, using repeatable lists where appropriate and explicitly identifying real supported-domain limits. Apply this principle together with the requirement to agree on both mock and configuration before implementing new cards or redesigns.

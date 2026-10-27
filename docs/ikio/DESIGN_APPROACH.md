@@ -4,6 +4,8 @@ Owner decisions consolidated on 25 October 2026. This guide describes how Ikio s
 
 ## Product character
 
+Every card is a generic, reusable Home Assistant component, not a solution tailored to the owner’s household. Derive the design and configuration from general user tasks and supported entity capabilities. Avoid household-specific slots, assumptions, labels, defaults or arbitrary one-per-type limits. Prefer configurable repeatable devices and readings where appropriate, and state actual supported domains/capabilities clearly. The owner’s setup is an example for evaluating a design, not its structural specification.
+
 Ikio is a compact Home Assistant dashboard for everyday use on phones and larger displays. Make the device's current condition clear, then make its common action easy to reach. Use quiet teal surfaces, readable readings, restrained semantic accents, thin separators and native HA icons. Group related information with alignment and spacing. Avoid decorative chrome, excessive controls and generic dashboard ornaments.
 
 Compactness means removing repetition and prioritizing content. It does not mean shrinking every label or touch target. Preserve full values, meaningful units, keyboard access and explicit unavailable states.
