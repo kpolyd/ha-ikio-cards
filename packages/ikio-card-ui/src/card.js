@@ -1,3 +1,4 @@
+import { t, language } from "./i18n.js";
 import { styles } from "./styles.js";
 export function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -43,6 +44,9 @@ export class IkioCard extends HTMLElement {
   }
   set hass(value) {
     const previous = this._hass;
+    const changedLanguage = this._language !== language(value);
+    this._language = language(value);
+    this.setAttribute("lang", this._language);
     this._hass = value;
     this.reconcile();
     if (
@@ -55,7 +59,8 @@ export class IkioCard extends HTMLElement {
       previous?.entities !== value?.entities ||
       previous?.devices !== value?.devices ||
       previous?.areas !== value?.areas ||
-      !previous
+      !previous ||
+      changedLanguage
     )
       this.update?.();
   }
@@ -103,8 +108,10 @@ export class IkioCard extends HTMLElement {
         if (generation !== this.generation || this.pending.get(id) !== action)
           return;
         this.pending.delete(id);
-        this.error.textContent =
-          "No confirmation yet. Check the entity state before retrying.";
+        this.error.textContent = t(
+          this.hass,
+          "No confirmation yet. Check the entity state before retrying.",
+        );
         this.update?.();
       }, 10000),
     };
@@ -118,7 +125,7 @@ export class IkioCard extends HTMLElement {
       clearTimeout(action.timer);
       this.pending.delete(id);
       this.error.textContent =
-        error.message || "The action could not be completed.";
+        error.message || t(this.hass, "The action could not be completed.");
       this.update?.();
       return;
     }

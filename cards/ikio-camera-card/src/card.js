@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { installRefinement, refine, disclosure, glyph } from "@ikio/card-ui";
 import {
   ControlCard,
@@ -91,8 +92,10 @@ export class Card extends ControlCard {
         timer = setTimeout(() => {
           this.feedRequest++;
           this.loadingFeed = false;
-          this.error.textContent =
-            "Camera view took too long to load. Try again.";
+          this.error.textContent = t(
+            this.hass,
+            "Camera view took too long to load. Try again.",
+          );
           this.update();
           reject(new Error("Camera view timed out"));
         }, 8000);
@@ -105,7 +108,9 @@ export class Card extends ControlCard {
       this.update();
     } catch (e) {
       if (valid())
-        this.error.textContent = e.message || "Camera view could not be loaded";
+        this.error.textContent =
+          t(this.hass, e.message) ||
+          t(this.hass, "Camera view could not be loaded");
     } finally {
       clearTimeout(timer);
       if (request === this.feedRequest && revision === this.revision) {
@@ -124,7 +129,8 @@ export class Card extends ControlCard {
   }
   render() {
     const c = this.config;
-    if (!c.entity) return note("Choose a camera in the visual editor.");
+    if (!c.entity)
+      return note(t(this.hass, "Choose a camera in the visual editor."));
     if (this.preview && this.live) this.stopFeed();
     if (!available(this.state()) && this.live) this.stopFeed();
     const result = group(
@@ -143,7 +149,7 @@ export class Card extends ControlCard {
       result.append(mount);
       controls.append(
         button(
-          "Close live view",
+          t(this.hass, "Close live view"),
           () => {
             this.stopFeed();
             this.update();
@@ -156,15 +162,17 @@ export class Card extends ControlCard {
       placeholder.append(
         note(
           this.state(c.power_switch)?.state === "off"
-            ? "Camera power is off"
+            ? t(this.hass, "Camera power is off")
             : !available(this.state())
-              ? "Camera unavailable"
-              : "Live view starts on demand",
+              ? t(this.hass, "Camera unavailable")
+              : t(this.hass, "Live view starts on demand"),
         ),
       );
       result.append(placeholder);
       const open = button(
-        this.loadingFeed ? "Loading…" : "Open live view",
+        this.loadingFeed
+          ? t(this.hass, "Loading…")
+          : t(this.hass, "Open live view"),
         () => this.openFeed(),
         {
           disabled:
@@ -179,8 +187,8 @@ export class Card extends ControlCard {
       controls.append(
         button(
           this.state(c.power_switch)?.state === "on"
-            ? "Turn camera off"
-            : "Turn camera on",
+            ? t(this.hass, "Turn camera off")
+            : t(this.hass, "Turn camera on"),
           () => this.toggle(c.power_switch),
           { icon: "mdi:power", disabled: this.blocked(c.power_switch) },
         ),
@@ -193,9 +201,11 @@ export class Card extends ControlCard {
         disclosure(
           this,
           "camera-automation",
-          "Snapshot automation",
+          t(this.hass, "Snapshot automation"),
           button(
-            `Snapshot automation: ${stateText(this.hass, c.snapshot_automation)}`,
+            t(this.hass, "Snapshot automation: {p0}", {
+              p0: stateText(this.hass, c.snapshot_automation),
+            }),
             () => this.toggle(c.snapshot_automation),
             { disabled: this.blocked(c.snapshot_automation) },
           ),
@@ -204,7 +214,7 @@ export class Card extends ControlCard {
     if (c.snapshot_script)
       controls.append(
         button(
-          "Capture snapshot",
+          t(this.hass, "Capture snapshot"),
           () => this.action(c.snapshot_script, "Capture snapshot"),
           { icon: "mdi:camera", disabled: this.blocked(c.snapshot_script) },
         ),
@@ -212,12 +222,12 @@ export class Card extends ControlCard {
     if (c.capture_timestamp_entity)
       footer.append(
         reading(
-          "Captured",
+          t(this.hass, "Captured"),
           valueText(this.hass, c.capture_timestamp_entity),
           c.capture_timestamp_entity,
         ),
       );
-    else footer.append(note("Snapshot capture time unknown"));
+    else footer.append(note(t(this.hass, "Snapshot capture time unknown")));
     result.append(footer);
     return result;
   }

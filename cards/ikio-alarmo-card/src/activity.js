@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { el, button, details, event } from "@ikio/card-ui";
 
 const BATCH = 20;
@@ -438,29 +439,37 @@ export class SensorActivity {
       this.users.find((u) => u.id === userId) ||
       (c.hass?.user?.id === userId ? c.hass.user : undefined);
     return {
-      name: user?.name || person?.attributes?.friendly_name || "Unknown user",
+      name:
+        user?.name ||
+        person?.attributes?.friendly_name ||
+        t(c.hass, "Unknown user"),
       picture: person?.attributes?.entity_picture,
     };
   }
   view() {
     const c = this.card;
     const section = el("section", undefined, "security-activity");
-    section.setAttribute("aria-label", "Activity");
+    section.setAttribute("aria-label", t(this.card.hass, "Activity"));
     const header = el("header");
     header.append(
-      el("h3", "Activity"),
-      el("span", `Last ${c.config.activity_hours || 24} hours`),
+      el("h3", t(this.card.hass, "Activity")),
+      el(
+        "span",
+        t(this.card.hass, "Last {count} hours", {
+          count: c.config.activity_hours || 24,
+        }),
+      ),
     );
     section.append(header);
-    if (this.error) section.append(el("p", this.error, "ae-note"));
+    if (this.error) section.append(el("p", t(c.hass, this.error), "ae-note"));
     if (!this.entries.length) {
       if (!this.error)
         section.append(
           el(
             "p",
             this.loading || !this.key
-              ? "Loading activity…"
-              : "No recorded activity in this period.",
+              ? t(this.card.hass, "Loading activity…")
+              : t(this.card.hass, "No recorded activity in this period."),
             "ae-note",
           ),
         );
@@ -476,7 +485,7 @@ export class SensorActivity {
     viewport.tabIndex = 0;
     viewport.setAttribute(
       "aria-label",
-      "Sensor activity; scroll for older events",
+      t(this.card.hass, "Sensor activity; scroll for older events"),
     );
     event(viewport, "scroll", (e) => this.onScroll(e.currentTarget));
     section.append(viewport);
@@ -583,11 +592,15 @@ export class SensorActivity {
                 : "Open"
               : entry.state === "off"
                 ? motion
-                  ? "Clear"
+                  ? "activity.motion_clear"
                   : "Closed"
                 : entry.state)
           : entry.message || "Activity";
-      const status = el("span", description);
+      const displayDescription =
+        entry.message && entry.state === undefined
+          ? description
+          : t(c.hass, description);
+      const status = el("span", displayDescription);
       if (entry.state === "triggered") row.classList.add("activity-triggered");
       else if (
         entry.state === "on" ||
@@ -602,7 +615,7 @@ export class SensorActivity {
       row.replaceChildren(glyph, content, end);
       row.setAttribute(
         "aria-label",
-        `${label}: ${description}, ${dateLabel} ${time.textContent}${actor ? `, ${actor.name}` : ""}`,
+        `${label}: ${displayDescription}, ${dateLabel} ${time.textContent}${actor ? `, ${actor.name}` : ""}`,
       );
       viewport.append(row);
     }
@@ -610,11 +623,11 @@ export class SensorActivity {
       "p",
       this.loading
         ? this.mode === "refresh"
-          ? "Updating activity…"
-          : "Loading older activity…"
+          ? t(this.card.hass, "Updating activity…")
+          : t(this.card.hass, "Loading older activity…")
         : this.hasMore()
-          ? "Scroll for older activity"
-          : "End of activity",
+          ? t(this.card.hass, "Scroll for older activity")
+          : t(this.card.hass, "End of activity"),
       "ae-note",
       "activity-footer",
     );

@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## 0.10.0 — English/Greek translations and realistic electricity demos
+
+- Follow the Home Assistant user language across all twelve cards, the Chip badge and visual editors. Bundle English and Greek catalogs locally; use English for missing translations, unsupported languages and demo defaults.
+- Add a documented JSON-catalog contribution process, regional-language fallback, complete-message interpolation and plural forms. Validate catalog registration, key coverage and placeholders in CI tests. Preserve configured names, integration options, state comparisons and service payloads. Allow long translated labels to wrap without changing the card layouts.
+- Replace only the electricity demo history with a deterministic household profile spanning 165–3,591 W, showing the existing power-colour gradient without synthetic gaps. Keep device histories, live totals and untracked power consistent; actual card history/gap handling is unchanged.
+
 ## 0.9.0 — Focused Climate, Chip badge and live Alarmo activity
 
 - Stream new Alarmo activity over the existing HA connection, preserving paginated history and falling back to incremental polling if streaming is unavailable.

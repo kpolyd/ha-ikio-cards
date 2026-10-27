@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { installRefinement, refine, disclosure } from "@ikio/card-ui";
 import {
   ControlCard,
@@ -31,7 +32,8 @@ export class Card extends ControlCard {
     const c = this.config,
       s = this.state(),
       a = s?.attributes || {};
-    if (!c.entity) return note("Choose a vacuum in the visual editor.");
+    if (!c.entity)
+      return note(t(this.hass, "Choose a vacuum in the visual editor."));
     const battery = c.battery_entity
       ? valueText(this.hass, c.battery_entity)
       : Number.isFinite(a.battery_level)
@@ -51,7 +53,7 @@ export class Card extends ControlCard {
     if (action)
       controls.push(
         button(
-          action.label,
+          t(this.hass, action.label),
           () =>
             this.send(c.entity, "vacuum", action.service, {}, (state) =>
               action.service === "start"
@@ -67,14 +69,14 @@ export class Card extends ControlCard {
       controls.push(
         note(
           s?.state === "returning"
-            ? "Returning to dock"
+            ? t(this.hass, "Returning to dock")
             : stateText(this.hass, c.entity),
         ),
       );
     if (features(s, 16) && !["docked", "returning"].includes(s?.state))
       controls.push(
         button(
-          "Return to dock",
+          t(this.hass, "Return to dock"),
           () =>
             this.send(c.entity, "vacuum", "return_to_base", {}, (state) =>
               ["returning", "docked"].includes(state?.state),
@@ -84,7 +86,7 @@ export class Card extends ControlCard {
       );
     if (features(s, 32) && a.fan_speed_list?.length) {
       const suction = select(
-        "Suction power",
+        t(this.hass, "Suction power"),
         a.fan_speed_list,
         a.fan_speed,
         (v) =>
@@ -104,7 +106,7 @@ export class Card extends ControlCard {
       const primaryControl = actionRow.firstElementChild;
       primaryControl.classList.remove("ae-icon");
       primaryControl.classList.add("ikio-primary", "ikio-labelled-action");
-      primaryControl.append(el("span", action.label));
+      primaryControl.append(el("span", t(this.hass, action.label)));
     }
     const taskRow = row(actionRow);
     taskRow.classList.add("ikio-vacuum-controls");
@@ -118,7 +120,7 @@ export class Card extends ControlCard {
       const extras = disclosure(
         this,
         "cleaning-extras",
-        "Maintenance and missions",
+        t(this.hass, "Maintenance and missions"),
       );
       const body = extras.querySelector(".ikio-disclosure-body");
       for (const item of c.maintenance || [])

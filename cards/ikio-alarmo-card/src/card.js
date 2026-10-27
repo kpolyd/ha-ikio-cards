@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import {
   ControlCard,
   group,
@@ -461,13 +462,15 @@ export class Card extends ControlCard {
     this.pending.delete(this.config.entity);
     this.failedSensors = Array.isArray(data.sensors) ? data.sensors : [];
     this.resetInput();
-    this.error.textContent =
+    this.error.textContent = t(
+      this.hass,
       {
         open_sensors:
           "Cannot arm: sensors are open. Close them or select Bypass open sensors.",
         invalid_code: "Invalid or missing alarm code.",
         not_allowed: "Alarmo did not allow this command.",
-      }[data.reason] || "Alarmo could not complete the command.";
+      }[data.reason] || "Alarmo could not complete the command.",
+    );
     this.update();
   }
   reconcile() {
@@ -518,7 +521,10 @@ export class Card extends ControlCard {
       const area = this.hass?.areas?.[areaId];
       const key = area ? areaId : null;
       if (!groups.has(key))
-        groups.set(key, { name: area?.name || "Unassigned", rows: [] });
+        groups.set(key, {
+          name: area?.name || t(this.hass, "Unassigned"),
+          rows: [],
+        });
       groups.get(key).rows.push(row);
     }
     for (const group of groups.values())
@@ -632,8 +638,14 @@ export class Card extends ControlCard {
     const label = el(
       "label",
       arming
-        ? `Arm ${this.armIntent.replaceAll("_", " ")}`
-        : "Enter PIN to disarm",
+        ? t(this.hass, "Arm {p0}", {
+            p0: t(
+              this.hass,
+              this.armIntent[0].toUpperCase() +
+                this.armIntent.slice(1).replaceAll("_", " "),
+            ),
+          })
+        : t(this.hass, "Enter PIN to disarm"),
     );
     if (!arming || requiresCode) {
       const input = el("input", undefined, undefined, "alarm-pin");
@@ -646,7 +658,7 @@ export class Card extends ControlCard {
       input.placeholder = "— — — —";
       input.setAttribute(
         "aria-label",
-        arming ? "Arming code" : "Disarming code",
+        arming ? t(this.hass, "Arming code") : t(this.hass, "Disarming code"),
       );
       input.disabled = this.blocked(this.config.entity);
       event(input, "input", (e) => {
@@ -669,7 +681,7 @@ export class Card extends ControlCard {
       };
       for (const digit of [1, 2, 3, 4, 5, 6, 7, 8, 9, "Clear", 0, "Delete"]) {
         const key = button(
-          String(digit),
+          t(this.hass, String(digit)),
           () =>
             edit((value) =>
               digit === "Clear"
@@ -692,7 +704,10 @@ export class Card extends ControlCard {
     if (arming && this.bypass && this.canBypass())
       result.append(
         note(
-          "The listed open sensors will be bypassed for this arming. Required codes and normal exit delay still apply.",
+          t(
+            this.hass,
+            "The listed open sensors will be bypassed for this arming. Required codes and normal exit delay still apply.",
+          ),
           "ae-warn",
         ),
       );
@@ -700,13 +715,21 @@ export class Card extends ControlCard {
     actions.className = "security-pin-actions";
     if (arming)
       actions.append(
-        button("Cancel", () => {
+        button(t(this.hass, "Cancel"), () => {
           this.resetInput();
           this.update();
         }),
       );
     const submit = button(
-      arming ? `Arm ${this.armIntent.replaceAll("_", " ")}` : "Disarm",
+      arming
+        ? t(this.hass, "Arm {p0}", {
+            p0: t(
+              this.hass,
+              this.armIntent[0].toUpperCase() +
+                this.armIntent.slice(1).replaceAll("_", " "),
+            ),
+          })
+        : t(this.hass, "Disarm"),
       () => (arming ? this.submitArm() : this.disarm()),
       {
         disabled:
@@ -722,7 +745,8 @@ export class Card extends ControlCard {
   render() {
     const c = this.config,
       s = this.state();
-    if (!c.entity) return note("Choose an alarm panel in the visual editor.");
+    if (!c.entity)
+      return note(t(this.hass, "Choose an alarm panel in the visual editor."));
     if (this.lastAlarmState !== s?.state) {
       this.resetInput();
       this.lastAlarmState = s?.state;
@@ -737,14 +761,18 @@ export class Card extends ControlCard {
     if (["arming", "pending"].includes(s?.state))
       result.classList.add("security-delay");
     const header = el("header", undefined, "security-header", "header");
-    const emblem = button("Alarm details", () => details(this, c.entity), {
-      icon: armed
-        ? "mdi:shield-check"
-        : s?.state === "triggered"
-          ? "mdi:shield-alert"
-          : "mdi:shield-off-outline",
-      entity: c.entity,
-    });
+    const emblem = button(
+      t(this.hass, "Alarm details"),
+      () => details(this, c.entity),
+      {
+        icon: armed
+          ? "mdi:shield-check"
+          : s?.state === "triggered"
+            ? "mdi:shield-alert"
+            : "mdi:shield-off-outline",
+        entity: c.entity,
+      },
+    );
     emblem.className = "security-emblem";
     const countdown = this.countdownValue();
     if (countdown) {
@@ -785,14 +813,14 @@ export class Card extends ControlCard {
       }[s?.state] ||
       stateText(this.hass, c.entity);
     const statusNode = el("div", undefined, "security-state");
-    const statusLabel = el("span", status);
+    const statusLabel = el("span", t(this.hass, status));
     statusLabel.setAttribute("aria-live", "polite");
     statusNode.append(statusLabel);
     if (countdown)
       statusNode.append(
         el("span", ` · ${countdown.seconds} s`, "security-seconds"),
       );
-    heading.append(el("h2", c.name || "Alarmo"), statusNode);
+    heading.append(el("h2", c.name || t(this.hass, "Alarmo")), statusNode);
     header.append(emblem, heading);
     result.append(header);
     const sensors = el("div", undefined, "security-sensors", "sensors");
@@ -806,7 +834,7 @@ export class Card extends ControlCard {
         this.bypass = e.currentTarget.checked;
         this.update();
       });
-      label.append(check, el("span", "Bypass open sensors"));
+      label.append(check, el("span", t(this.hass, "Bypass open sensors")));
       sensors.append(label);
     }
     const bypassed = new Set(ids(s?.attributes?.bypassed_sensors));
@@ -847,17 +875,19 @@ export class Card extends ControlCard {
     );
     const messages = [
       bypassed.size
-        ? `${bypassed.size} sensor${bypassed.size === 1 ? "" : "s"} bypassed`
+        ? t(this.hass, "{count} sensors bypassed", { count: bypassed.size })
         : "",
       openings.length
-        ? `${openings.length} opening${openings.length === 1 ? "" : "s"} open`
+        ? t(this.hass, "{count} openings open", { count: openings.length })
         : "",
-      motion.length ? `${motion.length} motion active` : "",
+      motion.length
+        ? t(this.hass, "{count} motion active", { count: motion.length })
+        : "",
       other.length
-        ? `${other.length} sensor${other.length === 1 ? "" : "s"} open`
+        ? t(this.hass, "{count} sensors open", { count: other.length })
         : "",
       unknown.length
-        ? `${unknown.length} sensor${unknown.length === 1 ? "" : "s"} unavailable`
+        ? t(this.hass, "{count} sensors unavailable", { count: unknown.length })
         : "",
     ].filter(Boolean);
     const sensorStatusKnown =
@@ -893,20 +923,20 @@ export class Card extends ControlCard {
         [
           ...messages,
           ...(this.alarmoStatus === "unavailable"
-            ? ["Alarmo sensor list unavailable"]
+            ? [t(this.hass, "Alarmo sensor list unavailable")]
             : []),
         ].join(" · ") ||
           (rows.length
-            ? "All monitored sensors clear"
+            ? t(this.hass, "All monitored sensors clear")
             : this.alarmoStatus === "ready"
-              ? "No sensors enabled in Alarmo for this panel"
+              ? t(this.hass, "No sensors enabled in Alarmo for this panel")
               : this.alarmoStatus === "unavailable"
-                ? "Alarmo sensor list unavailable"
+                ? t(this.hass, "Alarmo sensor list unavailable")
                 : !this.hass?.callWS
-                  ? "Alarmo sensor list unavailable"
+                  ? t(this.hass, "Alarmo sensor list unavailable")
                   : this.alarmoStatus === "not-alarmo"
-                    ? "No monitored sensors"
-                    : "Loading Alarmo sensors…"),
+                    ? t(this.hass, "No monitored sensors")
+                    : t(this.hass, "Loading Alarmo sensors…")),
       ),
     );
     if (alerts.length) {
@@ -939,14 +969,17 @@ export class Card extends ControlCard {
             () => details(this, r.entity),
             { key: r.entity, entity: r.entity },
           );
-          chip.setAttribute("aria-label", `${this.sensorLabel(r)}: ${suffix}`);
+          chip.setAttribute(
+            "aria-label",
+            `${this.sensorLabel(r)}: ${t(this.hass, suffix)}`,
+          );
           const glyph = el("ha-state-icon");
           glyph.dataset.sensor = r.entity;
           glyph.setAttribute("aria-hidden", "true");
           glyph.setAttribute("data-native", "");
           const label = el("span", this.sensorLabel(r), "security-chip-label");
           if (suffix === "bypassed" || suffix === "unavailable")
-            label.append(document.createTextNode(` · ${suffix}`));
+            label.append(document.createTextNode(` · ${t(this.hass, suffix)}`));
           const content = el("span", undefined, "security-chip-content");
           content.append(glyph, label);
           chip.replaceChildren(content);
@@ -967,9 +1000,9 @@ export class Card extends ControlCard {
     const selector = el("div", undefined, "security-modes", "modes");
     selector.style.setProperty("--mode-count", modes.length + 1);
     selector.setAttribute("role", "group");
-    selector.setAttribute("aria-label", "Alarm mode");
+    selector.setAttribute("aria-label", t(this.hass, "Alarm mode"));
     const disarmed = button(
-      "Disarmed",
+      t(this.hass, "Disarmed"),
       () => {
         if (s?.state !== "disarmed")
           this.content.querySelector(".security-pin input")?.focus();
@@ -982,7 +1015,7 @@ export class Card extends ControlCard {
     for (const m of modes) {
       const label = m.mode.replaceAll("_", " ");
       const key = button(
-        label[0].toUpperCase() + label.slice(1),
+        t(this.hass, label[0].toUpperCase() + label.slice(1)),
         () => this.arm(m.mode),
         {
           key: `mode-${m.mode}`,

@@ -124,3 +124,7 @@ Energy-change validation: 88 workspace tests and ten package/release tests passe
 ### 0.4.0 — Compact Drive card
 
 Implemented the approved two-row layout, six labelled icons, state-based colours, header parking and footer age/maps link. Kept existing lock mappings, missing-data handling, native details and validated coordinates. No car commands are sent. Regression tests cover secure/alert/jammed/transitional/unknown tones, stable focused controls, the relevant aggregate member, fuel-capacity percentage and disabled maps. Validation: 94 workspace tests plus ten package/release tests passed, with formatting/build/version/HACS-bundle checks. Chromium verified 280/360/390/520 px layouts without clipping/page errors, 44 px targets, native tap/touch-hold dispatch, status tones, long values and light appearance. At 360 px, the fixture is 192 px high. Fixture icons are placeholders; real HA icon rendering and live vehicle integration still need deployment verification. Included in collection version 0.4.0.
+
+## Languages
+
+All twelve cards, the Chip badge and visual editors follow Home Assistant’s selected language, with English and Greek bundled locally. English is the fallback and explicit demo default. See [translation contributions](TRANSLATIONS.md). Catalog validation, regional fallback, pluralization, live language changes and unchanged native/configured values have automated tests. The electricity demo uses continuous, deterministic household loads; production graph semantics are unchanged.

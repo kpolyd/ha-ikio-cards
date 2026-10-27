@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import {
   ControlCard,
   el,
@@ -37,7 +38,7 @@ export class Card extends ControlCard {
   }
   render() {
     if (!this.config.entity)
-      return note("Choose a sensor in the visual editor.");
+      return note(t(this.hass, "Choose a sensor in the visual editor."));
     const content = el("div", undefined, "chip-only");
     content.append(sensorChip(this, this.config));
     return content;

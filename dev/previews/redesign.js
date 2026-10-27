@@ -1,3 +1,8 @@
+import {
+  electricityIds,
+  demoPowerHistory,
+  applyDemoPower,
+} from "./fixtures/electricity.js";
 import icons from "./mdi-preview-icons.json";
 const types = [
   "climate",
@@ -9,13 +14,13 @@ const types = [
   "graph",
 ];
 const descriptions = {
-  "climate":
+  climate:
     "Compact target-temperature dial, supported HVAC modes, and optional device settings.",
   media:
     "Compact track information, paired audio controls, and a quiet extras footer.",
-  "vacuum":
+  vacuum:
     "One obvious cleaning action, quieter battery status, and collapsible maintenance/missions.",
-  "appliances":
+  appliances:
     "Direct timed-run choices, distinct manual control, and inline confirmation.",
   "server-monitor":
     "One resource strip, paired supporting readings, and services tucked away.",
@@ -147,8 +152,9 @@ for (const [id, value, unit] of [
   ["office", 29, "W"],
 ])
   sensor(id, value, unit);
+applyDemoPower(states);
 const configs = {
-  "climate": {
+  climate: {
     name: "Living room",
     temperature_entity: "sensor.temperature",
     humidity_entity: "sensor.humidity",
@@ -160,13 +166,13 @@ const configs = {
     power_entity: "sensor.media_power",
     backlight_entity: "light.glow",
   },
-  "vacuum": {
+  vacuum: {
     name: "Robot vacuum",
     entity: "vacuum.robot",
     maintenance: [{ entity: "sensor.brush", name: "Main brush remaining" }],
     missions: [{ entity: "script.clean_kitchen", label: "Clean kitchen" }],
   },
-  "appliances": {
+  appliances: {
     name: "Water heater",
     entity: "switch.appliance",
     power_entity: "sensor.appliance_power",
@@ -232,33 +238,40 @@ const hass = {
     Object.fromEntries(
       (msg.entity_ids || []).map((id) => [
         id,
-        Array.from({ length: 50 }, (_, i) => ({
-          lu:
-            (Date.parse(msg.start_time) +
-              ((Date.parse(msg.end_time) - Date.parse(msg.start_time)) * i) /
-                49) /
-            1000,
-          s:
-            i === 20
-              ? "unavailable"
-              : String(
-                  id.startsWith("sensor.network_")
-                    ? Math.max(
-                        0,
-                        Number(states[id].state) *
-                          (1 + Math.sin(i * 0.4) * 0.8),
-                      )
-                    : Math.round(
-                        (id === "sensor.office" ? 28 : 135) +
-                          Math.sin(i * 0.4) * 15 +
-                          (i % 17 === 0 ? 80 : 0),
-                      ),
-                ),
-          a: {
-            unit_of_measurement:
-              states[id]?.attributes?.unit_of_measurement || "W",
-          },
-        })),
+        electricityIds.includes(id)
+          ? demoPowerHistory(
+              id,
+              Date.parse(msg.start_time),
+              Date.parse(msg.end_time),
+            )
+          : Array.from({ length: 50 }, (_, i) => ({
+              lu:
+                (Date.parse(msg.start_time) +
+                  ((Date.parse(msg.end_time) - Date.parse(msg.start_time)) *
+                    i) /
+                    49) /
+                1000,
+              s:
+                i === 20
+                  ? "unavailable"
+                  : String(
+                      id.startsWith("sensor.network_")
+                        ? Math.max(
+                            0,
+                            Number(states[id].state) *
+                              (1 + Math.sin(i * 0.4) * 0.8),
+                          )
+                        : Math.round(
+                            (id === "sensor.office" ? 28 : 135) +
+                              Math.sin(i * 0.4) * 15 +
+                              (i % 17 === 0 ? 80 : 0),
+                          ),
+                    ),
+              a: {
+                unit_of_measurement:
+                  states[id]?.attributes?.unit_of_measurement || "W",
+              },
+            })),
       ]),
     ),
   callService: async (domain, service, data) => {
@@ -342,7 +355,9 @@ for (const type of types) {
   section.dataset.card = type;
   const h = document.createElement("h2");
   h.textContent =
-    type === "appliances" ? "Appliances" : type[0].toUpperCase() + type.slice(1);
+    type === "appliances"
+      ? "Appliances"
+      : type[0].toUpperCase() + type.slice(1);
   const card = document.createElement("ikio-" + type + "-card");
   const caption = document.createElement("p");
   caption.textContent = descriptions[type];

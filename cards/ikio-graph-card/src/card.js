@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { installRefinement, refine } from "@ikio/card-ui";
 import { HistoryCard } from "@ikio/graph";
 import { group, title, reading, row, valueText, note, el } from "@ikio/card-ui";
@@ -28,11 +29,13 @@ export class Card extends HistoryCard {
   render() {
     const rows = (this.config.entities || []).filter((r) => r.entity);
     if (!rows.length)
-      return note("Choose numeric entities in the visual editor.");
+      return note(
+        t(this.hass, "Choose numeric entities in the visual editor."),
+      );
     const result = group(
       title(
         this,
-        this.config.name || "Graph",
+        this.config.name || t(this.hass, "Graph"),
         rows.length === 1 ? rows[0].entity : null,
       ),
       rows.length === 1

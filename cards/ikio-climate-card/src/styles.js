@@ -32,7 +32,7 @@ export const climateStyles = `
 .climate-card .climate-modes-section{border-top:1px solid var(--ae-border);padding-top:6px}
 .climate-card .climate-modes-section>.ae-label{display:block;margin-bottom:4px;font-size:11px}
 .climate-card .climate-modes{display:flex;flex-wrap:wrap;gap:3px;background:var(--ae-well);padding:4px;border-radius:10px}
-.climate-card .climate-modes>.ae-button{flex:1 1 54px;min-width:44px;border:0;background:transparent;color:var(--ae-muted);font-size:12px;padding:4px;display:flex;align-items:center;justify-content:center;gap:4px}
+.climate-card .climate-modes>.ae-button{flex:1 1 54px;min-width:44px;border:0;background:transparent;color:var(--ae-muted);font-size:12px;padding:4px;display:flex;flex-wrap:wrap;overflow-wrap:anywhere;align-items:center;justify-content:center;gap:4px}
 .climate-card .climate-modes ha-icon{--mdc-icon-size:16px}
 .climate-card .climate-modes>.ae-button[aria-pressed=true]{background:var(--climate-color);color:var(--ae-surface)}
 .climate-card .ikio-disclosure-body{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}

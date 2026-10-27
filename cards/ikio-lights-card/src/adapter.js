@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { available } from "@ikio/card-ui";
 export function lightState(state, row, format) {
   return {
@@ -22,7 +23,7 @@ export function deviceLocation(
   if (typeof override === "string" && override.trim()) return override.trim();
   const entry = hass?.entities?.[entity];
   const areaId = entry?.area_id || hass?.devices?.[entry?.device_id]?.area_id;
-  return hass?.areas?.[areaId]?.name || fallback;
+  return hass?.areas?.[areaId]?.name || t(hass, fallback);
 }
 
 // Preserve first-occurrence area order and configured light order within each area.

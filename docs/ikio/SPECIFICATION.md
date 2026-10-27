@@ -685,3 +685,10 @@ Remove fridge and fixed humidifier/fan slots from this card. Existing climate_en
 ## 67. Release 0.9.0 authorization
 
 The owner authorized releasing the completed Climate redesign, Alarmo live activity and Chip badge work, deferring the humidity/dehumidifier card design. Bump the minor version for the Climate configuration/domain change. Merge with a visible semi-linear merge commit, publish ikio-v0.9.0 through CI, and remove the merged source branch.
+
+
+## 68. Localization and realistic electricity fixtures
+
+The owner authorized implementing and releasing English/Greek language support across cards, badge and visual editors, selected by the Home Assistant user language, with English as fallback and the explicit default in mocks/demos. Keep translations in shared, locally bundled JSON catalogs with registration, contributor instructions, placeholder/plural validation and language-change tests. Preserve custom names, entity IDs, state-machine comparisons, configuration keys, integration values and service payloads. Translation work must not redesign the approved cards.
+
+Improve only the electricity demo data to illustrate the existing value-based colour mapping: a deterministic household load profile with realistic device cycles and peaks, consistent live and historical totals, a positive untracked remainder, and no synthetic unknown/unavailable samples in its normal history. Keep actual history gap handling and graph calculations unchanged. Release the work with a semi-linear merge commit and delete its merged branch. The humidity/dehumidifier card remains deferred.

@@ -1,3 +1,4 @@
+import { t, translateError } from "@ikio/card-ui/i18n";
 import {
   IkioCard,
   element,
@@ -42,7 +43,12 @@ export class IkioLightsCard extends IkioCard {
     return document.createElement("ikio-lights-card-editor");
   }
   setConfig(config) {
-    const normalized = normalizeConfig(config);
+    let normalized;
+    try {
+      normalized = normalizeConfig(config);
+    } catch (error) {
+      throw new Error(translateError(this.hass, error.message));
+    }
     this.cancelActions();
     this.clearRows();
     this.config = normalized;
@@ -74,14 +80,14 @@ export class IkioLightsCard extends IkioCard {
       this.content.append(
         element(
           "p",
-          "Choose lights in the visual editor to get started.",
+          t(this.hass, "Choose lights in the visual editor to get started."),
           "empty",
         ),
       );
       return;
     }
     const header = element("header");
-    this.heading = element("h2", this.config.name || "Lights");
+    this.heading = element("h2", this.config.name || t(this.hass, "Lights"));
     this.summary = element("span", "", "summary");
     header.append(this.heading, this.summary);
     this.content.append(header);
@@ -97,7 +103,11 @@ export class IkioLightsCard extends IkioCard {
       toggle.type = "button";
       labels.append(name, location);
       toggle.append(icon, labels);
-      const more = element("button", "Open entity details", "sr details");
+      const more = element(
+        "button",
+        t(this.hass, "Open entity details"),
+        "sr details",
+      );
       more.type = "button";
       more.addEventListener("click", () => details(this, row.entity));
       tile.append(toggle, more);
@@ -161,8 +171,13 @@ export class IkioLightsCard extends IkioCard {
     for (const group of this.groups) {
       const active = group.members.filter((ui) => ui.model?.on).length;
       const offline = group.members.filter((ui) => !ui.model?.available).length;
-      group.count.textContent = `${active}/${group.members.length} on`;
-      group.count.title = offline ? `${offline} unavailable` : "";
+      group.count.textContent = t(this.hass, "{p0}/{p1} on", {
+        p0: active,
+        p1: group.members.length,
+      });
+      group.count.title = offline
+        ? t(this.hass, "{p0} unavailable", { p0: offline })
+        : "";
     }
   }
   toggle(row) {
@@ -178,6 +193,16 @@ export class IkioLightsCard extends IkioCard {
   }
   update() {
     if (!this.config) return;
+    if (this.heading)
+      this.heading.textContent = this.config.name || t(this.hass, "Lights");
+    if (!this.rows.length) {
+      const empty = this.content.querySelector(".empty");
+      if (empty)
+        empty.textContent = t(
+          this.hass,
+          "Choose lights in the visual editor to get started.",
+        );
+    }
     let on = 0,
       offline = 0;
     for (const ui of this.rows) {
@@ -189,8 +214,13 @@ export class IkioLightsCard extends IkioCard {
         location = deviceLocation(this.hass, ui.row.entity, ui.row.location);
       on += model.on ? 1 : 0;
       offline += model.available ? 0 : 1;
+      model.status = t(this.hass, model.status);
       ui.model = model;
       ui.name.textContent = name;
+      ui.tile.querySelector(".details").textContent = t(
+        this.hass,
+        "Open entity details",
+      );
       ui.location.textContent = this.config.group_by_location
         ? model.available
           ? ""
@@ -211,13 +241,19 @@ export class IkioLightsCard extends IkioCard {
         this.preview || !model.available || this.pending.has(ui.row.entity);
       ui.toggle.setAttribute(
         "aria-label",
-        `${model.on ? "Turn off" : "Turn on"} ${name} · ${location} · ${model.status}`,
+        `${t(this.hass, model.on ? "Turn off" : "Turn on")} ${name} · ${location} · ${model.status}`,
       );
-      ui.toggle.title = `${model.status}${this.pending.has(ui.row.entity) ? " · pending" : ""}`;
+      ui.toggle.title = `${model.status}${this.pending.has(ui.row.entity) ? t(this.hass, " · pending") : ""}`;
       ui.toggle.setAttribute("aria-pressed", String(model.on));
     }
     this.arrange();
     if (this.summary)
-      this.summary.textContent = `${on} / ${this.rows.length} on${offline ? ` · ${offline} unavailable` : ""}`;
+      this.summary.textContent = t(this.hass, "{p0} / {p1} on{p2}", {
+        p0: on,
+        p1: this.rows.length,
+        p2: offline
+          ? ` · ${t(this.hass, "{p0} unavailable", { p0: offline })}`
+          : "",
+      });
   }
 }

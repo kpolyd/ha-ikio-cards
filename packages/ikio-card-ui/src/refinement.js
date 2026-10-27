@@ -1,3 +1,4 @@
+import { t } from "./i18n.js";
 import { el, event, button, row, note } from "./controls.js";
 
 // Opt-in presentation: approved Light/Energy/Drive/Security cards do not use it.
@@ -12,7 +13,7 @@ export function installRefinement(card) {
     .ikio-refined>header>.summary{font-size:11px;text-align:end;max-width:100px;overflow-wrap:anywhere}
     .ikio-refined>header>ha-icon{--mdc-icon-size:18px;color:var(--ae-muted)}
     .ikio-refined .ae-select{display:grid;grid-template-columns:minmax(48px,.7fr) minmax(0,1.3fr);gap:8px;align-items:center;font-size:12px;color:var(--ae-muted)}
-    .ikio-refined .ae-select>.sr{position:static;width:auto;height:auto;clip-path:none;overflow:visible}
+    .ikio-refined .ae-select>.sr{overflow-wrap:anywhere;position:static;width:auto;height:auto;clip-path:none;overflow:visible}
     .ikio-refined .ae-select select{color:var(--ae-text);min-width:0}
     .ikio-refined .ae-row{gap:8px}
     .ikio-refined .ae-reading .ae-value{font-weight:500;font-variant-numeric:tabular-nums}
@@ -133,7 +134,7 @@ export function reviewView(card) {
   section.setAttribute("aria-label", review.label);
   section.append(el("h3", review.label), note(review.explanation, "ae-warn"));
   const cancel = button(
-    "Cancel",
+    t(card.hass, "Cancel"),
     () => {
       card.review = undefined;
       card.update();
@@ -141,7 +142,7 @@ export function reviewView(card) {
     { key: "cancel-review" },
   );
   const confirm = button(
-    "Confirm",
+    t(card.hass, "Confirm"),
     () => {
       if (card.blocked(review.id) || card.review !== review) return;
       card.review = undefined;

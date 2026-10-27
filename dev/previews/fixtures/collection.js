@@ -1,3 +1,8 @@
+import {
+  electricityIds,
+  demoPowerHistory,
+  applyDemoPower,
+} from "./electricity.js";
 import * as mdi from "@mdi/js";
 import fallback from "../mdi-preview-icons.json";
 const icons = new Proxy(fallback, {
@@ -202,6 +207,7 @@ for (const [id, value, unit] of [
 ])
   sensor(id, value, unit);
 state("binary_sensor.host", "on");
+applyDemoPower(states);
 const configs = {
   lights: {
     name: "Living room lights",
@@ -392,26 +398,32 @@ const hass = {
     return Object.fromEntries(
       msg.entity_ids.map((id) => [
         id,
-        Array.from({ length: 121 }, (_, i) => ({
-          lu:
-            Date.parse(msg.start_time) / 1000 +
-            (i * (Date.parse(msg.end_time) - Date.parse(msg.start_time))) /
-              120000,
-          s:
-            i % 19 === 7
-              ? "unknown"
-              : String(
-                  id.includes("network")
-                    ? i % 11 === 0
-                      ? 0.3
-                      : 0
-                    : Math.round(100 + 50 * Math.sin(i / 5)),
-                ),
-          a: {
-            unit_of_measurement:
-              states[id]?.attributes?.unit_of_measurement || "W",
-          },
-        })),
+        electricityIds.includes(id)
+          ? demoPowerHistory(
+              id,
+              Date.parse(msg.start_time),
+              Date.parse(msg.end_time),
+            )
+          : Array.from({ length: 121 }, (_, i) => ({
+              lu:
+                Date.parse(msg.start_time) / 1000 +
+                (i * (Date.parse(msg.end_time) - Date.parse(msg.start_time))) /
+                  120000,
+              s:
+                i % 19 === 7
+                  ? "unknown"
+                  : String(
+                      id.includes("network")
+                        ? i % 11 === 0
+                          ? 0.3
+                          : 0
+                        : Math.round(100 + 50 * Math.sin(i / 5)),
+                    ),
+              a: {
+                unit_of_measurement:
+                  states[id]?.attributes?.unit_of_measurement || "W",
+              },
+            })),
       ]),
     );
   },

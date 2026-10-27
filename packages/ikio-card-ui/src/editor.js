@@ -1,3 +1,4 @@
+import { t, language, stateLabel } from "./i18n.js";
 let loading;
 /** HA editor internals are isolated here. No runtime CDN or private Lit imports. */
 export async function ensureEditorComponents() {
@@ -28,8 +29,31 @@ export function form(hass, data, schema, labels, changed) {
   const node = document.createElement("ha-form");
   node.hass = hass;
   node.data = data;
-  node.schema = schema;
-  node.computeLabel = (field) => labels[field.name] || field.name;
+  node.schema = schema.map((field) => {
+    const options = field.selector?.select?.options;
+    return options
+      ? {
+          ...field,
+          selector: {
+            ...field.selector,
+            select: {
+              ...field.selector.select,
+              options: options.map((o) =>
+                typeof o === "string"
+                  ? o
+                  : {
+                      ...o,
+                      label: language(hass).startsWith("en")
+                        ? o.label
+                        : t(hass, stateLabel(hass, o.label)),
+                    },
+              ),
+            },
+          },
+        }
+      : field;
+  });
+  node.computeLabel = (field) => t(node.hass, labels[field.name] || field.name);
   node.addEventListener("value-changed", (event) => {
     event.stopPropagation();
     node.data = event.detail.value;

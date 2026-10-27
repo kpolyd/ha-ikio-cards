@@ -1,3 +1,4 @@
+import { t, stateLabel } from "@ikio/card-ui/i18n";
 import {
   ControlCard,
   el,
@@ -10,6 +11,7 @@ import {
   select,
   range,
   features,
+  formatNumber,
   valueText,
   available,
   installRefinement,
@@ -69,7 +71,7 @@ export class Card extends ControlCard {
     return document.createElement("ikio-climate-card-editor");
   }
   controlSelect(id, label, options, value, domain, service, key) {
-    const node = select(label, options, value, (v) =>
+    const node = select(t(this.hass, label), options, value, (v) =>
       this.send(
         id,
         domain,
@@ -93,7 +95,7 @@ export class Card extends ControlCard {
   }
   dial(id, label, key, value, min, max, step, extra = {}) {
     if (![value, min, max].every(finite) || min >= max)
-      return note(`${label} unavailable`);
+      return note(t(this.hass, "{p0} unavailable", { p0: label }));
     const draftKey = `${id}:${key}`;
     const shown = this.drafts.get(draftKey) ?? value;
     const snap = (v) =>
@@ -118,12 +120,12 @@ export class Card extends ControlCard {
     };
     const wrap = el("div", undefined, "climate-dial-row", key);
     const less = button(
-      `Decrease ${label.toLowerCase()}`,
+      t(this.hass, "Decrease {p0}", { p0: label.toLowerCase() }),
       () => commit(shown - step),
       { icon: "mdi:minus", disabled: disabled || shown <= min, entity: id },
     );
     const more = button(
-      `Increase ${label.toLowerCase()}`,
+      t(this.hass, "Increase {p0}", { p0: label.toLowerCase() }),
       () => commit(shown + step),
       { icon: "mdi:plus", disabled: disabled || shown >= max, entity: id },
     );
@@ -184,7 +186,11 @@ export class Card extends ControlCard {
       this.update();
     });
     const caption = el("div", undefined, "dial-caption");
-    const output = el("output", `${shown}`, "dial-value");
+    const output = el(
+      "output",
+      formatNumber(this.hass, shown, 3),
+      "dial-value",
+    );
     output.append(
       el(
         "span",
@@ -224,8 +230,12 @@ export class Card extends ControlCard {
     const id = this.config[`${axis}_position_entity`],
       s = this.state(id);
     if (!id) return null;
-    const label = `${axis[0].toUpperCase() + axis.slice(1)} position`;
-    if (!available(s)) return note(`${label} unavailable`);
+    const label = t(
+      this.hass,
+      axis === "horizontal" ? "Horizontal position" : "Vertical position",
+    );
+    if (!available(s))
+      return note(t(this.hass, "{p0} unavailable", { p0: label }));
     if (id.startsWith("select.") && s.attributes?.options?.length)
       return this.controlSelect(
         id,
@@ -240,7 +250,7 @@ export class Card extends ControlCard {
       const a = s.attributes || {},
         v = Number(s.state);
       if (![v, a.min, a.max].every(finite) || a.min >= a.max)
-        return note(`${label} unavailable`);
+        return note(t(this.hass, "{p0} unavailable", { p0: label }));
       const node = range(label, v, a.min, a.max, a.step || 1, (value) =>
         this.send(
           id,
@@ -272,7 +282,12 @@ export class Card extends ControlCard {
             " ",
           );
     const result = group(
-      title(this, c.name || (id ? this.label(id) : "Climate"), id, status),
+      title(
+        this,
+        c.name || (id ? this.label(id) : t(this.hass, "Climate")),
+        id,
+        t(this.hass, stateLabel(this.hass, status)),
+      ),
     );
     refine(result, "mdi:home-thermometer-outline");
     const nativeIcon = el("ha-state-icon");
@@ -282,7 +297,9 @@ export class Card extends ControlCard {
     result.classList.add("climate-card");
     result.dataset.mode = s?.state || "off";
     if (!id) {
-      result.append(note("Choose a climate entity in the visual editor."));
+      result.append(
+        note(t(this.hass, "Choose a climate entity in the visual editor.")),
+      );
       return result;
     }
     if (available(s)) {
@@ -291,7 +308,7 @@ export class Card extends ControlCard {
         result.append(
           this.dial(
             id,
-            "Lower target",
+            t(this.hass, "Lower target"),
             "target_temp_low",
             a.target_temp_low,
             a.min_temp,
@@ -301,7 +318,7 @@ export class Card extends ControlCard {
           ),
           this.dial(
             id,
-            "Upper target",
+            t(this.hass, "Upper target"),
             "target_temp_high",
             a.target_temp_high,
             Math.max(a.min_temp, a.target_temp_low),
@@ -314,7 +331,7 @@ export class Card extends ControlCard {
         result.append(
           this.dial(
             id,
-            "Target",
+            t(this.hass, "Target"),
             "temperature",
             a.temperature,
             a.min_temp,
@@ -331,7 +348,7 @@ export class Card extends ControlCard {
     const add = (label, sensor, fallback, icon) => {
       if (!sensor && fallback === undefined) return;
       const node = reading(
-        label,
+        t(this.hass, label),
         sensor ? valueText(this.hass, sensor) : fallback,
         sensor,
       );
@@ -339,7 +356,7 @@ export class Card extends ControlCard {
       readings.append(node);
     };
     add(
-      "Current",
+      t(this.hass, "Current"),
       c.temperature_entity,
       finite(a.current_temperature)
         ? `${a.current_temperature} ${unit}`
@@ -347,25 +364,30 @@ export class Card extends ControlCard {
       "mdi:thermometer",
     );
     add(
-      "Humidity",
+      t(this.hass, "Humidity"),
       c.humidity_entity,
       finite(a.current_humidity) ? `${a.current_humidity}%` : undefined,
       "mdi:water-percent",
     );
-    add("Power", c.power_entity, undefined, "mdi:lightning-bolt");
+    add(t(this.hass, "Power"), c.power_entity, undefined, "mdi:lightning-bolt");
     if (readings.children.length) result.append(readings);
     if (!available(s)) {
       result.append(
-        note("Device unavailable. Valid sensor readings remain visible."),
+        note(
+          t(
+            this.hass,
+            "Device unavailable. Valid sensor readings remain visible.",
+          ),
+        ),
       );
       return result;
     }
     if (a.hvac_modes?.length) {
       const section = el("section", undefined, "climate-modes-section");
-      section.append(el("span", "Mode", "ae-label"));
+      section.append(el("span", t(this.hass, "Mode"), "ae-label"));
       const buttons = el("div", undefined, "climate-modes");
       buttons.setAttribute("role", "group");
-      buttons.setAttribute("aria-label", "HVAC mode");
+      buttons.setAttribute("aria-label", t(this.hass, "HVAC mode"));
       const order = [
         ...Object.keys(modes),
         ...a.hvac_modes.filter((m) => !modes[m]),
@@ -373,7 +395,7 @@ export class Card extends ControlCard {
       for (const mode of order.filter((m) => a.hvac_modes.includes(m))) {
         const label = modes[mode]?.[0] || mode.replaceAll("_", " ");
         const b = button(
-          label,
+          t(this.hass, label),
           () =>
             this.send(
               id,
@@ -427,10 +449,15 @@ export class Card extends ControlCard {
     settings.push(this.position("horizontal"), this.position("vertical"));
     if (settings.some(Boolean))
       result.append(
-        disclosure(this, "climate-settings", "Device settings", ...settings),
+        disclosure(
+          this,
+          "climate-settings",
+          t(this.hass, "Device settings"),
+          ...settings,
+        ),
       );
     if (this.pending.size || this.requests.size)
-      result.append(note("Updating device…"));
+      result.append(note(t(this.hass, "Updating device…")));
     return result;
   }
 }
