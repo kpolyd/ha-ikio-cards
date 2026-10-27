@@ -1,37 +1,28 @@
 # Ikio Vacuum
 
-Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
+A compact vacuum card with an entity-derived name, state and battery above a single row of cleaning, dock and suction controls. Its 28 px native Home Assistant entity icon gently moves with a small sparkle only while the device reports cleaning. The card follows the Home Assistant theme and language.
 
-Collection version: see [the shared version](../../ikio/package.json). Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Install the full collection through the [HACS instructions](../../docs/ikio/INSTALLATION.md#hacs). All thirteen cards and editors share one HACS download and the [collection version](../../ikio/package.json).
 
-## Installation
+## Configuration
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.6.1` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-vacuum-card.js`. Use only one route.
+The visual editor has one required **Vacuum** selector (`vacuum.*`). Each card operates one vacuum; add more card instances for other devices. No YAML is required.
 
-Add card → Ikio Vacuum. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
+```yaml
+type: custom:ikio-vacuum-card
+entity: vacuum.robot
+```
 
-## Visual editor fields
+The entity supplies its friendly name/native icon, state, supported cleaning actions and fan-speed options. The card uses `battery_level` when it is a valid percentage, including zero. Missing or invalid battery data is hidden, and an unavailable vacuum's battery is unknown. A battery exposed only as a separate sensor is not automatically linked. The card uses the vacuum's own state instead of a separate supplemental status sensor.
 
-| Field | Setting |
-|---|---|
-| entity | Vacuum (required to operate) |
-| battery_entity | Battery sensor (optional) |
-| status_entity | Supplemental status (optional) |
+During cleaning the primary action is Pause, or Stop when only stopping is supported. Paused devices offer Resume; docked/idle devices offer Start cleaning when supported. Return to dock is available when supported and relevant. Suction appears only with the device capability and actual options; integration-specific option names are preserved. Backend errors and pending actions stay inline, with bounded confirmation and no optimistic cleaning animation.
 
-### Maintenance readings
-Add, remove and reorder rows in the editor.
+Animation stops when paused, returning, hidden, disconnected or in editor preview. Reduced-motion preferences disable animation. The icon occupies existing header space; normal docked/cleaning states keep the same compact height. Tap the name or hold an entity control for native HA details. Focus, selected values and HA layout/visibility metadata survive updates.
 
-- **Sensor** (entity)
-- **Display name** (name)
+## Migration
 
-### Existing cleaning missions
-Add, remove and reorder rows in the editor.
+This redesign removes More controls, maintenance readings, mission scripts and all optional configuration fields. Existing `entity` and HA metadata are retained; `name`, `appearance`, `battery_entity`, `status_entity`, `maintenance` and `missions` are removed from normalized editor output without mutating the supplied configuration. Rename the entity in HA to change the title; appearance always follows HA. Separately configured missions and maintenance sensors can be placed in their own dashboard controls/readings.
 
-- **Script** (entity)
-- **Mission name** (label)
+## Validation
 
-## Shared behaviour
-
-Dark, light and follow-HA appearance use the same shared Ikio styles. Controls have at least 44 px targets; readings remain useful when another entity is offline. Native entity details open on hold. No service call is made in the editor preview. Backend errors remain visible. Optional entities may be omitted. See [full contract](../../docs/ikio/SPECIFICATION.md) and [collection status](../../docs/ikio/STATUS.md).
-
-No external runtime CDN dependencies. esbuild MIT license is copied into the build output. Shared UI/graph code is bundled locally.
+Run `npm test --workspace @ikio/vacuum-card` for DOM/service/editor checks. After building, `npm run preview:build` and `npm run test:browser -- vacuum` exercise the compiled card with simulated HA data, themes, narrow widths, state changes, errors, missing battery, Greek text and reduced motion. The complete browser suite remains in CI. These checks do not certify native HA or live-device compatibility. No real devices are operated by tests or previews.
