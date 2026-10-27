@@ -1,0 +1,843 @@
+{
+  "schema": 1,
+  "version": "0.11.0",
+  "sha": "ba50e615da92d6479e19d2b4073857c343244b78",
+  "bundleHash": "f1d2721c944ea0e536a5d7e32fdd2de390fc85dff8899affe7c59095dc3e12d7",
+  "galleryHash": "0e16c84140d2be184cf7929d67a8328978bb8be0003f4a63a6df084304e36cb0",
+  "browser": "141.0.7390.37",
+  "clock": "2026-10-26T12:00:00Z",
+  "captures": [
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/lights/dark-360-normal.png",
+      "sha256": "bac6cc74ff8029072a59304e19c8c167c8bd1a6cbb7ee8bda67d8d714fe6d658"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/climate/dark-360-normal.png",
+      "sha256": "6b37d92a38e71128adcf68fc1420c9c8b5095ecf5a2ce5a821ac0ea5431d490f"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/dark-360-normal.png",
+      "sha256": "2b78b05fa06d15dcdcadb535bee06f8c9c7e15df682ce6609c6bea5c1fcc8443"
+    },
+    {
+      "card": "appliances",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/appliances/dark-360-normal.png",
+      "sha256": "266dc84a9d18b9b4c24299c21fec7b4114f3b3ee74f93dafcba61f4ead3471ff"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/media/dark-360-normal.png",
+      "sha256": "04efd7f9789a6f65e7fe661cc49cc84dc8b98b81984cc214c72716525fdd4a84"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/dark-360-normal.png",
+      "sha256": "70b199b010c5887a29da4731695330c7560798e0deac7447849e1c1c79bb0abc"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/dark-360-normal.png",
+      "sha256": "f11b890af6a0a4dcb0f31303ef85603c441ef8e03d040b0215ed4397675db2fa"
+    },
+    {
+      "card": "camera",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/camera/dark-360-normal.png",
+      "sha256": "4a699292da5601bf9c5d747daeccfa0b7634760bd8a83ec7965f938a778683d1"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/electricity/dark-360-normal.png",
+      "sha256": "d26bad98c56319f3f175a152e01c11141177f4d0300a4fa6ddd1cbd779697817"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/dark-360-normal.png",
+      "sha256": "0bcb771a0701a251885af1c4e1a51f2a47ecc07acd055a1b55312ec1b50da600"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/dark-360-normal.png",
+      "sha256": "f2022ab8149a44dd09b148cb3f6e6f74a6a880a911b309a8e5ae4ba02d041ddc"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/graph/dark-360-normal.png",
+      "sha256": "729df5e40574b28be08f6894c0718198f5a56f4b58bb747d9e2f068810789cd6"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/chip/dark-360-normal.png",
+      "sha256": "11754aadb8313c1d4c9fa31fd2e95885d2961297e421edf62f21488af8c133dc"
+    },
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/dark-360-unavailable.png",
+      "sha256": "0187477fa590eced1e8d0b5e3520a250dd94ad451eea93f99ef23015bf5842df"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/dark-360-unavailable.png",
+      "sha256": "f654e5107a36dd1fe4a2488ba88beef97b4a68be0e520e49dfd5f8ada33cbf39"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/dark-360-unavailable.png",
+      "sha256": "8cb038f0951e80d4a90fda5d03dceac596417f32d45ad731fe25169cb0a54126"
+    },
+    {
+      "card": "appliances",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/appliances/dark-360-unavailable.png",
+      "sha256": "6a35ea59ae13bbdd071f002762b5518b3827995f0a1e5110f2a6141a2cc1eaee"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/media/dark-360-unavailable.png",
+      "sha256": "8c311cc32bd26706149a768837a4296cfe6c6874b1919267117fb0f246dcebc2"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/dark-360-unavailable.png",
+      "sha256": "73fdfc4faf7be9be74fd05836c4d926aac5f738da727c00c2f6c662c915c828f"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/dark-360-unavailable.png",
+      "sha256": "db9c65a05091d47312030747f1a84c94a95799d79e644eb64946f99edfcd9e11"
+    },
+    {
+      "card": "camera",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/camera/dark-360-unavailable.png",
+      "sha256": "3b2c94c09b8e4a77f04f424a4ade19a963fde1f62e4ae4d33892155ade7f70f2"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/dark-360-unavailable.png",
+      "sha256": "95015f9a1491ccc01141c81da2a43ce113fac63bf571c03acb74cf39167afb59"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/dark-360-unavailable.png",
+      "sha256": "75def840c208516c3972ccacc0e5750bd1716f3e34ebe17afd6e88c16c32aef8"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/dark-360-unavailable.png",
+      "sha256": "ced497cd962825d348b407817cad6d13d5401ddf57a159d8dee50ac4b7fb1c24"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/dark-360-unavailable.png",
+      "sha256": "207e0acfe6ffc6670113070e24de3be00c5864fcf7b2c26f35aeb9b638373abf"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/dark-360-unavailable.png",
+      "sha256": "670d339044ef8d930845a6bd955a23dbec9a2d9b84e9c714c60e00facd67a979"
+    },
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/lights/dark-640-normal.png",
+      "sha256": "af88fdb70d2ba96cf7800e5ef63cbcd44ccb824e244aca733b2acde500de41f4"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/climate/dark-640-normal.png",
+      "sha256": "28f23690b021819ea47588b6cca8b8f8f9b77e946bff8f7b858f6ef6d21c984e"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/dark-640-normal.png",
+      "sha256": "661eb483fae827ce9cbf5035652e18fe1f3e10b5672f2c60c7746fe076c3debf"
+    },
+    {
+      "card": "appliances",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/appliances/dark-640-normal.png",
+      "sha256": "b8b8d86419700609d4dcaefa048383fbc89c0703575fe329d86cd8cf580c9312"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/media/dark-640-normal.png",
+      "sha256": "a7f7260151810cf29c7966ae19436fa09b02fcd29b3c35ec34b257a368a9b3b9"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/dark-640-normal.png",
+      "sha256": "92e1b9e7a2eab113a1868a12fb3f8cc26d1be87339f79642bd00d5ea9b8beff6"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/dark-640-normal.png",
+      "sha256": "a2adbc122abbf438dbb9012966935241716b2abbf8ba8eb9b6d3e67b57697a4a"
+    },
+    {
+      "card": "camera",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/camera/dark-640-normal.png",
+      "sha256": "eaff68fc90c952620b845ecf99dc5dfa4337ae001ede8773e96071fd7cba9862"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/electricity/dark-640-normal.png",
+      "sha256": "7aafdf5704481b2ac2452461b32f410a044443f3831fc4efabad602626b41faf"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/dark-640-normal.png",
+      "sha256": "9e088f300e9826b118708c1bb17e1a95650c266fbc34084a7a76271dd5ab5da0"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/dark-640-normal.png",
+      "sha256": "5c1a4d208f44cddfb74847c83307644fd2017522a60285dce5d590636eed52ac"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/graph/dark-640-normal.png",
+      "sha256": "cbe62d8141b9271b46d0b539ffd3910d687e5bb4240553687908cc0cf7589645"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/chip/dark-640-normal.png",
+      "sha256": "e6c1d852066554166385b272965a568e8363c254d75cf8a7146f24059216762c"
+    },
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/dark-640-unavailable.png",
+      "sha256": "883163b7841b017fbed4bf91ba4b63472f9b963fc5031b91614ad7b95a147757"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/dark-640-unavailable.png",
+      "sha256": "45f0841c8f13f6449a64501f624994e61c764550fb2b3e144ab2356e2d9f7278"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/dark-640-unavailable.png",
+      "sha256": "7241c5382b94e629b62cb0618cf8bafbfb3270d6a717c103747c91324d44783d"
+    },
+    {
+      "card": "appliances",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/appliances/dark-640-unavailable.png",
+      "sha256": "675f816eca9b565c7b8ccf30157779a3c30248623a8f3805b3e2205d098927c8"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/media/dark-640-unavailable.png",
+      "sha256": "39479a24d2b51e08646760c9b3f04668470de6efcf215d48be07c2538a566737"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/dark-640-unavailable.png",
+      "sha256": "6f58dee96a359bda87ad1c1cc5f744bd9435b1a334742b85ea558f16a082858f"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/dark-640-unavailable.png",
+      "sha256": "1a3b631aa7345d236aeb17a7ee9c8e322ef79c56c9576ac2eeebc1eaa243a900"
+    },
+    {
+      "card": "camera",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/camera/dark-640-unavailable.png",
+      "sha256": "ba92bbbc679a0121b2cca038b8c029900fb050a905424a173edcd8b5804482bf"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/dark-640-unavailable.png",
+      "sha256": "07da6cac47d2e00d9890dc9f59da84b30ba0a1f3422aad87159a4b81f3de80f7"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/dark-640-unavailable.png",
+      "sha256": "67ed5a602902bc182007fba835e3b9229268c1b6e5318bc3a62598d8f40c5918"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/dark-640-unavailable.png",
+      "sha256": "65747873cb5977a5df4e1e1963c4297acac1e53e930906f9feb8cc9276089ce4"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/dark-640-unavailable.png",
+      "sha256": "02fcd4ab13173185bd8b9612f29020ea2a3ccf7f89cedfb8da921d0157e779d6"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/dark-640-unavailable.png",
+      "sha256": "0d844b311ceab6c1df41569385c25f106196fc5f4bdaef2f7fa39c2513ec8e43"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/lights/light-360-normal.png",
+      "sha256": "d62713f36358cee65fcaae74d3959d97c84aecbe5a35ce6b8e3d1c795c34deae"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/climate/light-360-normal.png",
+      "sha256": "e72e94267cbbed08f65031b302f47abb5dac41ba1b33324fe44b3ed58513ba66"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/light-360-normal.png",
+      "sha256": "be46eaca7eefd6b5675a5bf00380ae6d20a3c39c6ad06270d6b10fa72e6b3f6c"
+    },
+    {
+      "card": "appliances",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/appliances/light-360-normal.png",
+      "sha256": "1203d3313288acd27ba7f4013f630cc5bb68af5b44564344ae8d4d242cc3038c"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/media/light-360-normal.png",
+      "sha256": "3be696a8d85d6849708867fe8fb9e58d4247bfbe79fbea12ffa113425413ddb1"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/light-360-normal.png",
+      "sha256": "f88793c5a8c98702bd8de30bd460acfa1138978872629491bfe9a2374f64b6e1"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/light-360-normal.png",
+      "sha256": "9bdfa0cf5cd2274aa23f4df1ed55af12e949b5dbdb453aa5e7993e21493bf5d6"
+    },
+    {
+      "card": "camera",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/camera/light-360-normal.png",
+      "sha256": "5085ea03e5452ae8b2b42b6d71d7e4fa010d1be404aa806ed3b55b838b9f25d0"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/electricity/light-360-normal.png",
+      "sha256": "d06df53fc58ba29d9c7599744ad40a344c0962ca631a6b15a65928739720da35"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/light-360-normal.png",
+      "sha256": "e4e282dbb0f8467afb51972dd60d96487f4741f496d8c94fbaaf446c279e6e20"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/light-360-normal.png",
+      "sha256": "e8c333a1604d071b095ec459ab106891cc354fb97fa8eaa9ddbb17bdb7a09a81"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/graph/light-360-normal.png",
+      "sha256": "0399191f953de8f4b9e7c8f1f7360e7c62ac86b61330dc63804ba48d3189cba1"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/chip/light-360-normal.png",
+      "sha256": "4e6111adce882bde62214374dd8c9e6c7d23241b32eeec1445886e6ddfb2479b"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/light-360-unavailable.png",
+      "sha256": "5f7cca50da0afeaf6cd6a3227c056ac57e52878e7676bc0bd319d29619a611e7"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/light-360-unavailable.png",
+      "sha256": "66b5857b4700f24de5babcc07e8843f5d7e481b19952b7d1be521043ec29b8e0"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/light-360-unavailable.png",
+      "sha256": "e2906fc99e7d6be64524f7fad734223fcf6369369c228f8e07d54daa648a53db"
+    },
+    {
+      "card": "appliances",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/appliances/light-360-unavailable.png",
+      "sha256": "07f5bcfa76dfbabc6c721d2c0e855ce31eb6ee32c41ce19d9fbef75e1cb1ad9c"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/media/light-360-unavailable.png",
+      "sha256": "1c256bb67db37add2528b16a42dd52b8d7c31d96222d3202f38ebb6713da8813"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/light-360-unavailable.png",
+      "sha256": "f99ac6070f49b1009eec0c2412f1d568bcc26e662aaf39a54a1b2543c676314b"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/light-360-unavailable.png",
+      "sha256": "18f510dff96bbd3a254309b9b909b79526ff707d26affdf3dc1378e24cc4ba22"
+    },
+    {
+      "card": "camera",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/camera/light-360-unavailable.png",
+      "sha256": "169053fa35d469ec22e9c30ce33a79c4338ad9263f3baf02629d391a819e0c92"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/light-360-unavailable.png",
+      "sha256": "92bb29b0d4d3eaca62179996be47a8dd2a29908c7de9f563c73277e6aae781b3"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/light-360-unavailable.png",
+      "sha256": "101723fe2376860928d61bd638de21a6a44cd32ef422c6755ffbe0562780d7ed"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/light-360-unavailable.png",
+      "sha256": "5f402be5f0747ffd9effccc44b79eff951e5a49cb6ac8a63099ff8f2e87b6de0"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/light-360-unavailable.png",
+      "sha256": "d7d8a12ffe14fc9ed372c16f94224873f018f141ba2d118f8e887121e21c8638"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/light-360-unavailable.png",
+      "sha256": "4570b15fea39e893e51b629089e28410f71fad79a2b7fdc5664f2f82da2aa000"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/lights/light-640-normal.png",
+      "sha256": "86f6192677c55bfbd7664bffc1e874a2fbb868ff226a5cb3b0fb4409e550a912"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/climate/light-640-normal.png",
+      "sha256": "b6dea5a2a1ed9c8ae6a3602743f86db8867de30c8e800032d104fd9f4eca2c7c"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/light-640-normal.png",
+      "sha256": "c70593224666d5d612ebb69b8666f57cdcd13ea452edab41e53af0abad7db995"
+    },
+    {
+      "card": "appliances",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/appliances/light-640-normal.png",
+      "sha256": "4b046a32cb2c1f28f3219679655b9ddf318fe791ed095501a29a889681a4227b"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/media/light-640-normal.png",
+      "sha256": "ffea66ba962dd2def95e8b3fc02c15dc60bc0cec8b97671ccbbc69ceab823f37"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/light-640-normal.png",
+      "sha256": "42e58b372eca0c9cd1ad6e7fe0443dbcd03b04469af1e1fd5720050a4fddc59f"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/light-640-normal.png",
+      "sha256": "c861cf57babbf285065f2ebf3e3464b158ab3198a942d6267c3607ed64a5b2bd"
+    },
+    {
+      "card": "camera",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/camera/light-640-normal.png",
+      "sha256": "ab0c74f2872e15c129d4d5b27ebad70e931af8122aaa1d8634079b2b66452416"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/electricity/light-640-normal.png",
+      "sha256": "952020b39337bb90c06fe056a61d939414ce1df94e2693fd9a23813e8731efcc"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/light-640-normal.png",
+      "sha256": "35915a211386046cbc173d70b81b8938faa2c7220b096f74983a1391c4b2100d"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/light-640-normal.png",
+      "sha256": "f6d477300ae02868939f76e46ce97ec735850cb9c58a0d52002a8d6bf00b0049"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/graph/light-640-normal.png",
+      "sha256": "a39bc41c4ac2c87b1e979efbe288d16ee6f4cc8bf85b90161c2a27f8ec870b07"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/chip/light-640-normal.png",
+      "sha256": "e0f02e8f0d0a25d359a9325566025c4ff9257b49f6f9cb247c5a7785c9bb6c59"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/light-640-unavailable.png",
+      "sha256": "209a3171d4d834ad8a63ea57b745013ace9d2e058b4398744a0687b68b966f7d"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/light-640-unavailable.png",
+      "sha256": "4769819ceb464ec89169059ca853739ad63fc8132ea7755487db24ccb0245dab"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/light-640-unavailable.png",
+      "sha256": "05c10dff534944ee292d4be2e5f68480f3e8b722dc00c2a86338d5fc6e8ecff2"
+    },
+    {
+      "card": "appliances",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/appliances/light-640-unavailable.png",
+      "sha256": "8da79bee9d996f0e535a2554a462c088291a1f7817fe79d51ab4791b3a93ccd9"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/media/light-640-unavailable.png",
+      "sha256": "544fa8e2f2405a1502d8927af36ab75c3d7f280c48fceb69c6a8d352afd8ecaf"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/light-640-unavailable.png",
+      "sha256": "6c0d0afe4e66b3cd8c18739a6a34786925aca3586ba54e3361e53bd6b413d0ea"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/light-640-unavailable.png",
+      "sha256": "45ad69bfe46035e01cf913098a93d993f96c05c5156b6fb938d8161938603df6"
+    },
+    {
+      "card": "camera",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/camera/light-640-unavailable.png",
+      "sha256": "cc07c63483178311a8ee5d96d7142d53f41f24cf7f66cd164fbd6adb13808d16"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/light-640-unavailable.png",
+      "sha256": "2c3f9e38dae7a520b78099e9550ad71a722a4cfe93414365609b8f8d112b2475"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/light-640-unavailable.png",
+      "sha256": "04f315235877ede6eade962deaecd7cac29471622dbc05a0c6f4f772ef5989eb"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/light-640-unavailable.png",
+      "sha256": "938246ad79474b14c37bd97d076d8382f62bf82529a09841ba0e4970957ca0b8"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/light-640-unavailable.png",
+      "sha256": "4f6795c14f178323512ba32b32c64da6cc9a12a834a3fe66adbd664ee78e0c9c"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/light-640-unavailable.png",
+      "sha256": "4c1ea5e23dd29f4c2afbaf5b941878f8078be3935c1e14852c274079627f50e7"
+    }
+  ]
+}
