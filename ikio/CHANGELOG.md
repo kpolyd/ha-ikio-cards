@@ -1,5 +1,25 @@
 # Ikio changelog
 
+## [0.13.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.12.0...v0.13.0) (2026-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* **media:** remove More controls and retire more_controls, backlight_entity and shortcuts while preserving other media settings.
+* **vacuum:** remove name, appearance, battery/status overrides, missions and maintenance settings; retain the vacuum entity and HA layout metadata.
+
+### Features
+
+* **media:** compact the card and feather background artwork ([8e8a94e](https://github.com/kpolyd/ha-ikio-cards/commit/8e8a94e31a23919dc6427228aa0845a525a83165))
+* **vacuum:** simplify the card with an animated cleaning icon ([e1adc70](https://github.com/kpolyd/ha-ikio-cards/commit/e1adc70a87ada5ce1f045a82dbd49af05d232170))
+
+
+### Bug Fixes
+
+* **ci:** automate changelogs and release preparation from conventional commits ([be9ad0b](https://github.com/kpolyd/ha-ikio-cards/commit/be9ad0b300f6e663b546b4d578b174a87139c96c))
+* **ci:** avoid duplicate changelog entries from merge messages ([a040c67](https://github.com/kpolyd/ha-ikio-cards/commit/a040c677ccbae8f804866ec7aba3109c91e7d4a4))
+* **graphs:** align device sparklines and network time labels ([894c189](https://github.com/kpolyd/ha-ikio-cards/commit/894c189246778dc7539b8186c45e4b302327b47f))
+
 ## 0.12.0 — Compact Media redesign
 
 - Place transport controls beside the currently playing title, over automatic background artwork with a readability overlay. Keep the progress bar inside the artwork section and use the normal surface when artwork is missing or fails.
