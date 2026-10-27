@@ -638,3 +638,5 @@ Add an off-by-default show_activity visual-editor toggle and optional activity_h
 ## 58. One collection version definition
 
 Define the release version only in ikio/package.json. Private card and shared-library workspaces omit version fields and reference internal dependencies through local file links. The lockfile records workspace links without independent release versions. The version script validates this structure without copying or modifying versions. Card documentation links to the shared authority instead of maintaining current-version captions. Historical changelog and migration versions remain historical; versioned preview links and compiled release metadata remain generated from the authority. Version selection remains manual, with automated publication after CI; Conventional Commit messages do not calculate version bumps.
+
+The owner subsequently authorized merging and publishing these changes as ikio-v0.7.0, including the single-version cleanup. Rebase onto the latest main before creating a visible merge commit; delete the merged branch after success.
