@@ -8,6 +8,7 @@ export const cards = [
   "alarmo",
   "server-monitor",
   "climate",
+  "dehumidifier",
   "media",
   "camera",
   "vacuum",

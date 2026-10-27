@@ -40,4 +40,8 @@ export const climateStyles = `
 .climate-card .ikio-disclosure-body select{font-size:13px;border:0;padding:4px 6px;border-radius:6px}
 .climate-card .ikio-disclosure-body>.ae-range,.climate-card .ikio-disclosure-body>.ae-note{grid-column:1/-1}
 @container(max-width:300px){.climate-card .climate-modes>.ae-button{flex-direction:column}.climate-card .dial-value{font-size:34px}.climate-card .dial-unit{font-size:16px}.climate-card .climate-dial-row{gap:4px}.climate-card .dial-caption .ae-label{font-size:11px}}
+
+.climate-card.ikio-refined .ikio-disclosure>summary:after,.climate-card.ikio-refined .ikio-disclosure[open]>summary:after{content:none}
+.climate-card .settings-chevron{--mdc-icon-size:18px}
+.climate-card .ikio-disclosure[open] .settings-chevron{transform:rotate(180deg)}
 `;

@@ -9,6 +9,7 @@ const names = [
   "Alarmo",
   "Server Monitor",
   "Climate",
+  "Dehumidifier",
   "Media",
   "Camera",
   "Vacuum",

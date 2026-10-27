@@ -127,4 +127,10 @@ Implemented the approved two-row layout, six labelled icons, state-based colours
 
 ## Languages
 
-All twelve cards, the Chip badge and visual editors follow Home Assistant’s selected language, with English and Greek bundled locally. English is the fallback and explicit demo default. See [translation contributions](TRANSLATIONS.md). Catalog validation, regional fallback, pluralization, live language changes and unchanged native/configured values have automated tests. The electricity demo uses continuous, deterministic household loads; production graph semantics are unchanged.
+All thirteen cards, the Chip badge and visual editors follow Home Assistant’s selected language, with English and Greek bundled locally. English is the fallback and explicit demo default. See [translation contributions](TRANSLATIONS.md). Catalog validation, regional fallback, pluralization, live language changes and unchanged native/configured values have automated tests. The electricity demo uses continuous, deterministic household loads; production graph semantics are unchanged.
+
+## 0.11.0 — Dehumidifier and Climate chevron
+
+Added the approved Climate-like Dehumidifier card with a complete visual editor, capability-based modes and mapped fan settings, optional independent humidity/power sensors, tank-full polarity/warnings, and English/Greek UI. Climate's settings disclosure now uses a down/up chevron with the plus/minus decoration suppressed by card-scoped styles.
+
+Validation: all 226 workspace tests and 20 script tests pass, including 13 new Dehumidifier cases. Translation catalogs, formatting, collection versions, full build, tracked HACS bundle and manual packaging pass. Chromium generated 104 captures for all thirteen cards in dark/light at 360/640 px, normal/unavailable. Additional simulated browser checks cover Climate/Dehumidifier at 280/320/390/520 px with dark/light/HA appearance, target and mode/off/on commands, mapped fan selection, a Greek tank warning, disclosure persistence and the actual computed chevron/pseudo-element styles. These checks do not establish native HA editor/icon behaviour or live-device compatibility.

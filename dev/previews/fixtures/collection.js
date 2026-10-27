@@ -64,6 +64,7 @@ customElements.define("ha-state-icon", FixtureStateIcon);
 const types = [
   "lights",
   "climate",
+  "dehumidifier",
   "appliances",
   "media",
   "vacuum",
@@ -151,12 +152,20 @@ state("climate.room", "cool", {
   fan_modes: ["auto", "low", "high"],
   fan_mode: "auto",
 });
+sensor("dehumidifier_power", 245, "W");
+state("binary_sensor.dehumidifier_tank", "off", { device_class: "problem" });
+state("select.dehumidifier_fan", "High", { options: ["Low", "High"] });
 state("humidifier.room", "on", {
-  humidity: 55,
+  humidity: 50,
+  current_humidity: 62,
+  action: "drying",
+  device_class: "dehumidifier",
+  icon: "mdi:air-humidifier-off",
+  target_humidity_step: 5,
   min_humidity: 35,
   max_humidity: 80,
   supported_features: 1,
-  available_modes: ["Auto", "Continuous"],
+  available_modes: ["Auto", "Continuous", "Laundry"],
   mode: "Auto",
 });
 state("fan.bedroom", "off", {
@@ -222,6 +231,13 @@ const configs = {
     temperature_entity: "sensor.temperature",
     humidity_entity: "sensor.humidity",
     climate_entity: "climate.room",
+  },
+  dehumidifier: {
+    name: "Dehumidifier",
+    humidifier_entity: "humidifier.room",
+    power_entity: "sensor.dehumidifier_power",
+    tank_full_entity: "binary_sensor.dehumidifier_tank",
+    fan_entity: "select.dehumidifier_fan",
   },
   appliances: {
     name: "Water heater",
@@ -463,6 +479,7 @@ const hass = {
       if (data.is_volume_muted !== undefined)
         attrs.is_volume_muted = data.is_volume_muted;
     }
+    if (domain === "select" && data.option) value = data.option;
     if (domain === "climate" && data.hvac_mode) value = data.hvac_mode;
     for (const key of ["temperature", "humidity", "percentage", "mode"])
       if (data[key] !== undefined) attrs[key] = data[key];
