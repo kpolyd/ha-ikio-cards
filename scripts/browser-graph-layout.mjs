@@ -56,6 +56,10 @@ export async function checkGraphLayout(browser, out) {
             }),
           );
         assert.ok(devices.length >= 5);
+        assert.ok(
+          devices[0].offset < 76,
+          `Power column is too wide: ${devices[0].offset}`,
+        );
         for (const item of devices) {
           assert.ok(
             Math.abs(item.width - devices[0].width) < 1,

@@ -57,7 +57,8 @@ export class Card extends HistoryCard {
       .ae-energy-bills .ae-label,.ae-energy-bills .ae-value{text-align:right;width:100%}
       .ae-energy-tariffs .ae-value{display:flex;justify-content:flex-end;align-items:baseline;gap:3px;flex-wrap:wrap}
       .ae-energy-tariffs .ae-value small{font-size:11px;font-weight:400;color:var(--ae-muted)}
-      .ae-energy .ae-grid .ae-device-reading{display:grid;grid-template-columns:9ch minmax(0,1fr);column-gap:10px;align-content:center;align-items:center}
+      .ae-energy .ae-grid .ae-device-reading{display:grid;grid-template-columns:8ch minmax(0,1fr);column-gap:4px;align-content:center;align-items:center}
+      .ae-device-reading>.ae-value{font-size:13px}
       .ae-device-reading>.ae-label{grid-column:1/-1}
       .ae-device-sparkline{height:18px;min-width:0;overflow:hidden;pointer-events:none}
       .ae-device-sparkline .ae-graph{height:18px;width:100%}

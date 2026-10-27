@@ -1,12 +1,12 @@
 # Ikio Vacuum
 
-A compact vacuum card with an entity-derived name, state and battery above a single row of cleaning, dock and suction controls. Its 28 px native Home Assistant entity icon gently moves with a small sparkle only while the device reports cleaning. The card follows the Home Assistant theme and language.
+A compact vacuum card with an entity-derived name, state and battery above a single row of cleaning, dock and suction controls. Its 28 px native Home Assistant entity icon gently moves with a small sparkle only while the device reports cleaning. The card uses the same Ikio dark/light palettes as the collection, with an option to follow the Home Assistant theme. Language follows Home Assistant.
 
 Install the full collection through the [HACS instructions](../../docs/ikio/INSTALLATION.md#hacs). All thirteen cards and editors share one HACS download and the [collection version](../../ikio/package.json).
 
 ## Configuration
 
-The visual editor has one required **Vacuum** selector (`vacuum.*`). Each card operates one vacuum; add more card instances for other devices. No YAML is required.
+The visual editor has one required **Vacuum** selector (`vacuum.*`). Each card operates one vacuum; add more card instances for other devices. The standard Appearance selector offers Ikio dark (default), Ikio light and Follow Home Assistant. No YAML is required.
 
 ```yaml
 type: custom:ikio-vacuum-card
@@ -21,7 +21,7 @@ Animation stops when paused, returning, hidden, disconnected or in editor previe
 
 ## Migration
 
-This redesign removes More controls, maintenance readings, mission scripts and all optional configuration fields. Existing `entity` and HA metadata are retained; `name`, `appearance`, `battery_entity`, `status_entity`, `maintenance` and `missions` are removed from normalized editor output without mutating the supplied configuration. Rename the entity in HA to change the title; appearance always follows HA. Separately configured missions and maintenance sensors can be placed in their own dashboard controls/readings.
+This redesign removes More controls, maintenance readings, mission scripts and optional device configuration fields. Existing `entity`, `appearance` and HA metadata are retained; `name`, `battery_entity`, `status_entity`, `maintenance` and `missions` are removed from normalized editor output without mutating the supplied configuration. Rename the entity in HA to change the title; appearance uses the standard collection selector. Separately configured missions and maintenance sensors can be placed in their own dashboard controls/readings.
 
 ## Validation
 

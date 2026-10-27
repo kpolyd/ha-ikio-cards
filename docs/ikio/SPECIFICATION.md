@@ -731,3 +731,10 @@ Keep the approved title-adjacent playback controls, timeline, joined volume minu
 The owner requested two minor layout corrections. Reserve a consistent device power-value column in Electricity, sized for four digits with localized grouping, a possible sign and the W unit, so every device and Untracked sparkline has the same width and relative starting position. Preserve existing values, formatting, graph colours, scales, strokes and card layout.
 
 Place Server Monitor's network time labels in the plot column of the chart grid: −30 min aligns with the beginning of the SVG plot and Now with its end, rather than placing the start label below the min/max value column. Keep the history window, rates, extrema formatting, graph geometry and all other Server Monitor content unchanged. Verify both alignments at narrow/wide card widths using the reusable graph-layout browser scenario.
+
+
+## 74. Vacuum palette consistency and tighter device power readings
+
+The owner reported that Vacuum did not follow the collection colour theme. Restore the standard appearance configuration and visual selector: Ikio dark by default, Ikio light, or Follow Home Assistant. Preserve existing appearance settings rather than stripping or forcing them to HA. Keep entity-derived naming and the simplified device configuration. This supersedes section 71's forced HA theme and removal of appearance. Verify actual palette equality with another Ikio card in both dark/light modes, including semantic colours; verify custom HA colours separately.
+
+Tighten Electricity's device value column from 9ch to 8ch and the value/graph gap from 10px to 4px. Use 13px device readings to fit signed, grouped four-digit watts within the smaller column. Every device and Untracked graph retains equal width and alignment. Preserve the main reading and graph styles, formatting and colours.

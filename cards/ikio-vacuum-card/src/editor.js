@@ -7,8 +7,9 @@ import {
   language,
   t,
 } from "@ikio/card-ui";
+import { choice } from "@ikio/card-ui/schema-editor";
 import { fields, normalize } from "./config.js";
-// Deliberately omit the shared optional name/theme forms for this card.
+// Keep entity-derived naming and the standard collection appearance selector.
 class Editor extends HTMLElement {
   constructor() {
     super();
@@ -52,6 +53,25 @@ class Editor extends HTMLElement {
         Object.fromEntries(fields.map((field) => [field.name, field.label])),
         (value) => {
           this.config = normalize({ ...this.config, entity: value.entity });
+          emitConfig(this, structuredClone(this.config));
+        },
+      ),
+      form(
+        this._hass,
+        { theme: "dark", ...this.config.appearance },
+        [
+          choice("theme", "Appearance", [
+            { value: "dark", label: "Ikio dark" },
+            { value: "light", label: "Ikio light" },
+            { value: "ha", label: "Follow Home Assistant" },
+          ]),
+        ],
+        { theme: "Appearance" },
+        (value) => {
+          this.config = {
+            ...this.config,
+            appearance: { ...this.config.appearance, ...value },
+          };
           emitConfig(this, structuredClone(this.config));
         },
       ),
