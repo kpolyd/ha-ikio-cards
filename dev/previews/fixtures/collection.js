@@ -78,7 +78,19 @@ state("alarm_control_panel.home", "disarmed", {
   supported_features: 3,
   code_arm_required: false,
 });
-state("binary_sensor.window", "on");
+state("binary_sensor.window", "on", { device_class: "window" });
+state("binary_sensor.demo_balcony", "on", {
+  friendly_name: "Balcony",
+  device_class: "door",
+});
+state("binary_sensor.demo_motion", "on", {
+  friendly_name: "Motion",
+  device_class: "motion",
+});
+state("binary_sensor.demo_entrance", "on", {
+  friendly_name: "Front door",
+  device_class: "door",
+});
 state("lock.car", "locked");
 state("binary_sensor.car_door", "off");
 state("binary_sensor.car_window", "on");
@@ -255,12 +267,23 @@ const connection = {},
 const hass = {
   states,
   entities: {
+    "binary_sensor.window": { area_id: "kitchen" },
+    "binary_sensor.demo_balcony": { area_id: "living" },
+    "binary_sensor.demo_motion": { area_id: "living" },
+    "binary_sensor.demo_entrance": { device_id: "demo_contact" },
     "light.strip": { device_id: "living_lamp" },
     "light.glow": { area_id: "living" },
     "switch.entrance": { area_id: "hall" },
   },
-  devices: { living_lamp: { area_id: "living" } },
-  areas: { living: { name: "Living room" }, hall: { name: "Entrance" } },
+  devices: {
+    living_lamp: { area_id: "living" },
+    demo_contact: { area_id: "hall" },
+  },
+  areas: {
+    living: { name: "Living room" },
+    hall: { name: "Entrance" },
+    kitchen: { name: "Kitchen" },
+  },
   connection,
   locale: { language: "en" },
   services: { alarmo: { arm: {} } },
@@ -270,7 +293,10 @@ const hass = {
       return [{ entity_id: "alarm_control_panel.home", area_id: 1 }];
     if (msg.type === "alarmo/sensors")
       return {
-        "binary_sensor.window": { enabled: true, area: 1, name: "Window" },
+        "binary_sensor.window": { enabled: true, area: 1, type: "window" },
+        "binary_sensor.demo_balcony": { enabled: true, area: 1, type: "door" },
+        "binary_sensor.demo_motion": { enabled: true, area: 1, type: "motion" },
+        "binary_sensor.demo_entrance": { enabled: true, area: 1, type: "door" },
       };
     if (msg.type === "alarmo/countdown") return { delay: 30, remaining: 18 };
     if (msg.type !== "history/history_during_period")

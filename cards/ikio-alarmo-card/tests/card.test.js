@@ -897,3 +897,114 @@ test("armed bypass details are collapsible while their count and the PIN pad rem
   assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, true);
   card.remove();
 });
+
+test("alert chips group by HA entity area before device area and retain details and live regrouping", () => {
+  const door = "binary_sensor.test_door";
+  const motion = "binary_sensor.test_motion";
+  const unassigned = "binary_sensor.test_unassigned";
+  const closed = "binary_sensor.test_closed";
+  const state = (entity_id, device_class, state = "on") => ({
+    entity_id,
+    state,
+    attributes: { friendly_name: entity_id, device_class },
+  });
+  const { card, calls } = fixture(
+    "disarmed",
+    {},
+    {
+      contacts: [
+        { entity: sensorId },
+        { entity: door },
+        { entity: unassigned },
+        { entity: closed },
+      ],
+      motion: [{ entity: motion }],
+    },
+    {
+      [door]: state(door, "door"),
+      [motion]: state(motion, "motion"),
+      [unassigned]: state(unassigned, "window"),
+      [closed]: state(closed, "door", "off"),
+    },
+  );
+  card.hass = {
+    ...card.hass,
+    entities: {
+      [sensorId]: { area_id: "living", device_id: "window" },
+      [door]: { device_id: "entry" },
+      [motion]: { area_id: "living" },
+      [unassigned]: { area_id: "missing" },
+      [closed]: { area_id: "living" },
+    },
+    devices: { window: { area_id: "office" }, entry: { area_id: "living" } },
+    areas: {
+      living: { name: "Test living room" },
+      office: { name: "Test office" },
+    },
+  };
+  const groups = () => [
+    ...card.shadowRoot.querySelectorAll(".security-sensor-area"),
+  ];
+  assert.deepEqual(
+    groups().map((g) => g.querySelector("h3").textContent),
+    ["Test living room", "Unassigned"],
+  );
+  assert.deepEqual(
+    [...groups()[0].querySelectorAll("button")].map((b) => b.dataset.entity),
+    [door, sensorId, motion],
+  );
+  assert.equal(
+    card.shadowRoot.querySelector(`[data-entity="${closed}"]`),
+    null,
+  );
+  press(card, "toggle-sensors");
+  let detailEntity;
+  card.addEventListener("hass-more-info", (e) => {
+    detailEntity = e.detail.entityId;
+  });
+  groups()[0].querySelector("button").click();
+  assert.equal(detailEntity, door);
+  assert.deepEqual(calls, []);
+  assert.equal(
+    groups()[0].querySelector("ha-state-icon").stateObj,
+    card.hass.states[door],
+  );
+  card.hass = {
+    ...card.hass,
+    entities: { ...card.hass.entities, [door]: { area_id: "office" } },
+  };
+  assert.equal(card.shadowRoot.querySelector(".security-chips").hidden, false);
+  assert.equal(
+    groups()
+      .find((g) => g.getAttribute("aria-label") === "Test office")
+      .querySelector("button").dataset.entity,
+    door,
+  );
+  card.remove();
+});
+
+test("grouped alert chips keep exceptional statuses visible and never treat Alarmo areas as HA rooms", () => {
+  const missing = "binary_sensor.test_missing";
+  const { card } = fixture(
+    "armed_away",
+    { bypassed_sensors: [sensorId] },
+    {
+      contacts: [{ entity: sensorId }, { entity: missing }],
+    },
+  );
+  card.alarmoSensors = [
+    { entity: sensorId, kind: "opening", alarmo: { area: "living" } },
+  ];
+  card.hass = {
+    ...card.hass,
+    areas: { living: { name: "Not the sensor room" } },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector(".security-sensor-area h3").textContent,
+    "Unassigned",
+  );
+  const chips = [...card.shadowRoot.querySelectorAll(".security-chips button")];
+  assert.ok(chips.some((c) => c.textContent.includes("bypassed")));
+  assert.ok(chips.some((c) => c.textContent.includes("unavailable")));
+  card.remove();
+});

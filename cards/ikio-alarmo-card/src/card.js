@@ -70,10 +70,17 @@ export class Card extends ControlCard {
       .security-sensor-summary.clear{color:var(--security-green)}
       button.security-sensor-summary{width:100%;min-height:44px;border:0;padding:0;background:transparent;font:inherit;font-size:13px;text-align:left;cursor:pointer}
       .security-sensor-chevron{margin-left:auto}
-      .security-chips{display:flex;flex-wrap:wrap;gap:0 12px}
+      .security-chips{display:grid;gap:0;border-top:1px solid var(--ae-border)}
+      .security-sensor-area{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;padding:4px 0;align-items:start}
+      .security-sensor-area+.security-sensor-area{border-top:1px solid var(--ae-border)}
+      .security-sensor-area h3{margin:14px 0 0;font-size:11px;font-weight:500;line-height:16px;color:var(--ae-muted);overflow-wrap:anywhere}
+      .security-area-chips{display:flex;flex-wrap:wrap;gap:0 6px;min-width:0}
+      .security-chip-content{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;padding:4px 7px;border-radius:7px;background:var(--ae-well)}
+      .security-chip-label{min-width:0;overflow-wrap:anywhere}
+      @container(max-width:300px){.security-sensor-area{grid-template-columns:62px minmax(0,1fr);gap:6px}}
       .security-chips[hidden]{display:none}
-      .security-chips button{display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;padding:0;border:0;background:transparent;color:var(--ae-warning);font:inherit;font-size:12px;text-align:left;overflow-wrap:anywhere}
-      .security-chips ha-state-icon{--mdc-icon-size:17px;flex:none}
+      .security-chips button{display:flex;align-items:center;gap:5px;min-height:44px;min-width:44px;max-width:100%;padding:0;border:0;background:transparent;color:var(--ae-text);font:inherit;font-size:12px;text-align:left;overflow-wrap:anywhere}
+      .security-chips ha-state-icon{--mdc-icon-size:14px;flex:none;color:var(--ae-error)}
       .security-pin{border-top:1px solid var(--ae-border);padding-top:14px;display:grid;gap:10px}
       .security-pin label{display:grid;gap:8px;color:var(--ae-muted);font-size:13px}
       .security-pin input{width:100%;min-width:0;min-height:40px;font:inherit;font-size:20px;letter-spacing:7px;text-align:center;color:var(--ae-text);background:transparent;border:1px solid var(--ae-border);border-radius:8px;padding:6px}
@@ -447,6 +454,36 @@ export class Card extends ControlCard {
     return deviceName && !label.toLowerCase().includes(deviceName.toLowerCase())
       ? `${deviceName} ${label}`
       : label;
+  }
+  sensorGroups(rows) {
+    const groups = new Map();
+    const typeOrder = (row) => {
+      const type =
+        this.state(row.entity)?.attributes?.device_class || row.alarmo?.type;
+      if (type === "door" || type === "garage_door") return 0;
+      if (type === "window") return 1;
+      if (row.kind === "opening" || type === "opening") return 2;
+      if (row.kind === "motion" || type === "motion" || type === "occupancy")
+        return 3;
+      return 4;
+    };
+    for (const row of rows) {
+      const entry = this.hass?.entities?.[row.entity];
+      const areaId =
+        entry?.area_id || this.hass?.devices?.[entry?.device_id]?.area_id;
+      const area = this.hass?.areas?.[areaId];
+      const key = area ? areaId : null;
+      if (!groups.has(key))
+        groups.set(key, { name: area?.name || "Unassigned", rows: [] });
+      groups.get(key).rows.push(row);
+    }
+    for (const group of groups.values())
+      group.rows.sort(
+        (a, b) =>
+          typeOrder(a) - typeOrder(b) ||
+          this.sensorLabel(a).localeCompare(this.sensorLabel(b)),
+      );
+    return [...groups.values()];
   }
   sensorRows() {
     const c = this.config,
@@ -840,26 +877,39 @@ export class Card extends ControlCard {
       const chips = el("div", undefined, "security-chips");
       chips.id = "security-sensor-details";
       chips.hidden = !this.sensorsExpanded;
-      for (const r of alerts) {
-        const suffix = bypassed.has(r.entity)
-          ? "bypassed"
-          : !available(this.state(r.entity))
-            ? "unavailable"
-            : r.kind === "motion"
-              ? "motion detected"
-              : "open";
-        const chip = button(
-          this.sensorLabel(r),
-          () => details(this, r.entity),
-          { key: r.entity, entity: r.entity },
-        );
-        chip.setAttribute("aria-label", `${this.sensorLabel(r)}: ${suffix}`);
-        const glyph = el("ha-state-icon");
-        glyph.dataset.sensor = r.entity;
-        glyph.setAttribute("aria-hidden", "true");
-        glyph.setAttribute("data-native", "");
-        chip.prepend(glyph);
-        chips.append(chip);
+      for (const group of this.sensorGroups(alerts)) {
+        const area = el("section", undefined, "security-sensor-area");
+        area.setAttribute("aria-label", group.name);
+        area.append(el("h3", group.name));
+        const areaChips = el("div", undefined, "security-area-chips");
+        for (const r of group.rows) {
+          const suffix = bypassed.has(r.entity)
+            ? "bypassed"
+            : !available(this.state(r.entity))
+              ? "unavailable"
+              : r.kind === "motion"
+                ? "motion detected"
+                : "open";
+          const chip = button(
+            this.sensorLabel(r),
+            () => details(this, r.entity),
+            { key: r.entity, entity: r.entity },
+          );
+          chip.setAttribute("aria-label", `${this.sensorLabel(r)}: ${suffix}`);
+          const glyph = el("ha-state-icon");
+          glyph.dataset.sensor = r.entity;
+          glyph.setAttribute("aria-hidden", "true");
+          glyph.setAttribute("data-native", "");
+          const label = el("span", this.sensorLabel(r), "security-chip-label");
+          if (suffix === "bypassed" || suffix === "unavailable")
+            label.append(document.createTextNode(` · ${suffix}`));
+          const content = el("span", undefined, "security-chip-content");
+          content.append(glyph, label);
+          chip.replaceChildren(content);
+          areaChips.append(chip);
+        }
+        area.append(areaChips);
+        chips.append(area);
       }
       sensors.append(chips);
     }
