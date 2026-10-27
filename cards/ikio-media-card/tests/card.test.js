@@ -78,39 +78,47 @@ test("stub registers and renders a safe editor prompt", () => {
   assert.match(card.content.textContent, /Choose a media player/);
   assert.ok(window.customCards.some((c) => c.type === "ikio-media-card"));
 });
-test("configuration migrates legacy controls exactly once and honours an explicitly empty new list", () => {
+test("configuration retires More controls and legacy bindings while preserving other options and HA metadata", () => {
   const old = {
     entity: "media_player.test",
+    name: "Speaker",
+    appearance: { theme: "light" },
+    power_entity: "sensor.power",
+    more_controls: [{ entity: "light.back" }],
     show_artwork: false,
     backlight_entity: "light.back",
-    shortcuts: [
-      { entity: "scene.movie", label: "Film" },
-      { entity: "script.music" },
-    ],
+    shortcuts: [{ entity: "scene.movie", label: "Film" }],
     visibility: [{ condition: "user", users: ["owner"] }],
     grid_options: { columns: 6 },
   };
   const config = normalize(old);
-  assert.deepEqual(config.more_controls, [
-    { entity: "light.back" },
-    { entity: "scene.movie", name: "Film" },
-    { entity: "script.music" },
-  ]);
-  assert.deepEqual(normalize(config), config);
-  for (const key of ["show_artwork", "backlight_entity", "shortcuts"])
+  for (const key of [
+    "more_controls",
+    "show_artwork",
+    "backlight_entity",
+    "shortcuts",
+  ])
     assert.equal(Object.hasOwn(config, key), false);
-  assert.equal(old.show_artwork, false);
-  assert.equal(old.shortcuts.length, 2);
-  assert.deepEqual(config.visibility, old.visibility);
-  assert.deepEqual(config.grid_options, old.grid_options);
-  assert.deepEqual(normalize({ ...old, more_controls: [] }).more_controls, []);
+  assert.deepEqual(normalize(config), config);
+  assert.equal(old.more_controls.length, 1);
+  assert.equal(old.shortcuts.length, 1);
+  for (const key of [
+    "entity",
+    "name",
+    "appearance",
+    "power_entity",
+    "visibility",
+    "grid_options",
+  ])
+    assert.deepEqual(config[key], old[key]);
+  assert.equal(config.volume_step, 5);
 });
-test("the editor exposes every approved field/list and preserves custom names and HA metadata", async () => {
+
+test("editor removes the More controls list while retaining media settings, name, theme and HA metadata", async () => {
   const editor = await customElements.get("ikio-media-card").getConfigElement();
   const original = {
     entity: "media_player.test",
-    backlight_entity: "switch.glow",
-    shortcuts: [{ entity: "scene.movie", label: "Cinema" }],
+    more_controls: [{ entity: "scene.movie", name: "Cinema" }],
     grid_options: { columns: 6 },
   };
   editor.setConfig(original);
@@ -118,16 +126,12 @@ test("the editor exposes every approved field/list and preserves custom names an
   document.body.append(editor);
   await tick();
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
+  assert.equal(forms.length, 2);
+  assert.deepEqual(lists, []);
   const names = forms[0].schema.map((f) => f.name);
   for (const field of fields) assert.ok(names.includes(field.name));
   assert.ok(names.includes("name"));
-  assert.ok(!names.includes("show_artwork"));
-  assert.ok(!names.includes("backlight_entity"));
-  assert.deepEqual(
-    lists[0].fields.map((f) => f.name),
-    ["entity", "name"],
-  );
-  assert.ok(forms.length >= 4);
+  assert.equal(editor.shadowRoot.querySelector("section"), null);
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
   forms[0].dispatchEvent(
@@ -136,11 +140,12 @@ test("the editor exposes every approved field/list and preserves custom names an
     }),
   );
   assert.equal(saved.name, "Changed");
-  assert.equal(saved.more_controls[1].name, "Cinema");
+  assert.equal(Object.hasOwn(saved, "more_controls"), false);
   assert.deepEqual(saved.grid_options, original.grid_options);
-  assert.equal(original.name, undefined);
+  assert.equal(original.more_controls.length, 1);
   editor.remove();
 });
+
 test("volume buttons use percentage-point steps and wait for confirmed state without optimistic values", async () => {
   const { card, calls } = setup({ volume_step: 7 });
   byKey(card, "volume-up").click();
@@ -267,7 +272,7 @@ test("artwork is automatic, failure falls back, and a changed image retries with
   assert.match(card.content.querySelector("img").src, /new.jpg/);
   card.remove();
 });
-test("off and unavailable states hide source, volume, artwork and playback while retaining independent controls/readings", async () => {
+test("off hides every body row while independent watts remain beside the power button", async () => {
   const { card, calls } = setup({
     power_entity: "sensor.power",
     more_controls: [{ entity: "switch.extra", name: "Bias light" }],
@@ -281,21 +286,33 @@ test("off and unavailable states hide source, volume, artwork and playback while
         state: "0.0016",
         attributes: { unit_of_measurement: "kW" },
       },
-      "switch.extra": { state: "off", attributes: {} },
     },
   );
   assert.equal(card.content.querySelector(".media-now").hidden, true);
   assert.equal(card.content.querySelector(".media-controls").hidden, true);
+  assert.equal(byKey(card, "player-message").hidden, true);
   assert.equal(card.content.querySelector("img").hasAttribute("src"), false);
-  assert.match(card.content.textContent, /2 W/);
-  card.content.querySelector(".media-extra").click();
-  await tick();
-  assert.equal(calls[0][0], "switch");
+  const group = card.content.querySelector("header .media-power-group");
+  assert.equal(
+    group.firstElementChild.className.includes("media-power-reading"),
+    true,
+  );
+  assert.equal(group.lastElementChild.className.includes("media-power"), true);
+  assert.match(group.textContent, /2 W/);
+  assert.equal(card.content.querySelector(".media-footer"), null);
+  assert.equal(card.content.querySelector("details"), null);
+  let detail;
+  card.addEventListener("hass-more-info", (e) => (detail = e.detail.entityId));
+  group.firstElementChild.click();
+  assert.equal(detail, "sensor.power");
+  assert.equal(calls.length, 0);
   update(card, "unavailable");
-  assert.match(card.content.textContent, /Player unavailable/);
-  assert.ok(card.content.querySelector(".media-power").disabled);
+  assert.match(byKey(card, "player-message").textContent, /Player unavailable/);
+  assert.equal(card.content.querySelector(".media-power").disabled, true);
+  assert.equal(group.firstElementChild.disabled, false);
   card.remove();
 });
+
 test("native source values and transport services are preserved", async () => {
   const { card, calls } = setup();
   const source = card.content.querySelector("select");
@@ -358,78 +375,71 @@ test("missing position stays missing, non-seekable media shows read-only progres
   assert.equal(card.content.querySelector("input"), null);
   card.remove();
 });
-test("extra entities toggle or activate with their own IDs and unavailable controls remain explicit", async () => {
-  const entries = [
-    { entity: "light.extra", name: "Custom light" },
-    { entity: "switch.extra" },
-    { entity: "scene.extra", name: "Cinema" },
-    { entity: "script.extra", name: "Music" },
-    { entity: "switch.missing", name: "Offline" },
-  ];
-  const { card, calls } = setup({ more_controls: entries });
-  const extras = Object.fromEntries(
-    entries.slice(0, 4).map((e) => [
-      e.entity,
-      {
-        entity_id: e.entity,
-        state: e.entity.startsWith("scene") ? "scening" : "off",
-        attributes: { friendly_name: "Extra" },
-      },
-    ]),
+test("independent power is readable without player power capabilities and reports zero or unknown honestly", () => {
+  const { card } = setup(
+    {
+      power_entity: "sensor.power",
+      more_controls: [{ entity: "light.removed" }],
+    },
+    { supported_features: 0 },
   );
-  update(card, "playing", {}, extras);
-  const buttons = card.content.querySelectorAll(".media-extra");
-  assert.ok(buttons[4].disabled);
-  assert.match(buttons[4].textContent, /Entity not found/);
-  for (const b of [...buttons].slice(0, 4)) {
-    b.click();
-    await tick();
-  }
-  assert.deepEqual(
-    calls.map((c) => [c[0], c[1], c[2].entity_id]),
-    [
-      ["light", "turn_on", "light.extra"],
-      ["switch", "turn_on", "switch.extra"],
-      ["scene", "turn_on", "scene.extra"],
-      ["script", "turn_on", "script.extra"],
-    ],
-  );
-  let detail;
-  card.addEventListener("hass-more-info", (e) => (detail = e.detail.entityId));
-  buttons[0].dispatchEvent(
-    new dom.window.MouseEvent("contextmenu", { bubbles: true }),
-  );
-  // Hold binding has its own shared tests; all controls bind to the correct entity here.
-  assert.equal(buttons[0].dataset.entity, "light.extra");
-  assert.equal(card.holds.has(buttons[0]), true);
-  card.remove();
-});
-test("disclosure, source focus and list names survive normal updates and language changes", () => {
-  const { card, calls } = setup({
-    more_controls: [{ entity: "scene.movie", name: "Movie night" }],
-  });
   update(
     card,
     "playing",
     {},
-    { "scene.movie": { state: "scening", attributes: {} } },
+    {
+      "sensor.power": { state: "0", attributes: { unit_of_measurement: "W" } },
+    },
   );
-  const details = card.content.querySelector("details");
-  details.open = true;
-  details.dispatchEvent(new dom.window.Event("toggle"));
+  assert.equal(card.content.querySelector(".media-power"), null);
+  assert.equal(
+    card.content.querySelector(".media-power-reading .ae-value").textContent,
+    "0 W",
+  );
+  assert.equal(card.content.querySelector(".media-extra"), null);
+  assert.equal(card.entityIds.includes("light.removed"), false);
+  update(
+    card,
+    "playing",
+    {},
+    {
+      "sensor.power": {
+        state: "unavailable",
+        attributes: { unit_of_measurement: "W" },
+      },
+    },
+  );
+  assert.match(
+    card.content.querySelector(".media-power-reading").textContent,
+    /unavailable/i,
+  );
+  card.remove();
+});
+
+test("source focus and header wattage survive updates and language changes without commands", () => {
+  const { card, calls } = setup({ power_entity: "sensor.power" });
+  update(
+    card,
+    "playing",
+    {},
+    {
+      "sensor.power": { state: "18", attributes: { unit_of_measurement: "W" } },
+    },
+  );
   const source = card.content.querySelector("select");
   source.focus();
+  const reading = card.content.querySelector(".media-power-reading");
   update(card, "playing", { volume_level: 0.5 });
-  assert.equal(card.content.querySelector("details"), details);
-  assert.equal(details.open, true);
+  assert.equal(card.content.querySelector(".media-power-reading"), reading);
   assert.equal(card.shadowRoot.activeElement, source);
   card.hass = { ...card.hass, locale: { language: "el-GR" } };
-  assert.match(card.content.textContent, /Περισσότεροι/);
-  assert.match(card.content.textContent, /Movie night/);
-  assert.equal(details.open, true);
+  assert.match(card.content.textContent, /Πηγή/);
+  assert.equal(card.content.querySelector("details"), null);
+  assert.equal(card.shadowRoot.activeElement, source);
   assert.equal(calls.length, 0);
   card.remove();
 });
+
 test("preview and action failures prevent unintended commands and preserve readable error feedback", async () => {
   const { card, calls } = setup();
   card.preview = true;
@@ -476,10 +486,8 @@ test("invalid configuration is rejected and unsafe artwork schemes are excluded"
   );
   assert.throws(() => card.setConfig({ volume_step: 0.5 }), /permitted range/);
   assert.throws(() => card.setConfig({ volume_step: 1.5 }), /whole number/);
-  assert.throws(
-    () => card.setConfig({ more_controls: [{ entity: "sensor.bad" }] }),
-    /compatible entity/,
-  );
+  card.setConfig({ more_controls: [{ entity: "sensor.retired" }] });
+  assert.equal(card.config.more_controls, undefined);
   assert.equal(adapter.safeImage("javascript:alert(1)", {}), null);
   assert.equal(adapter.safeImage("data:image/svg+xml,<svg/>", {}), null);
   card.remove();
