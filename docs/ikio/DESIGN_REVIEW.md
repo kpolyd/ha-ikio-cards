@@ -56,9 +56,9 @@ Keep current temperature distinct from target temperature; do not represent a ta
 
 Source: [Media card](../../cards/ikio-media-card/src/card.js).
 
-**Current:** 48 px artwork and joined title/artist text form one row. Playback time/seek, transport/power, volume/mute, source, power consumption, backlight and each shortcut are appended in sequence.
+**Approved design:** artwork behind title-adjacent transport and the timeline, feathered into the normal card surface on all four edges. Theme-aware shading and native theme text preserve readability; the fade applies only to the image. Keep the joined minus / stacked speaker-and-percentage mute / plus volume control and integration-provided source row.
 
-**Proposed first view:** small artwork beside a clearly ranked title and quieter artist/source → one compact transport row centred on play/pause → thin seek line with elapsed/total time → volume and mute together. Keep source visible when routinely used; expose extra shortcuts/backlight under More controls when they would crowd the common task. Make power-off visually secondary to play/pause without removing it.
+Put optional whole-watt power readings beside the power button in the header, with native sensor details available independently of player availability or power capabilities. More controls and its legacy extra-entity bindings are removed. Off collapses to the header, without a redundant Nothing playing message; unavailable and pending/error feedback remain explicit. Other media configuration, names, theme settings and HA metadata survive normalization. See specification section 72.
 
 Do not invent artwork, seeking, volume or transport support. Retain the capability flags and no-artwork/off fallback. Prevent live position ticks from replacing a focused seek/volume control. Reserve artwork space and keep media titles readable with real long text.
 
@@ -68,13 +68,13 @@ Do not invent artwork, seeking, volume or transport support. Retain the capabili
 
 Source: [Cleaning card](../../cards/ikio-vacuum-card/src/card.js), and its existing state-to-primary-action adapter.
 
-**Current:** header combines state/battery; primary action, dock and suction share a row; maintenance/missions already use a native details disclosure. Error/status lines are separate.
+**Approved redesign:** 28 px native entity icon beside the name/state, with quiet battery at the right. Primary action, relevant dock action and a small visibly labelled suction selector share one compact row. Gentle cleaning motion and a small sparkle fit inside the existing header; stop motion for paused/returning/hidden/disconnected/editor-preview states and reduced motion. Docked and cleaning layouts retain the same height.
 
-**Proposed first view:** recognisable vacuum icon with state and quiet battery → current primary action with dock as a secondary action → small visibly labelled suction control. Retain the existing maintenance/mission disclosure, but make its summary more informative when data permits. Keep an actual error visible outside the disclosure.
+**Configuration:** only the required vacuum entity. Name/icon come from the entity and appearance follows HA. Battery uses a valid numeric battery_level attribute; separate battery/status sensors are not automatically linked. The owner removed More controls, missions, maintenance and all optional fields, superseding the original disclosure proposal. Normalize retired keys while preserving entity bindings and HA dashboard metadata. Keep errors and pending feedback inline.
 
-Do not add a map, cleaning progress, duration or room coverage without a real configured source. Preserve start/pause/resume/stop state logic, return-to-dock relevance, capabilities, configured mission scripts and maintenance values. Battery must not imply operational readiness.
+Do not add a map, cleaning progress, duration or room coverage without a real configured source. Preserve start/pause/resume/stop state logic, return-to-dock relevance and capabilities. Battery must not imply operational readiness; hide missing/invalid attributes and mark unavailable data unknown.
 
-**Mock checks:** docked, cleaning, paused, returning, unavailable, error, missing battery and long mission names.
+**Checks:** docked, cleaning, paused, returning, unavailable, error, missing/zero battery, long entity names, native details, focus, Greek text, reduced motion and backend-confirmed action feedback.
 
 ### 4. Appliance — distinguish timed runs from manual operation
 

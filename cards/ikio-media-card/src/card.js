@@ -15,7 +15,6 @@ import {
   available,
   installRefinement,
   refine,
-  disclosure,
   glyph,
   updateChipIcons,
   unitValue,
@@ -47,7 +46,6 @@ export class Card extends ControlCard {
       show_volume: true,
       show_source: true,
       volume_step: 5,
-      more_controls: [],
     };
   }
   static async getConfigElement() {
@@ -275,51 +273,6 @@ export class Card extends ControlCard {
     timeline.append(times);
     return timeline;
   }
-  moreControls() {
-    const nodes = [];
-    for (const [index, control] of (
-      this.config.more_controls || []
-    ).entries()) {
-      if (!control.entity) continue;
-      const id = control.entity,
-        s = this.state(id),
-        domain = id.split(".")[0];
-      const toggle = ["light", "switch"].includes(domain);
-      const name = control.name?.trim() || this.label(id);
-      const disabled =
-        this.blocked(id) || (toggle && !["on", "off"].includes(s?.state));
-      const node = button(
-        name,
-        () => (toggle ? this.toggle(id) : this.action(id, name)),
-        { disabled, entity: id, key: `extra:${index}:${id}` },
-      );
-      node.classList.add("media-extra");
-      node.replaceChildren(el("span", name));
-      const icon = el("ha-state-icon");
-      icon.dataset.chipEntity = id;
-      icon.setAttribute("aria-hidden", "true");
-      node.prepend(icon);
-      if (toggle && available(s) && ["on", "off"].includes(s.state))
-        node.setAttribute("aria-pressed", String(s.state === "on"));
-      if (!available(s) || (toggle && !["on", "off"].includes(s.state))) {
-        const status = el("span", stateText(this.hass, id), "ae-label");
-        node.append(status);
-        node.setAttribute("aria-label", `${name}: ${stateText(this.hass, id)}`);
-      }
-      nodes.push(node);
-    }
-    if (!nodes.length) return null;
-    const settings = disclosure(
-      this,
-      "media-extras",
-      t(this.hass, "More controls"),
-      ...nodes,
-    );
-    const chevron = glyph("mdi:chevron-down");
-    chevron.classList.add("media-chevron");
-    settings.querySelector("summary").append(chevron);
-    return settings;
-  }
   render() {
     const c = this.config,
       s = this.state(),
@@ -343,6 +296,24 @@ export class Card extends ControlCard {
     nativeIcon.dataset.chipEntity = c.entity;
     nativeIcon.setAttribute("aria-hidden", "true");
     result.querySelector("header>ha-icon")?.replaceWith(nativeIcon);
+    const powerGroup = el("div", undefined, "media-power-group", "power-group");
+    if (c.power_entity) {
+      const watts = unitValue(this.state(c.power_entity), "power");
+      const value =
+        watts === null
+          ? valueText(this.hass, c.power_entity)
+          : `${formatNumber(this.hass, watts, 0)} W`;
+      const power = reading(
+        t(this.hass, "Power"),
+        value,
+        c.power_entity,
+        "media-power-reading",
+      );
+      const label = power.querySelector(".ae-label");
+      label.replaceChildren(glyph("mdi:lightning-bolt"));
+      power.setAttribute("aria-label", `${t(this.hass, "Power")}: ${value}`);
+      powerGroup.append(power);
+    }
     if (features(s, off ? flags.on : flags.off)) {
       const power = button(
         t(this.hass, off ? "Power on" : "Power off"),
@@ -365,8 +336,10 @@ export class Card extends ControlCard {
         },
       );
       power.classList.add("media-power");
-      result.querySelector("header").append(power);
+      powerGroup.append(power);
     }
+    if (powerGroup.childElementCount)
+      result.querySelector("header").append(powerGroup);
     const now = el("div", undefined, "media-now", "now");
     now.hidden = !active;
     const artwork =
@@ -441,7 +414,7 @@ export class Card extends ControlCard {
           : "",
     );
     message.dataset.key = "player-message";
-    message.hidden = active;
+    message.hidden = online;
     result.append(message);
     const controls = el("div", undefined, "media-controls", "controls");
     const volume = this.volumeView();
@@ -469,28 +442,6 @@ export class Card extends ControlCard {
     }
     controls.hidden = !controls.children.length;
     result.append(controls);
-    const footer = el("div", undefined, "media-footer", "footer");
-    if (c.power_entity) {
-      const watts = unitValue(this.state(c.power_entity), "power");
-      const value =
-        watts === null
-          ? valueText(this.hass, c.power_entity)
-          : `${formatNumber(this.hass, watts, 0)} W`;
-      const power = reading(
-        t(this.hass, "Power"),
-        value,
-        c.power_entity,
-        "media-power-reading",
-      );
-      const label = power.querySelector(".ae-label");
-      label.replaceChildren(glyph("mdi:lightning-bolt"));
-      power.setAttribute("aria-label", `${t(this.hass, "Power")}: ${value}`);
-      footer.append(power);
-    }
-    const extras = this.moreControls();
-    if (extras) footer.append(extras);
-    footer.hidden = !footer.children.length;
-    result.append(footer);
     const busy = note(t(this.hass, "Updating device…"));
     busy.dataset.key = "busy";
     busy.hidden = !this.pending.size && !this.requests.size;
