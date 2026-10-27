@@ -575,7 +575,7 @@ test("automatic uptime and availability replace both editor options, including l
   card.remove();
 });
 
-test("database stays available inside collapsed details without an extra overview row or an inflated service count", () => {
+test("legacy database migrates into an extra-reading chip above resources without inflating service count", () => {
   const card = systemFixture(
     {
       database_entity: "sensor.database",
@@ -596,7 +596,9 @@ test("database stays available inside collapsed details without an extra overvie
     details.querySelector("summary ha-icon").getAttribute("icon"),
     "mdi:chevron-down",
   );
-  const database = details.querySelector('[data-entity="sensor.database"]');
+  const database = card.shadowRoot.querySelector(
+    '.system-extra-readings [data-entity="sensor.database"]',
+  );
   assert.match(database.textContent, /871.44 MB/);
   assert.equal(
     card.shadowRoot.querySelector(".ikio-server-monitor-metadata"),
@@ -926,4 +928,103 @@ test("service problem sensors never show a healthy dot while reporting a problem
     level: "unknown",
     text: "starting",
   });
+});
+
+test("extra readings reuse chips above resource rings in configured order and update native icons", () => {
+  const config = {
+    cpu_entity: "sensor.cpu",
+    extra_readings: [
+      { entity: "sensor.db", name: "DB" },
+      { entity: "sensor.count" },
+    ],
+    database_entity: "sensor.ignored",
+  };
+  const c = systemFixture(config, {
+    "sensor.cpu": { state: "5", attributes: { unit_of_measurement: "%" } },
+    "sensor.db": {
+      entity_id: "sensor.db",
+      state: "42",
+      attributes: { unit_of_measurement: "MB", icon: "mdi:database" },
+    },
+    "sensor.count": {
+      entity_id: "sensor.count",
+      state: "12",
+      attributes: { friendly_name: "Containers" },
+    },
+  });
+  const chips = c.shadowRoot.querySelectorAll(
+    ".system-extra-readings .ikio-sensor-chip",
+  );
+  assert.equal(chips.length, 2);
+  assert.equal(chips[0].querySelector(".ikio-chip-name").textContent, "DB");
+  assert.equal(
+    chips[1].querySelector(".ikio-chip-name").textContent,
+    "Containers",
+  );
+  assert.equal(
+    chips[0].querySelector("ha-state-icon").stateObj,
+    c.hass.states["sensor.db"],
+  );
+  const group = c.shadowRoot.querySelector(".ikio-server-monitor");
+  const children = [...group.children];
+  assert.ok(
+    children.indexOf(c.shadowRoot.querySelector(".system-extra-readings")) <
+      children.indexOf(c.shadowRoot.querySelector(".ikio-resources")),
+  );
+  assert.equal(
+    c.shadowRoot.querySelector("details"),
+    null,
+    "extra readings do not need a disclosure",
+  );
+  assert.equal(
+    config.database_entity,
+    "sensor.ignored",
+    "migration must not mutate input",
+  );
+  c.hass = {
+    ...c.hass,
+    states: {
+      ...c.hass.states,
+      "sensor.db": { entity_id: "sensor.db", state: "unknown", attributes: {} },
+    },
+  };
+  assert.equal(
+    c.shadowRoot.querySelector(".ikio-chip-value").textContent,
+    "unknown",
+  );
+  c.remove();
+});
+
+test("legacy DB is editable as Extra readings and can be removed without returning", async () => {
+  const Class = customElements.get("ikio-server-monitor-card");
+  const editor = await Class.getConfigElement();
+  editor.setConfig({
+    database_entity: "sensor.database",
+    grid_options: { columns: 6 },
+  });
+  editor.hass = { states: {} };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(editor.config.extra_readings, [
+    { name: "Database", entity: "sensor.database" },
+  ]);
+  assert.equal(editor.config.database_entity, undefined);
+  assert.ok(editor.shadowRoot.textContent.includes("Extra readings"));
+  assert.equal(
+    editor.shadowRoot
+      .querySelector("ha-form")
+      .schema.some((f) => f.name === "database_entity"),
+    false,
+  );
+  let saved;
+  editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  [...editor.shadowRoot.querySelectorAll("button")]
+    .find((b) => b.textContent === "Remove")
+    .click();
+  assert.deepEqual(saved.extra_readings, []);
+  assert.deepEqual(saved.grid_options, { columns: 6 });
+  const card = systemFixture(saved, {});
+  assert.equal(card.shadowRoot.querySelector(".system-extra-readings"), null);
+  card.remove();
+  editor.remove();
 });

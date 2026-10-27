@@ -112,6 +112,7 @@
       "server-monitor",
       "vehicle",
       "graph",
+      "chip",
     ];
     for (const type of types)
       await import(
@@ -303,6 +304,7 @@
         doors: [{ entity: "binary_sensor.car_door" }],
         windows: [{ entity: "binary_sensor.car_window" }],
       },
+      chip: { entity: "sensor.database", name: "Database" },
       graph: {
         name: "Office power",
         entities: [{ entity: "sensor.office" }],

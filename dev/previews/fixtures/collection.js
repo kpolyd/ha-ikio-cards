@@ -32,6 +32,30 @@ class FixtureIcon extends HTMLElement {
   }
 }
 customElements.define("ha-icon", FixtureIcon);
+class FixtureStateIcon extends FixtureIcon {
+  set stateObj(value) {
+    this._stateObj = value;
+    const kind = value?.attributes?.device_class;
+    const icon =
+      value?.attributes?.icon ||
+      (value?.attributes?.unit_of_measurement === "MB"
+        ? "mdi:database"
+        : kind === "motion"
+          ? "mdi:motion-sensor"
+          : kind === "door"
+            ? "mdi:door-open"
+            : kind === "window"
+              ? "mdi:window-open-variant"
+              : value?.entity_id?.startsWith("alarm_control_panel.")
+                ? "mdi:shield-outline"
+                : "mdi:information-outline");
+    this.setAttribute("icon", icon);
+  }
+  get stateObj() {
+    return this._stateObj;
+  }
+}
+customElements.define("ha-state-icon", FixtureStateIcon);
 const types = [
   "lights",
   "climate",
@@ -44,7 +68,8 @@ const types = [
   "server-monitor",
   "vehicle",
   "graph",
-];
+  "chip",
+].filter((type) => customElements.get(`ikio-${type}-card`));
 const states = {};
 function state(id, value, attributes = {}) {
   return (states[id] = {
@@ -67,6 +92,8 @@ state("light.strip", "on", {
 });
 state("light.glow", "on", { supported_color_modes: ["onoff"] });
 state("switch.entrance", "off");
+sensor("demo_containers", 12, "");
+state("sensor.demo_backup", "3 hours ago", { icon: "mdi:backup-restore" });
 state("switch.heater", "off");
 for (let i = 0; i < 6; i++) {
   state(`binary_sensor.demo_service_${i}`, i === 2 ? "off" : "on");
@@ -260,7 +287,11 @@ const configs = {
     disk_free_entity: "sensor.disk_free",
     temperature_entity: "sensor.server_temperature",
     uptime_entity: "sensor.uptime",
-    database_entity: "sensor.database",
+    extra_readings: [
+      { entity: "sensor.database", name: "Database" },
+      { entity: "sensor.demo_containers", name: "Containers" },
+      { entity: "sensor.demo_backup", name: "Last backup" },
+    ],
   },
   vehicle: {
     name: "Car",
@@ -272,6 +303,7 @@ const configs = {
     doors: [{ entity: "binary_sensor.car_door" }],
     windows: [{ entity: "binary_sensor.car_window" }],
   },
+  chip: { entity: "sensor.database", name: "Database" },
   graph: {
     name: "Office power",
     entities: [{ entity: "sensor.office" }],

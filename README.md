@@ -4,7 +4,7 @@
 
 Compact, mobile-first Home Assistant cards with a consistent design and visual configuration editors.
 
-Eleven independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
+Twelve independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
 
 | Card | Purpose |
 |---|---|
@@ -19,6 +19,7 @@ Eleven independent cards share colours, typography, controls and one synchronize
 | [Server Monitor](cards/ikio-server-monitor-card/README.md) | Host metrics, availability and service controls |
 | [Vehicle](cards/ikio-vehicle-card/README.md) | Vehicle readings, locks/doors/windows and map link |
 | [Graph](cards/ikio-graph-card/README.md) | History with value-based colours and expected min/max |
+| [Chip](cards/ikio-chip-card/README.md) | A single sensor chip with native icon and stacked name/value |
 
 ## Installation
 
@@ -35,7 +36,7 @@ Current collection version: see [`ikio/package.json`](ikio/package.json). The so
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All eleven cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
+All twelve cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 

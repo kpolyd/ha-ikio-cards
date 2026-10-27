@@ -24,6 +24,7 @@ test("all renamed cards and editors register with current names and no legacy al
     vacuum: "Vacuum",
     appliances: "Appliances",
     graph: "Graph",
+    chip: "Chip",
   };
   for (const [slug, name] of Object.entries(names)) {
     const id = `ikio-${slug}-card`;
@@ -43,7 +44,7 @@ test("all renamed cards and editors register with current names and no legacy al
     assert.ok(card.shadowRoot.textContent.length, id);
     card.remove();
   }
-  assert.equal(window.customCards.length, 11);
+  assert.equal(window.customCards.length, 12);
   for (const old of [
     "light",
     "energy",

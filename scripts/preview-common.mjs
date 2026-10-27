@@ -13,6 +13,7 @@ export const cards = [
   "vacuum",
   "appliances",
   "graph",
+  "chip",
 ];
 export const digest = (b) => createHash("sha256").update(b).digest("hex");
 export async function validatePreview(folder, sha, bundle) {

@@ -1,5 +1,8 @@
 import {
   installRefinement,
+  chipStyles,
+  sensorChip,
+  updateChipIcons,
   glyph,
   refine,
   disclosure,
@@ -20,7 +23,7 @@ import {
   stateText,
   details,
 } from "@ikio/card-ui";
-import { validate } from "./config.js";
+import { validate, migrateConfig } from "./config.js";
 import { graphPalette } from "@ikio/graph";
 import {
   utilization,
@@ -38,7 +41,10 @@ export class Card extends ControlCard {
   constructor() {
     super();
     installRefinement(this);
-    this.shadowRoot.append(el("style", systemStyles));
+    this.shadowRoot.append(el("style", systemStyles + chipStyles));
+  }
+  setConfig(config) {
+    super.setConfig(migrateConfig(config));
   }
   static getStubConfig() {
     return {
@@ -73,6 +79,7 @@ export class Card extends ControlCard {
     this.stopNetwork();
   }
   afterRender() {
+    updateChipIcons(this);
     this.loadNetwork();
   }
   networkRows() {
@@ -289,6 +296,15 @@ export class Card extends ControlCard {
       meta.append(statusNode);
     }
     header.append(meta);
+    const extraReadings = (c.extra_readings || []).filter((row) => row.entity);
+    if (extraReadings.length) {
+      const chips = el("div", undefined, "system-extra-readings");
+      chips.setAttribute("aria-label", "Extra readings");
+      extraReadings.forEach((row, index) =>
+        chips.append(sensorChip(this, row, `extra-reading-${index}`)),
+      );
+      result.append(chips);
+    }
     const measured = { temperature: numeric(this.state(c.temperature_entity)) };
     const resources = el("div", undefined, "ikio-resources");
     result.append(resources);
@@ -428,17 +444,6 @@ export class Card extends ControlCard {
     }
     const serviceCount = serviceGrid.childElementCount;
     if (serviceCount) services.push(serviceGrid);
-    if (c.database_entity) {
-      const extra = group(
-        reading(
-          "Database",
-          valueText(this.hass, c.database_entity),
-          c.database_entity,
-        ),
-      );
-      if (serviceCount) extra.classList.add("system-extra-details");
-      services.push(extra);
-    }
     if (services.length) {
       const footer = disclosure(
         this,

@@ -63,7 +63,7 @@ export const systemStyles = `
 .ikio-server-monitor .system-service.multiple-controls .system-service-identity{grid-column:1/-1}
 .ikio-server-monitor .system-service.multiple-controls .system-service-controls{grid-column:1/-1;justify-content:flex-end}
 @container(min-width:480px){.ikio-server-monitor .system-service-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.ikio-server-monitor .system-extra-details{border-top:1px solid var(--ae-border);padding-top:6px}
+.ikio-server-monitor .system-extra-readings{display:flex;flex-wrap:wrap;gap:6px;margin-block:2px 4px}
 @container(max-width:310px){.ikio-server-monitor .system-header-meta{max-width:145px;gap:0 6px}.ikio-server-monitor>header>.ae-title,.ikio-server-monitor>header>h2{font-size:15px}}
 `;
 export function ringReading(label, percent, entity, level, hass, digits = 1) {
