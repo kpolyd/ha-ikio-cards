@@ -1,5 +1,13 @@
 # Ikio changelog
 
+## 0.12.0 — Compact Media redesign
+
+- Place transport controls beside the currently playing title, over automatic background artwork with a readability overlay. Keep the progress bar inside the artwork section and use the normal surface when artwork is missing or fails.
+- Replace the volume slider with a joined minus / stacked speaker-and-percentage mute / plus control. Add configurable percentage-point steps and native step-only volume support; preserve unknown/zero values and backend-confirmed feedback.
+- Hide source, volume and the empty controls row while off. Keep independent power readings and extra controls available.
+- Replace the fixed backlight and shortcut settings with a repeatable, reorderable More controls list of entity/name entries for lights, switches, scenes and scripts. Migrate existing entries automatically; remove Show artwork.
+- Preserve English/Greek UI, device capabilities, native entity details, focus/seek drafts, errors and timer cleanup. Add original simulated artwork to the versioned demos.
+
 ## 0.11.0 — Dehumidifier card
 
 - Add Ikio Dehumidifier with the approved compact target-humidity semicircle, native device modes, off/on controls, independent current humidity and whole-watt power readings, optional tank-full warning and collapsed fan-speed settings.

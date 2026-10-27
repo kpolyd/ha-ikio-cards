@@ -4,6 +4,7 @@ export const flags = {
   seek: 2,
   volume: 4,
   mute: 8,
+  volumeStep: 1024,
   previous: 16,
   next: 32,
   on: 128,
@@ -49,6 +50,12 @@ export function position(state, now = Date.now()) {
     at = Date.parse(a.media_position_updated_at);
   if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(base))
     return null;
+  if (
+    [a.media_duration, a.media_position].some(
+      (v) => v === null || v === undefined || String(v).trim() === "",
+    )
+  )
+    return null;
   const value =
     base +
     (state.state === "playing" && Number.isFinite(at)
@@ -58,6 +65,11 @@ export function position(state, now = Date.now()) {
 }
 export function safeImage(url, hass) {
   if (!url) return null;
+  if (
+    typeof url === "string" &&
+    /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)
+  )
+    return url;
   try {
     const resolved = new URL(
       url,
@@ -69,4 +81,22 @@ export function safeImage(url, hass) {
   } catch {
     return null;
   }
+}
+
+export function volumeLevel(state) {
+  const value = state?.attributes?.volume_level;
+  return typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= 1
+    ? value
+    : null;
+}
+export function playbackTime(seconds) {
+  const value = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(value / 3600);
+  return (
+    (hours ? `${hours}:` : "") +
+    `${hours ? String(Math.floor(value / 60) % 60).padStart(2, "0") : Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`
+  );
 }

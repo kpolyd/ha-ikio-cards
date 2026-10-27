@@ -1,34 +1,34 @@
 # Ikio Media
 
-Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
+A compact card for one `media_player.*` entity. Artwork is always enabled when available, behind the currently playing title, transport controls and progress bar, with a dark overlay for readable text. Missing, unsafe or failed artwork falls back to the normal surface. Power, volume, source and additional controls use the ordinary card surface. Install through the [collection instructions](../../docs/ikio/INSTALLATION.md).
 
-Collection version: see [the shared version](../../ikio/package.json). Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+## Visual configuration
 
-## Installation
+| Setting | Default / behaviour |
+| --- | --- |
+| Media player | Required; one device per card |
+| Card name | Optional; entity name by default |
+| Show volume | On; joined minus / speaker-and-percentage / plus buttons |
+| Volume step | 5 percentage points; whole number from 1 to 100 |
+| Show source | On; integration-provided choices, hidden when off |
+| Power sensor | Optional; supported power units converted to whole watts |
+| Appearance | Ikio dark, Ikio light or Home Assistant |
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.6.1` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-media-card.js`. Use only one route.
+**More controls** is an optional repeatable/reorderable list. Each entry has an **Entity** selector (`light`, `switch`, `scene` or `script`) and an optional **Name**, defaulting to the entity name. Lights/switches toggle; scenes/scripts activate. Each entry follows its own availability and pending state, independently of the media player. The section starts collapsed, uses the shared down/up chevron convention and is omitted when empty. Hold bound controls/readings for native HA details.
 
-Add card → Ikio Media. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
+## Behaviour
 
-## Visual editor fields
+- Playback actions, seeking, volume, mute, source and power follow actual device capabilities. Controls sit beside the playing title and wrap long text without clipping. Live/non-seekable sources never get an invented seek slider or duration.
+- The speaker icon sits above the percentage inside the central mute button. After backend confirmation, muting shows the crossed-out speaker and **Muted**. Without mute support this centre is a read-only volume display.
+- A configurable step uses `volume_set` when a known numeric volume is available. Step-only devices use their native `volume_up`/`volume_down`; the integration determines that native increment. Missing volume is **—**, never a fabricated zero. Zero and 100% disable their respective boundary button.
+- Seeking previews locally, submits on commit and preserves focus/drafts across position ticks. Display elapsed/total times, including hours. Only valid playing positions run a one-second display timer, stopped while hidden, disconnected or in dashboard preview.
+- Off hides artwork, playing information, transport, timeline, volume and source, removing the empty controls row. Optional independent power readings and More controls remain. Unavailable devices show an explicit message and disabled power action while independently available entities remain usable.
+- Pending confirmation and backend errors remain visible. Dashboard preview never sends commands. English/Greek follow the HA language; mock galleries default to English.
 
-| Field | Setting |
-|---|---|
-| entity | Media player (required to operate) |
-| show_artwork | Show artwork |
-| show_volume | Show volume |
-| show_source | Show source |
-| power_entity | Power sensor |
-| backlight_entity | Optional backlight |
+## Migration
 
-### Shortcuts
-Add, remove and reorder rows in the editor.
+The old `show_artwork` option is removed; artwork is always enabled when provided. Existing `entity`, `name`, `show_volume`, `show_source`, `power_entity`, appearance and HA dashboard metadata remain.
 
-- **Existing scene/script** (entity)
-- **Button label** (label)
+When `more_controls` is absent, migrate `backlight_entity` as the first entry and append old `shortcuts` in their existing order, mapping `label` to `name`. Remove those legacy keys from normalized editor output. An explicitly supplied `more_controls`, including an empty list, takes precedence so removed entries do not reappear. No configuration mutation occurs on the supplied object. Existing cards work through normalization; saving the editor persists the new format.
 
-## Shared behaviour
-
-Dark, light and follow-HA appearance use the same shared Ikio styles. Controls have at least 44 px targets; readings remain useful when another entity is offline. Native entity details open on hold. No service call is made in the editor preview. Backend errors remain visible. Optional entities may be omitted. See [full contract](../../docs/ikio/SPECIFICATION.md) and [collection status](../../docs/ikio/STATUS.md).
-
-No external runtime CDN dependencies. esbuild MIT license is copied into the build output. Shared UI/graph code is bundled locally.
+Automated DOM tests and simulated browser previews do not establish live-device or native HA editor/icon compatibility. No external runtime JavaScript or artwork lookup service is added; artwork comes from the selected player's entity picture. The preview artwork is an original simulated illustration.

@@ -1,3 +1,4 @@
+import mediaArtwork from "../media-artwork.png";
 import {
   electricityIds,
   demoPowerHistory,
@@ -175,10 +176,15 @@ state("fan.bedroom", "off", {
   direction: "forward",
   oscillating: false,
 });
+state("scene.movie", "scening");
+sensor("media_power", 18, "W");
 state("media_player.tv", "playing", {
+  entity_picture: mediaArtwork,
+  device_class: "speaker",
+  icon: "mdi:speaker",
   supported_features: 1 | 2 | 4 | 8 | 16 | 32 | 128 | 256 | 16384 | 2048,
-  media_title: "Evening playlist",
-  media_artist: "Cast session",
+  media_title: "Evening horizon",
+  media_artist: "Ikio demo",
   volume_level: 0.35,
   is_volume_muted: false,
   media_position: 84,
@@ -247,7 +253,10 @@ const configs = {
       { label: "Start 30-minute run", start_script: "script.timed_heater" },
     ],
   },
-  media: { name: "Chromecast", entity: "media_player.tv" },
+  media: {
+    name: "Living room speaker", entity: "media_player.tv", power_entity: "sensor.media_power",
+    more_controls: [{ entity: "light.strip", name: "Backlight" }, { entity: "scene.movie", name: "Movie night" }],
+  },
   vacuum: { name: "Roborock Q8 Max", entity: "vacuum.robot" },
   alarmo: {
     show_activity: true,
@@ -480,6 +489,10 @@ const hass = {
         attrs.is_volume_muted = data.is_volume_muted;
     }
     if (domain === "select" && data.option) value = data.option;
+    if (domain === "media_player" && service === "media_seek") {
+      attrs.media_position = data.seek_position;
+      attrs.media_position_updated_at = new Date(Date.now()).toISOString();
+    }
     if (domain === "climate" && data.hvac_mode) value = data.hvac_mode;
     for (const key of ["temperature", "humidity", "percentage", "mode"])
       if (data[key] !== undefined) attrs[key] = data[key];

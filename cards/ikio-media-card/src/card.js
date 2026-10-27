@@ -1,60 +1,324 @@
 import { t } from "@ikio/card-ui/i18n";
-import { installRefinement, refine, disclosure } from "@ikio/card-ui";
 import {
   ControlCard,
   features,
   group,
-  row,
   title,
   reading,
   note,
   button,
-  range,
   select,
   el,
+  event,
   valueText,
   stateText,
   available,
+  installRefinement,
+  refine,
+  disclosure,
+  glyph,
+  updateChipIcons,
+  unitValue,
+  formatNumber,
 } from "@ikio/card-ui";
-import { validate } from "./config.js";
-import { transport, position, safeImage } from "./adapter.js";
+import { validate, normalize } from "./config.js";
+import {
+  transport,
+  position,
+  safeImage,
+  volumeLevel,
+  playbackTime,
+  flags,
+} from "./adapter.js";
+import { mediaStyles } from "./styles.js";
 export class Card extends ControlCard {
   validate = validate;
   constructor() {
     super();
     installRefinement(this);
+    this.shadowRoot.prepend(el("style", mediaStyles));
+  }
+  setConfig(config) {
+    super.setConfig(normalize(config));
   }
   static getStubConfig() {
     return {
       schema_version: 1,
-      show_artwork: true,
       show_volume: true,
       show_source: true,
+      volume_step: 5,
+      more_controls: [],
     };
   }
   static async getConfigElement() {
     await import("./editor.js");
     return document.createElement("ikio-media-card-editor");
   }
-  onVisibility() {
+  onConfig() {
     clearInterval(this.clock);
-    if (
-      this.visible &&
-      !this.preview &&
-      this.isConnected &&
-      this.state()?.state === "playing"
-    )
-      this.clock = setInterval(() => this.update(), 1000);
+    this.clock = undefined;
+    this.seekDraft = undefined;
+    this.failedArtwork = undefined;
+  }
+  onVisibility() {
+    this.syncClock();
+    if (!this.visible) this.seekDraft = undefined;
+    this.update();
   }
   onDisconnect() {
     clearInterval(this.clock);
+    this.clock = undefined;
+    this.seekDraft = undefined;
+    // Stop loading artwork when the component is detached.
+    this.content.querySelector(".media-artwork")?.removeAttribute("src");
+  }
+  syncClock() {
+    const run =
+      this.visible &&
+      !this.preview &&
+      this.isConnected &&
+      this.state()?.state === "playing" &&
+      position(this.state());
+    if (!run) {
+      clearInterval(this.clock);
+      this.clock = undefined;
+    } else if (!this.clock) this.clock = setInterval(() => this.update(), 1000);
   }
   afterRender() {
-    const playing = this.state()?.state === "playing";
-    if (playing !== this.wasPlaying) {
-      this.wasPlaying = playing;
-      this.onVisibility();
+    updateChipIcons(this);
+    this.syncClock();
+  }
+  async playerCommand(service, data = {}, confirm) {
+    if (!available(this.state()) || this.state().state === "off") return;
+    return this.send(
+      this.config.entity,
+      "media_player",
+      service,
+      data,
+      confirm,
+    );
+  }
+  changeVolume(direction) {
+    const s = this.state(),
+      current = volumeLevel(s);
+    if (features(s, flags.volume) && current !== null) {
+      const next = Number(
+        Math.max(
+          0,
+          Math.min(1, current + (direction * this.config.volume_step) / 100),
+        ).toFixed(6),
+      );
+      if (next === current) return;
+      return this.playerCommand(
+        "volume_set",
+        { volume_level: next },
+        (state) => {
+          const value = volumeLevel(state);
+          return value !== null && Math.abs(value - next) < 0.005;
+        },
+      );
     }
+    if (features(s, flags.volumeStep))
+      return this.playerCommand(
+        direction > 0 ? "volume_up" : "volume_down",
+        {},
+        (state) => {
+          const value = volumeLevel(state);
+          return (
+            available(state) &&
+            (current === null ||
+              (value !== null &&
+                (direction > 0 ? value > current : value < current)))
+          );
+        },
+      );
+  }
+  volumeView() {
+    const c = this.config,
+      s = this.state(),
+      a = s?.attributes || {};
+    if (!c.show_volume || !available(s) || s.state === "off") return null;
+    const level = volumeLevel(s),
+      muted = typeof a.is_volume_muted === "boolean" ? a.is_volume_muted : null;
+    const adjust =
+      (features(s, flags.volume) && level !== null) ||
+      features(s, flags.volumeStep);
+    const canMute = features(s, flags.mute);
+    if (!adjust && !canMute && !features(s, flags.volume)) return null;
+    const wrap = el("div", undefined, "media-volume", "volume");
+    wrap.setAttribute("role", "group");
+    wrap.setAttribute("aria-label", t(this.hass, "Volume"));
+    if (adjust)
+      wrap.append(
+        button(t(this.hass, "Decrease volume"), () => this.changeVolume(-1), {
+          icon: "mdi:minus",
+          disabled: this.blocked(c.entity) || level === 0,
+          entity: c.entity,
+          key: "volume-down",
+        }),
+      );
+    const center = canMute
+      ? button(
+          t(this.hass, muted ? "Unmute" : "Mute"),
+          () => {
+            if (muted === null) return;
+            this.playerCommand(
+              "volume_mute",
+              { is_volume_muted: !muted },
+              (state) => state?.attributes?.is_volume_muted === !muted,
+            );
+          },
+          {
+            disabled: this.blocked(c.entity) || muted === null,
+            entity: c.entity,
+            key: "volume-center",
+          },
+        )
+      : el("div", undefined, "", "volume-center");
+    center.classList.add("media-volume-center");
+    if (canMute) center.setAttribute("aria-pressed", String(muted === true));
+    center.replaceChildren(
+      glyph(
+        muted === true || level === 0
+          ? "mdi:volume-off"
+          : level !== null && level < 0.5
+            ? "mdi:volume-medium"
+            : "mdi:volume-high",
+      ),
+      el(
+        "output",
+        muted === true
+          ? t(this.hass, "Muted")
+          : level === null
+            ? "—"
+            : `${formatNumber(this.hass, level * 100, 0)}%`,
+      ),
+    );
+    if (!canMute) center.setAttribute("aria-label", t(this.hass, "Volume"));
+    wrap.append(center);
+    if (adjust)
+      wrap.append(
+        button(t(this.hass, "Increase volume"), () => this.changeVolume(1), {
+          icon: "mdi:plus",
+          disabled: this.blocked(c.entity) || level === 1,
+          entity: c.entity,
+          key: "volume-up",
+        }),
+      );
+    return wrap;
+  }
+  timeline(s) {
+    const p = position(s);
+    if (!p) return null;
+    const timeline = el("div", undefined, "media-timeline", "timeline");
+    const shown = this.seekDraft ?? p.value;
+    if (features(s, flags.seek)) {
+      const input = el("input", undefined, "media-seek", "seek");
+      Object.assign(input, {
+        type: "range",
+        min: "0",
+        max: String(p.duration),
+        step: "1",
+        value: String(shown),
+        disabled: this.blocked(this.config.entity),
+      });
+      input.setAttribute("aria-label", t(this.hass, "Playback"));
+      input.setAttribute(
+        "aria-valuetext",
+        `${playbackTime(shown)} / ${playbackTime(p.duration)}`,
+      );
+      input.dataset.entity = this.config.entity;
+      event(input, "input", (e) => {
+        this.seekDraft = Number(e.currentTarget.value);
+        this.update();
+      });
+      event(input, "change", (e) => {
+        const value = Math.max(
+          0,
+          Math.min(p.duration, Number(e.currentTarget.value)),
+        );
+        this.seekDraft = undefined;
+        this.playerCommand("media_seek", { seek_position: value }, (state) => {
+          const actual = position(state);
+          return actual && Math.abs(actual.value - value) < 3;
+        });
+      });
+      event(input, "pointercancel", () => {
+        this.seekDraft = undefined;
+        this.update();
+      });
+      event(input, "keydown", (e) => {
+        if (e.key === "Escape") {
+          this.seekDraft = undefined;
+          e.currentTarget.value = String(p.value);
+          this.update();
+        }
+      });
+      timeline.append(input);
+    } else {
+      const progress = el(
+        "progress",
+        undefined,
+        "media-readonly-progress",
+        "progress",
+      );
+      progress.max = p.duration;
+      progress.value = shown;
+      progress.setAttribute("aria-label", t(this.hass, "Playback progress"));
+      timeline.append(progress);
+    }
+    const times = el("div", undefined, "media-times");
+    times.append(
+      el("span", playbackTime(shown)),
+      el("span", playbackTime(p.duration)),
+    );
+    timeline.append(times);
+    return timeline;
+  }
+  moreControls() {
+    const nodes = [];
+    for (const [index, control] of (
+      this.config.more_controls || []
+    ).entries()) {
+      if (!control.entity) continue;
+      const id = control.entity,
+        s = this.state(id),
+        domain = id.split(".")[0];
+      const toggle = ["light", "switch"].includes(domain);
+      const name = control.name?.trim() || this.label(id);
+      const disabled =
+        this.blocked(id) || (toggle && !["on", "off"].includes(s?.state));
+      const node = button(
+        name,
+        () => (toggle ? this.toggle(id) : this.action(id, name)),
+        { disabled, entity: id, key: `extra:${index}:${id}` },
+      );
+      node.classList.add("media-extra");
+      node.replaceChildren(el("span", name));
+      const icon = el("ha-state-icon");
+      icon.dataset.chipEntity = id;
+      icon.setAttribute("aria-hidden", "true");
+      node.prepend(icon);
+      if (toggle && available(s) && ["on", "off"].includes(s.state))
+        node.setAttribute("aria-pressed", String(s.state === "on"));
+      if (!available(s) || (toggle && !["on", "off"].includes(s.state))) {
+        const status = el("span", stateText(this.hass, id), "ae-label");
+        node.append(status);
+        node.setAttribute("aria-label", `${name}: ${stateText(this.hass, id)}`);
+      }
+      nodes.push(node);
+    }
+    if (!nodes.length) return null;
+    const settings = disclosure(
+      this,
+      "media-extras",
+      t(this.hass, "More controls"),
+      ...nodes,
+    );
+    const chevron = glyph("mdi:chevron-down");
+    chevron.classList.add("media-chevron");
+    settings.querySelector("summary").append(chevron);
+    return settings;
   }
   render() {
     const c = this.config,
@@ -62,6 +326,9 @@ export class Card extends ControlCard {
       a = s?.attributes || {};
     if (!c.entity)
       return note(t(this.hass, "Choose a media player in the visual editor."));
+    const online = available(s),
+      off = s?.state === "off",
+      active = online && !off;
     const result = group(
       title(
         this,
@@ -71,216 +338,163 @@ export class Card extends ControlCard {
       ),
     );
     refine(result, "mdi:music-note-outline");
-    const artwork = safeImage(a.entity_picture, this.hass);
-    if (
-      a.media_title ||
-      (c.show_artwork !== false && artwork && s?.state !== "off")
-    ) {
-      const info = el("div", undefined, "ikio-media-info");
-      if (c.show_artwork !== false && artwork && s?.state !== "off") {
-        const image = el("img", undefined, "ikio-artwork");
-        image.src = artwork;
-        image.alt = t(this.hass, "Media artwork");
-        image.width = 44;
-        image.height = 44;
-        info.append(image);
-      } else info.style.gridTemplateColumns = "minmax(0,1fr)";
-      const text = el("div");
-      if (a.media_title) text.append(el("div", a.media_title, "ikio-track"));
-      if (a.media_artist || a.media_series_title)
-        text.append(
-          el("div", a.media_artist || a.media_series_title, "ikio-artist"),
-        );
-      info.append(text);
-      result.append(info);
-    }
-    const p = position(s);
-    if (p) {
-      const format = (t) =>
-        `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
-      if (features(s, 2)) {
-        const seek = range(
-          t(this.hass, "Playback"),
-          Math.floor(p.value),
-          0,
-          Math.floor(p.duration),
-          1,
-          (value) =>
-            this.send(c.entity, "media_player", "media_seek", {
-              seek_position: value,
-            }),
-        );
-        seek.querySelector("input").disabled = this.blocked(c.entity);
-        seek.classList.add("ae-playback");
-        const caption = seek.querySelector("span");
-        caption.className = "sr";
-        seek.style.gridTemplateColumns = "minmax(0,1fr)";
-        result.append(
-          row(note(`${format(p.value)} / ${format(p.duration)}`), seek),
-        );
-      } else {
-        const bar = el("progress", undefined, "ae-progress");
-        bar.max = p.duration;
-        bar.value = p.value;
-        bar.setAttribute("aria-label", t(this.hass, "Playback progress"));
-        result.append(
-          row(note(`${format(p.value)} / ${format(p.duration)}`), bar),
-        );
-      }
-    }
-    const controls = transport(s).map((action) =>
-      button(
-        t(this.hass, action.label),
+    result.classList.add("media-card");
+    const nativeIcon = el("ha-state-icon");
+    nativeIcon.dataset.chipEntity = c.entity;
+    nativeIcon.setAttribute("aria-hidden", "true");
+    result.querySelector("header>ha-icon")?.replaceWith(nativeIcon);
+    if (features(s, off ? flags.on : flags.off)) {
+      const power = button(
+        t(this.hass, off ? "Power on" : "Power off"),
         () =>
           this.send(
             c.entity,
             "media_player",
-            action.service,
+            off ? "turn_on" : "turn_off",
             {},
-            action.target
-              ? (state) => state?.state === action.target
-              : undefined,
+            (state) =>
+              off
+                ? available(state) && state.state !== "off"
+                : state?.state === "off",
           ),
-        { icon: action.icon, disabled: this.blocked(c.entity) },
-      ),
-    );
-    if (features(s, s?.state === "off" ? 128 : 256))
-      controls.push(
-        button(
-          s.state === "off"
-            ? t(this.hass, "Power on")
-            : t(this.hass, "Power off"),
+        {
+          icon: "mdi:power",
+          disabled: this.blocked(c.entity),
+          entity: c.entity,
+          key: "power",
+        },
+      );
+      power.classList.add("media-power");
+      result.querySelector("header").append(power);
+    }
+    const now = el("div", undefined, "media-now", "now");
+    now.hidden = !active;
+    const artwork =
+      active && this.visible && this.isConnected
+        ? safeImage(a.entity_picture, this.hass)
+        : null;
+    const image = el("img", undefined, "media-artwork", "artwork");
+    image.hidden = !artwork || artwork === this.failedArtwork;
+    if (!image.hidden) {
+      image.alt = "";
+      image.setAttribute("aria-hidden", "true");
+      image.src = artwork;
+      event(image, "error", () => {
+        if (
+          safeImage(this.state()?.attributes?.entity_picture, this.hass) !==
+          artwork
+        )
+          return;
+        this.failedArtwork = artwork;
+        this.update();
+      });
+      now.classList.add("has-art");
+    }
+    now.append(image);
+    const info = el("div", undefined, "media-info", "info");
+    const copy = el("div", undefined, "media-copy", "copy");
+    const fallback =
+      s?.state === "idle"
+        ? t(this.hass, "Nothing playing")
+        : t(this.hass, "Media information unavailable");
+    copy.append(el("div", a.media_title || fallback, "media-track"));
+    if (a.media_artist || a.media_series_title)
+      copy.append(
+        el("div", a.media_artist || a.media_series_title, "media-artist"),
+      );
+    const transportRow = el("div", undefined, "media-transport", "transport");
+    if (active)
+      for (const action of transport(s)) {
+        const control = button(
+          t(this.hass, action.label),
           () =>
-            this.send(
-              c.entity,
-              "media_player",
-              s.state === "off" ? "turn_on" : "turn_off",
+            this.playerCommand(
+              action.service,
               {},
-              (state) =>
-                s.state === "off"
-                  ? available(state) && state.state !== "off"
-                  : state?.state === "off",
+              action.target
+                ? (state) => state?.state === action.target
+                : undefined,
             ),
-          { icon: "mdi:power", disabled: this.blocked(c.entity) },
-        ),
-      );
-    if (controls.length) {
-      const transportRow = row(...controls);
-      transportRow.classList.add("ikio-transport");
-      const primary = [...transportRow.children].find((node) =>
-        [t(this.hass, "Play"), t(this.hass, "Pause")].includes(
-          node.getAttribute("aria-label"),
-        ),
-      );
-      primary?.classList.add("ikio-primary");
-      const timeline = result.querySelector(".ae-playback")?.parentElement;
-      if (timeline) result.insertBefore(transportRow, timeline);
-      else result.append(transportRow);
-    }
-    const audio = row();
-    audio.classList.add("ikio-media-audio");
-    result.append(audio);
-    if (c.show_volume !== false) {
-      const volumeRow = row();
-      if (features(s, 4) && Number.isFinite(a.volume_level)) {
-        const volume = range(
-          t(this.hass, "Volume"),
-          Math.round(a.volume_level * 100),
-          0,
-          100,
-          1,
-          (v) =>
-            this.send(
-              c.entity,
-              "media_player",
-              "volume_set",
-              { volume_level: v / 100 },
-              (state) =>
-                Math.abs((state?.attributes?.volume_level ?? -1) - v / 100) <
-                0.02,
-            ),
+          {
+            icon: action.icon,
+            disabled: this.blocked(c.entity),
+            entity: c.entity,
+            key: action.service,
+          },
         );
-        volume.querySelector("input").disabled = this.blocked(c.entity);
-        volumeRow.append(volume);
+        if (["media_play", "media_pause"].includes(action.service))
+          control.classList.add("media-primary");
+        transportRow.append(control);
       }
-      if (features(s, 8))
-        volumeRow.append(
-          button(
-            a.is_volume_muted ? t(this.hass, "Unmute") : t(this.hass, "Mute"),
-            () =>
-              this.send(
-                c.entity,
-                "media_player",
-                "volume_mute",
-                { is_volume_muted: !a.is_volume_muted },
-                (state) =>
-                  state?.attributes?.is_volume_muted === !a.is_volume_muted,
-              ),
-            {
-              icon: a.is_volume_muted ? "mdi:volume-off" : "mdi:volume-high",
-              disabled: this.blocked(c.entity),
-            },
-          ),
-        );
-      audio.append(volumeRow);
+    info.append(copy, transportRow);
+    now.append(info);
+    if (active) {
+      const timeline = this.timeline(s);
+      if (timeline) now.append(timeline);
     }
-    if (c.show_source !== false && features(s, 2048) && a.source_list?.length) {
+    result.append(now);
+    const message = note(
+      !online
+        ? t(this.hass, "Player unavailable")
+        : off
+          ? t(this.hass, "Nothing playing")
+          : "",
+    );
+    message.dataset.key = "player-message";
+    message.hidden = active;
+    result.append(message);
+    const controls = el("div", undefined, "media-controls", "controls");
+    const volume = this.volumeView();
+    if (volume) controls.append(volume);
+    if (
+      active &&
+      c.show_source &&
+      features(s, flags.source) &&
+      a.source_list?.length
+    ) {
       const sources = select(
         t(this.hass, "Source"),
         a.source_list,
         a.source,
-        (v) =>
-          this.send(
-            c.entity,
-            "media_player",
+        (source) =>
+          this.playerCommand(
             "select_source",
-            { source: v },
-            (state) => state?.attributes?.source === v,
+            { source },
+            (state) => state?.attributes?.source === source,
           ),
+        "source",
       );
       sources.querySelector("select").disabled = this.blocked(c.entity);
-      audio.append(sources);
+      controls.append(sources);
     }
-    const footer = row();
-    footer.classList.add("ikio-footer");
-    if (c.power_entity)
-      footer.append(
-        reading(
-          t(this.hass, "Power"),
-          valueText(this.hass, c.power_entity),
-          c.power_entity,
-        ),
+    controls.hidden = !controls.children.length;
+    result.append(controls);
+    const footer = el("div", undefined, "media-footer", "footer");
+    if (c.power_entity) {
+      const watts = unitValue(this.state(c.power_entity), "power");
+      const value =
+        watts === null
+          ? valueText(this.hass, c.power_entity)
+          : `${formatNumber(this.hass, watts, 0)} W`;
+      const power = reading(
+        t(this.hass, "Power"),
+        value,
+        c.power_entity,
+        "media-power-reading",
       );
-    const extras = [];
-    if (c.backlight_entity)
-      extras.push(
-        button(
-          t(this.hass, "TV glow: {p0}", {
-            p0: stateText(this.hass, c.backlight_entity),
-          }),
-          () => this.toggle(c.backlight_entity),
-          { disabled: this.blocked(c.backlight_entity) },
-        ),
-      );
-    for (const shortcut of c.shortcuts || [])
-      if (shortcut.entity)
-        extras.push(
-          button(
-            shortcut.label || this.label(shortcut.entity),
-            () => this.action(shortcut.entity, shortcut.label),
-            { disabled: this.blocked(shortcut.entity) },
-          ),
-        );
-    if (extras.length)
-      footer.append(
-        disclosure(
-          this,
-          "media-extras",
-          t(this.hass, "More controls"),
-          ...extras,
-        ),
-      );
-    if (footer.children.length) result.append(footer);
+      const label = power.querySelector(".ae-label");
+      label.replaceChildren(glyph("mdi:lightning-bolt"));
+      power.setAttribute("aria-label", `${t(this.hass, "Power")}: ${value}`);
+      footer.append(power);
+    }
+    const extras = this.moreControls();
+    if (extras) footer.append(extras);
+    footer.hidden = !footer.children.length;
+    result.append(footer);
+    const busy = note(t(this.hass, "Updating device…"));
+    busy.dataset.key = "busy";
+    busy.hidden = !this.pending.size && !this.requests.size;
+    result.append(busy);
     return result;
   }
 }
