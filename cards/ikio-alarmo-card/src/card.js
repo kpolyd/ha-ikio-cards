@@ -88,6 +88,8 @@ export class Card extends ControlCard {
       .security-activity h3{font-size:13px;font-weight:500;margin:0}
       .security-activity>header>span,.security-activity h4{font-size:11px;color:var(--ae-muted);font-weight:500}
       .security-activity h4{margin:10px 0 4px}
+      .security-activity-scroll{max-height:288px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--ae-border) transparent;overflow-anchor:none}
+      .security-activity-scroll:focus-visible{outline:2px solid var(--ae-accent);outline-offset:2px}
       .security-activity-row.ae-button{width:100%;display:grid;grid-template-columns:18px minmax(0,1fr) minmax(65px,auto);gap:8px;align-items:center;min-height:48px;border:0;border-radius:0;background:transparent;padding:5px 0;text-align:left;font:inherit;font-size:12px}
       .security-activity-row>ha-state-icon{--mdc-icon-size:16px;color:var(--ae-muted)}
       .security-activity-content,.security-activity-end{display:grid;gap:2px;min-width:0;overflow-wrap:anywhere}
@@ -135,9 +137,7 @@ export class Card extends ControlCard {
     this.armIntent = null;
   }
   onConfig() {
-    this.activity.stop();
-    this.activity.entries = [];
-    this.activity.usersLoaded = false;
+    this.activity.reset();
     this.sensorsExpanded = false;
     this.stopCountdown();
     this.resetInput();
@@ -193,6 +193,7 @@ export class Card extends ControlCard {
           }
         : this.state(glyph.dataset.sensor);
     }
+    this.activity.afterRender();
     this.syncCountdown();
   }
   onDisconnect() {
