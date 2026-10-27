@@ -1,3 +1,4 @@
+import { t, language } from "./i18n.js";
 import { element } from "./card.js";
 import {
   ensureEditorComponents,
@@ -91,7 +92,11 @@ export function defineEditor(
       this.render();
     }
     set hass(hass) {
+      const changed = this._language !== language(hass);
       this._hass = hass;
+      this._language = language(hass);
+      this.setAttribute("lang", language(hass));
+      if (changed) this.render();
       for (const f of this.shadowRoot.querySelectorAll("ha-form"))
         f.hass = hass;
     }
@@ -101,7 +106,11 @@ export function defineEditor(
           this.ready = true;
           if (this.isConnected) this.render();
         })
-        .catch((e) => this.shadowRoot.replaceChildren(element("p", e.message)));
+        .catch((e) =>
+          this.shadowRoot.replaceChildren(
+            element("p", t(this._hass, e.message)),
+          ),
+        );
     }
     change(config) {
       this.config = config;
@@ -125,8 +134,9 @@ export function defineEditor(
       );
       for (const list of lists) {
         const section = element("section");
-        section.append(element("h3", list.label));
-        if (list.helper) section.append(element("p", list.helper));
+        section.append(element("h3", t(this._hass, list.label)));
+        if (list.helper)
+          section.append(element("p", t(this._hass, list.helper)));
         (this.config[list.name] || []).forEach((data, index) => {
           const sub = element("section");
           sub.append(
@@ -147,7 +157,7 @@ export function defineEditor(
             ["Down", 1],
             ["Remove", 0],
           ]) {
-            const b = element("button", label);
+            const b = element("button", t(this._hass, label));
             b.type = "button";
             b.disabled =
               delta &&
@@ -168,7 +178,12 @@ export function defineEditor(
           }
           section.append(sub);
         });
-        const add = element("button", `Add ${list.item || "item"}`);
+        const add = element(
+          "button",
+          t(this._hass, "Add {item}", {
+            item: t(this._hass, list.item || "item"),
+          }),
+        );
         add.type = "button";
         add.onclick = () => {
           this.change({
@@ -202,7 +217,10 @@ export function defineEditor(
       this.shadowRoot.append(
         element(
           "p",
-          "Hold entity controls for native Home Assistant details. Optional fields may be left empty. All settings are available in this editor.",
+          t(
+            this._hass,
+            "Hold entity controls for native Home Assistant details. Optional fields may be left empty. All settings are available in this editor.",
+          ),
         ),
       );
     }

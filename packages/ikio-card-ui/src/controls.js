@@ -1,3 +1,4 @@
+import { t, stateLabel, language, translateError } from "./i18n.js";
 import { IkioCard, element, details, available, entityName } from "./card.js";
 import { bindHold } from "./interactions.js";
 export const features = (state, flag) =>
@@ -17,11 +18,14 @@ export function formatNumber(hass, value, digits = 2) {
 }
 export function stateText(hass, id) {
   const s = hass?.states?.[id];
-  return s ? hass.formatEntityState?.(s) || s.state : "Entity not found";
+  return s
+    ? hass.formatEntityState?.(s) ||
+        (language(hass).startsWith("en") ? s.state : stateLabel(hass, s.state))
+    : t(hass, "Entity not found");
 }
 export function valueText(hass, id) {
   const s = hass?.states?.[id];
-  if (!s) return id ? "Entity not found" : "Not configured";
+  if (!s) return t(hass, id ? "Entity not found" : "Not configured");
   if (!available(s)) return stateText(hass, id);
   const n = numeric(s);
   return n === null
@@ -222,7 +226,11 @@ export class ControlCard extends IkioCard {
     this.visible = true;
   }
   setConfig(config) {
-    this.validate?.(config);
+    try {
+      this.validate?.(config);
+    } catch (error) {
+      throw new Error(translateError(this.hass, error.message));
+    }
     this.cancelActions();
     this.shadowRoot.querySelector("dialog")?.remove();
     this.requests.clear();
@@ -288,7 +296,11 @@ export class ControlCard extends IkioCard {
     return this.hass?.states?.[id];
   }
   label(id) {
-    return entityName(this.hass, this.state(id)) || id || "Not configured";
+    return (
+      entityName(this.hass, this.state(id)) ||
+      id ||
+      t(this.hass, "Not configured")
+    );
   }
   blocked(id) {
     return (
@@ -309,7 +321,7 @@ export class ControlCard extends IkioCard {
       await this.hass.callService(domain, service, { ...data, entity_id: id });
     } catch (e) {
       if (generation === this.generation)
-        this.error.textContent = e.message || "Action failed";
+        this.error.textContent = e.message || t(this.hass, "Action failed");
     } finally {
       if (generation === this.generation) {
         this.requests.delete(id);
@@ -331,7 +343,7 @@ export class ControlCard extends IkioCard {
     if (!entity) return;
     const domain = entity.split(".")[0];
     if (confirm) {
-      this.dialog(label, [note("Confirm this action?")], () =>
+      this.dialog(label, [note(t(this.hass, "Confirm this action?"))], () =>
         this.action(entity, label),
       );
       return;
@@ -352,10 +364,10 @@ export class ControlCard extends IkioCard {
     const dialog = el("dialog");
     dialog.append(el("h3", label), ...children);
     const actions = row(
-      button("Cancel", () => dialog.close()),
+      button(t(this.hass, "Cancel"), () => dialog.close()),
       ...(submit
         ? [
-            button("Confirm", async () => {
+            button(t(this.hass, "Confirm"), async () => {
               try {
                 await submit();
                 dialog.close();

@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import {
   installRefinement,
   refine,
@@ -56,7 +57,9 @@ export class Card extends ControlCard {
   render() {
     const c = this.config;
     if (!c.entity)
-      return note("Choose an appliance switch in the visual editor.");
+      return note(
+        t(this.hass, "Choose an appliance switch in the visual editor."),
+      );
     const result = group(
       title(
         this,
@@ -71,7 +74,7 @@ export class Card extends ControlCard {
         .filter((k) => c[k + "_entity"])
         .map((k) =>
           reading(
-            k === "power" ? "Power" : "Energy",
+            k === "power" ? t(this.hass, "Power") : t(this.hass, "Energy"),
             valueText(this.hass, c[k + "_entity"]),
             c[k + "_entity"],
           ),
@@ -86,7 +89,7 @@ export class Card extends ControlCard {
       if (!run.start_script) continue;
       actions.append(
         button(
-          run.label || "Start timed run",
+          run.label || t(this.hass, "Start timed run"),
           () => this.action(run.start_script, run.label),
           { disabled: this.blocked(run.start_script) },
         ),
@@ -99,21 +102,26 @@ export class Card extends ControlCard {
             ? `${Math.max(0, Math.ceil((finish - Date.now()) / 60000))} min remaining`
             : stateText(this.hass, run.timer_entity);
         measurements.append(
-          reading(run.label || "Timer", value, run.timer_entity),
+          reading(run.label || t(this.hass, "Timer"), value, run.timer_entity),
         );
       }
     }
     const manual = row();
     manual.append(
       button(
-        this.state()?.state === "on" ? "Turn off" : "Turn on",
+        this.state()?.state === "on"
+          ? t(this.hass, "Turn off")
+          : t(this.hass, "Turn on"),
         () => {
           if (c.confirm_manual_on && this.state()?.state !== "on")
             requestReview(
               this,
               c.entity,
-              "Turn on appliance",
-              "Manual operation does not schedule an automatic shutoff.",
+              t(this.hass, "Turn on appliance"),
+              t(
+                this.hass,
+                "Manual operation does not schedule an automatic shutoff.",
+              ),
               () => {
                 if (this.state()?.state !== "on") this.toggle(c.entity);
               },
@@ -125,12 +133,16 @@ export class Card extends ControlCard {
     );
     if (c.stop_script)
       manual.append(
-        button("Stop run", () => this.action(c.stop_script, "Stop run"), {
-          disabled: this.blocked(c.stop_script),
-        }),
+        button(
+          t(this.hass, "Stop run"),
+          () => this.action(c.stop_script, "Stop run"),
+          {
+            disabled: this.blocked(c.stop_script),
+          },
+        ),
       );
     if (actions.children.length) {
-      actions.setAttribute("aria-label", "Timed runs");
+      actions.setAttribute("aria-label", t(this.hass, "Timed runs"));
       actions.firstElementChild?.classList.add("ikio-primary");
     }
     actionBar.append(manual);
@@ -138,7 +150,12 @@ export class Card extends ControlCard {
     if (this.review) result.append(reviewView(this));
     if (c.timed_runs?.length)
       result.append(
-        note("Turning off manually does not cancel a scheduled timed run."),
+        note(
+          t(
+            this.hass,
+            "Turning off manually does not cancel a scheduled timed run.",
+          ),
+        ),
       );
     return result;
   }

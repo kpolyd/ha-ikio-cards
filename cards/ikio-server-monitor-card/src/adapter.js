@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { numeric, unitValue, formatNumber } from "@ikio/card-ui";
 function storageCapacity(used, total, remaining) {
   const rawUsed = unitValue(used, "storage");
@@ -112,7 +113,14 @@ export function uptimeLabel(seconds, language = "en") {
           ? [60, "minute"]
           : [1, "second"];
   const count = Math.floor(seconds / divisor);
-  return `Up for ${new Intl.NumberFormat(language).format(count)} ${unit}${count === 1 ? "" : "s"}`;
+  return t(language, "Up for {duration}", {
+    duration: new Intl.NumberFormat(language, {
+      style: "unit",
+      unit,
+      unitDisplay: "long",
+      maximumFractionDigits: 0,
+    }).format(count),
+  });
 }
 
 // Compare throughput on one byte-per-second scale, retaining byte/bit semantics.

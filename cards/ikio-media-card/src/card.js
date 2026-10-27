@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { installRefinement, refine, disclosure } from "@ikio/card-ui";
 import {
   ControlCard,
@@ -59,7 +60,8 @@ export class Card extends ControlCard {
     const c = this.config,
       s = this.state(),
       a = s?.attributes || {};
-    if (!c.entity) return note("Choose a media player in the visual editor.");
+    if (!c.entity)
+      return note(t(this.hass, "Choose a media player in the visual editor."));
     const result = group(
       title(
         this,
@@ -78,7 +80,7 @@ export class Card extends ControlCard {
       if (c.show_artwork !== false && artwork && s?.state !== "off") {
         const image = el("img", undefined, "ikio-artwork");
         image.src = artwork;
-        image.alt = "Media artwork";
+        image.alt = t(this.hass, "Media artwork");
         image.width = 44;
         image.height = 44;
         info.append(image);
@@ -98,7 +100,7 @@ export class Card extends ControlCard {
         `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
       if (features(s, 2)) {
         const seek = range(
-          "Playback",
+          t(this.hass, "Playback"),
           Math.floor(p.value),
           0,
           Math.floor(p.duration),
@@ -120,7 +122,7 @@ export class Card extends ControlCard {
         const bar = el("progress", undefined, "ae-progress");
         bar.max = p.duration;
         bar.value = p.value;
-        bar.setAttribute("aria-label", "Playback progress");
+        bar.setAttribute("aria-label", t(this.hass, "Playback progress"));
         result.append(
           row(note(`${format(p.value)} / ${format(p.duration)}`), bar),
         );
@@ -128,7 +130,7 @@ export class Card extends ControlCard {
     }
     const controls = transport(s).map((action) =>
       button(
-        action.label,
+        t(this.hass, action.label),
         () =>
           this.send(
             c.entity,
@@ -145,7 +147,9 @@ export class Card extends ControlCard {
     if (features(s, s?.state === "off" ? 128 : 256))
       controls.push(
         button(
-          s.state === "off" ? "Power on" : "Power off",
+          s.state === "off"
+            ? t(this.hass, "Power on")
+            : t(this.hass, "Power off"),
           () =>
             this.send(
               c.entity,
@@ -163,8 +167,10 @@ export class Card extends ControlCard {
     if (controls.length) {
       const transportRow = row(...controls);
       transportRow.classList.add("ikio-transport");
-      const primary = transportRow.querySelector(
-        '[aria-label="Play"], [aria-label="Pause"]',
+      const primary = [...transportRow.children].find((node) =>
+        [t(this.hass, "Play"), t(this.hass, "Pause")].includes(
+          node.getAttribute("aria-label"),
+        ),
       );
       primary?.classList.add("ikio-primary");
       const timeline = result.querySelector(".ae-playback")?.parentElement;
@@ -178,7 +184,7 @@ export class Card extends ControlCard {
       const volumeRow = row();
       if (features(s, 4) && Number.isFinite(a.volume_level)) {
         const volume = range(
-          "Volume",
+          t(this.hass, "Volume"),
           Math.round(a.volume_level * 100),
           0,
           100,
@@ -200,7 +206,7 @@ export class Card extends ControlCard {
       if (features(s, 8))
         volumeRow.append(
           button(
-            a.is_volume_muted ? "Unmute" : "Mute",
+            a.is_volume_muted ? t(this.hass, "Unmute") : t(this.hass, "Mute"),
             () =>
               this.send(
                 c.entity,
@@ -219,14 +225,18 @@ export class Card extends ControlCard {
       audio.append(volumeRow);
     }
     if (c.show_source !== false && features(s, 2048) && a.source_list?.length) {
-      const sources = select("Source", a.source_list, a.source, (v) =>
-        this.send(
-          c.entity,
-          "media_player",
-          "select_source",
-          { source: v },
-          (state) => state?.attributes?.source === v,
-        ),
+      const sources = select(
+        t(this.hass, "Source"),
+        a.source_list,
+        a.source,
+        (v) =>
+          this.send(
+            c.entity,
+            "media_player",
+            "select_source",
+            { source: v },
+            (state) => state?.attributes?.source === v,
+          ),
       );
       sources.querySelector("select").disabled = this.blocked(c.entity);
       audio.append(sources);
@@ -235,13 +245,19 @@ export class Card extends ControlCard {
     footer.classList.add("ikio-footer");
     if (c.power_entity)
       footer.append(
-        reading("Power", valueText(this.hass, c.power_entity), c.power_entity),
+        reading(
+          t(this.hass, "Power"),
+          valueText(this.hass, c.power_entity),
+          c.power_entity,
+        ),
       );
     const extras = [];
     if (c.backlight_entity)
       extras.push(
         button(
-          `TV glow: ${stateText(this.hass, c.backlight_entity)}`,
+          t(this.hass, "TV glow: {p0}", {
+            p0: stateText(this.hass, c.backlight_entity),
+          }),
           () => this.toggle(c.backlight_entity),
           { disabled: this.blocked(c.backlight_entity) },
         ),
@@ -257,7 +273,12 @@ export class Card extends ControlCard {
         );
     if (extras.length)
       footer.append(
-        disclosure(this, "media-extras", "More controls", ...extras),
+        disclosure(
+          this,
+          "media-extras",
+          t(this.hass, "More controls"),
+          ...extras,
+        ),
       );
     if (footer.children.length) result.append(footer);
     return result;

@@ -23,7 +23,8 @@
     "preview:build": "node scripts/build-previews.mjs",
     "preview:generate": "node scripts/generate-previews.mjs",
     "preview:readme": "node scripts/update-readme-previews.mjs",
-    "preview:check": "node scripts/update-readme-previews.mjs --check"
+    "preview:check": "node scripts/update-readme-previews.mjs --check",
+    "check:translations": "node scripts/check-translations.mjs"
   },
   "devDependencies": {
     "@mdi/js": "7.4.47",

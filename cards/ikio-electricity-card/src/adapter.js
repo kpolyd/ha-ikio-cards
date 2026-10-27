@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { unitValue, available, formatNumber, valueText } from "@ikio/card-ui";
 export function untracked(total, circuits) {
   const values = [
@@ -52,7 +53,9 @@ export function energyText(hass, entity) {
   const state = hass?.states?.[entity];
   const value = unitValue(state, "energy");
   if (value !== null) return formatNumber(hass, value);
-  return available(state) ? "Incompatible unit" : valueText(hass, entity);
+  return available(state)
+    ? t(hass, "Incompatible unit")
+    : valueText(hass, entity);
 }
 
 // Merge asynchronous sensor changes, carrying the latest known reading forward.

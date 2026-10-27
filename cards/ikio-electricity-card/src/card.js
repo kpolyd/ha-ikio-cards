@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import {
   HistoryCard,
   graph,
@@ -184,7 +185,7 @@ export class Card extends HistoryCard {
     if (Number.isFinite(value))
       item
         .querySelector(".ae-value")
-        .replaceChildren(el("span", text), el("small", "kWh"));
+        .replaceChildren(el("span", text), el("small", t(this.hass, "kWh")));
     return item;
   }
   deviceReading(name, value, entity, points, start, end) {
@@ -211,10 +212,13 @@ export class Card extends HistoryCard {
     const c = this.config;
     if (!c.power_entity)
       return note(
-        "Choose total power and optional billing-cycle entities in the visual editor.",
+        t(
+          this.hass,
+          "Choose total power and optional billing-cycle entities in the visual editor.",
+        ),
       );
     const header = el("div", undefined, "ae-energy-header");
-    header.append(el("h2", c.name || "Electricity"));
+    header.append(el("h2", c.name || t(this.hass, "Electricity")));
     const now = Date.now();
     this.cycleTimezone = this.hass?.config?.time_zone;
     this.billingCycle = c.billing_cycle_cron?.trim()
@@ -230,7 +234,7 @@ export class Card extends HistoryCard {
     if (dates) header.append(note(dates));
     const summary = el("div", undefined, "ae-energy-summary");
     const power = reading(
-      "Current power",
+      t(this.hass, "Current power"),
       powerText(this.hass, c.power_entity),
       c.power_entity,
       "ae-hero",
@@ -256,15 +260,18 @@ export class Card extends HistoryCard {
       tariffs.setAttribute("role", "group");
       tariffs.setAttribute(
         "aria-label",
-        "Billing-cycle energy in kilowatt-hours",
+        t(this.hass, "Billing-cycle energy in kilowatt-hours"),
       );
-      tariffs.append(note("Energy"));
-      if (c.day_entity) tariffs.append(this.tariffReading("Day", c.day_entity));
+      tariffs.append(note(t(this.hass, "Energy")));
+      if (c.day_entity)
+        tariffs.append(this.tariffReading(t(this.hass, "Day"), c.day_entity));
       if (c.night_entity)
-        tariffs.append(this.tariffReading("Night", c.night_entity));
+        tariffs.append(
+          this.tariffReading(t(this.hass, "Night"), c.night_entity),
+        );
       tariffs.append(
         this.tariffReading(
-          "Total",
+          t(this.hass, "Total"),
           c.total_energy_entity,
           c.total_energy_entity
             ? undefined
@@ -280,7 +287,10 @@ export class Card extends HistoryCard {
       if (!c.same_cycle && !c.total_energy_entity)
         result.append(
           note(
-            "Confirm matching day/night billing periods in the editor to calculate their total.",
+            t(
+              this.hass,
+              "Confirm matching day/night billing periods in the editor to calculate their total.",
+            ),
           ),
         );
     }
@@ -289,7 +299,7 @@ export class Card extends HistoryCard {
       if (c.accrued_bill_entity)
         bills.append(
           reading(
-            "Estimated bill",
+            t(this.hass, "Estimated bill"),
             valueText(this.hass, c.accrued_bill_entity),
             c.accrued_bill_entity,
           ),
@@ -297,8 +307,8 @@ export class Card extends HistoryCard {
       if (c.forecast_bill_entity)
         bills.append(
           reading(
-            "Forecast",
-            forecastStatus(c, this.hass?.states || {}) ||
+            t(this.hass, "Forecast"),
+            t(this.hass, forecastStatus(c, this.hass?.states || {})) ||
               valueText(this.hass, c.forecast_bill_entity),
             c.forecast_bill_entity,
           ),
@@ -341,7 +351,7 @@ export class Card extends HistoryCard {
     if (c.untracked_entity)
       grid.append(
         this.deviceReading(
-          "Untracked",
+          t(this.hass, "Untracked"),
           powerText(this.hass, c.untracked_entity),
           c.untracked_entity,
           history(c.untracked_entity),
@@ -361,7 +371,7 @@ export class Card extends HistoryCard {
               "Confirm non-overlapping circuits in the editor before calculating untracked power.",
           };
       const item = this.deviceReading(
-        "Untracked",
+        t(this.hass, "Untracked"),
         `${formatNumber(this.hass, calc.value, 0)} W`,
         undefined,
         c.non_overlapping
@@ -374,9 +384,13 @@ export class Card extends HistoryCard {
         start,
         end,
       );
-      item.title = "Total power minus the configured device power sensors.";
+      item.title = t(
+        this.hass,
+        "Total power minus the configured device power sensors.",
+      );
       grid.append(item);
-      if (calc.reason) result.append(note(calc.reason, "ae-warn"));
+      if (calc.reason)
+        result.append(note(t(this.hass, calc.reason), "ae-warn"));
     }
     result.append(grid);
     if (c.show_power_distribution) {

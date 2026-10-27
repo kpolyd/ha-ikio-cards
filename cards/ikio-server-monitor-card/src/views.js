@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { reading, el, formatNumber } from "@ikio/card-ui";
 import { downsample, windowPoints } from "@ikio/graph";
 import { rateHistory } from "./adapter.js";
@@ -133,7 +134,16 @@ export function networkPlot(rows, history, now, hass) {
     preserveAspectRatio: "none",
     class: "system-network-plot",
     role: "img",
-    "aria-label": `Download and upload history, last 30 minutes. Visible minimum ${rateLabel(low)}, maximum ${rateLabel(high)}. Shared scale ${rateLabel(yMin)} to ${rateLabel(yMax)}.`,
+    "aria-label": t(
+      hass,
+      "Download and upload history, last 30 minutes. Visible minimum {low}, maximum {high}. Shared scale {min} to {max}.",
+      {
+        low: rateLabel(low),
+        high: rateLabel(high),
+        min: rateLabel(yMin),
+        max: rateLabel(yMax),
+      },
+    ),
   });
   const ticks = constant
     ? [{ value: high, kind: "constant" }]

@@ -1,3 +1,4 @@
+import { t, language } from "@ikio/card-ui/i18n";
 import {
   element,
   form,
@@ -37,7 +38,11 @@ export class IkioLightEditor extends HTMLElement {
     this.render();
   }
   set hass(hass) {
+    const changed = this._language !== language(hass);
     this._hass = hass;
+    this._language = language(hass);
+    this.setAttribute("lang", language(hass));
+    if (changed) this.render();
     for (const node of this.shadowRoot.querySelectorAll("ha-form"))
       node.hass = hass;
   }
@@ -49,7 +54,9 @@ export class IkioLightEditor extends HTMLElement {
       })
       .catch((error) => {
         if (this.isConnected)
-          this.shadowRoot.replaceChildren(element("p", error.message));
+          this.shadowRoot.replaceChildren(
+            element("p", t(this._hass, error.message)),
+          );
       });
   }
   changed(config) {
@@ -89,7 +96,7 @@ export class IkioLightEditor extends HTMLElement {
           "h3",
           row.name ||
             entityName(this._hass, this._hass?.states?.[row.entity]) ||
-            `Light ${index + 1}`,
+            t(this._hass, "Light {p0}", { p0: index + 1 }),
         ),
       );
       section.append(
@@ -114,7 +121,7 @@ export class IkioLightEditor extends HTMLElement {
           false,
         ],
       ]) {
-        const button = element("button", text);
+        const button = element("button", t(this._hass, text));
         button.type = "button";
         button.disabled = disabled;
         button.addEventListener("click", action);
@@ -123,11 +130,15 @@ export class IkioLightEditor extends HTMLElement {
       const state = this._hass?.states?.[row.entity];
       if (row.entity && !state)
         section.append(
-          element("p", "Entity not found. Select a replacement above.", "hint"),
+          element(
+            "p",
+            t(this._hass, "Entity not found. Select a replacement above."),
+            "hint",
+          ),
         );
       this.shadowRoot.append(section);
     });
-    const add = element("button", "Add light or switch");
+    const add = element("button", t(this._hass, "Add light or switch"));
     add.type = "button";
     add.addEventListener("click", () => {
       this.changed({
@@ -167,7 +178,10 @@ export class IkioLightEditor extends HTMLElement {
     this.shadowRoot.append(
       element(
         "p",
-        "Tap to toggle. Hold for native Home Assistant details, including brightness and colour. Location comes from the entity or device area; an optional location label overrides it.",
+        t(
+          this._hass,
+          "Tap to toggle. Hold for native Home Assistant details, including brightness and colour. Location comes from the entity or device area; an optional location label overrides it.",
+        ),
         "hint",
       ),
     );

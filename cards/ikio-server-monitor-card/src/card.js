@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import {
   installRefinement,
   chipStyles,
@@ -185,7 +186,7 @@ export class Card extends ControlCard {
     const legend = el("div", undefined, "system-network-legend");
     for (const row of rows) {
       const entry = reading(
-        row.label,
+        t(this.hass, row.label),
         valueText(this.hass, row.entity),
         row.entity,
       );
@@ -204,25 +205,33 @@ export class Card extends ControlCard {
     if (plot) {
       section.append(plot);
       const times = el("div", undefined, "system-network-times");
-      times.append(el("span", "−30 min"), el("span", "Now"));
+      times.append(
+        el("span", t(this.hass, "−30 min")),
+        el("span", t(this.hass, "Now")),
+      );
       section.append(times);
     } else
       section.append(
         note(
           this.networkLoading
-            ? "Loading network history…"
-            : this.networkError ||
+            ? t(this.hass, "Loading network history…")
+            : t(this.hass, this.networkError) ||
                 (this.hass?.callWS
-                  ? "No network history yet"
-                  : "Network history unavailable"),
+                  ? t(this.hass, "No network history yet")
+                  : t(this.hass, "Network history unavailable")),
         ),
       );
-    if (plot && this.networkError) section.append(note(this.networkError));
+    if (plot && this.networkError)
+      section.append(note(t(this.hass, this.networkError)));
     for (const row of rows)
       if (rateFactor(row.unit) === null)
         section.append(
           note(
-            `${row.label}: select a rate sensor (for example MB/s or Mbit/s).`,
+            t(
+              this.hass,
+              "{p0}: select a rate sensor (for example MB/s or Mbit/s).",
+              { p0: row.label },
+            ),
             "ae-warn",
           ),
         );
@@ -231,7 +240,7 @@ export class Card extends ControlCard {
   render() {
     const c = this.config;
     if (!this.entityIds.length)
-      return note("Choose system metrics in the visual editor.");
+      return note(t(this.hass, "Choose system metrics in the visual editor."));
     const availability = this.state(c.availability_entity);
     const uptimeState = this.state(c.uptime_entity);
     const seconds = uptimeSeconds(uptimeState);
@@ -250,7 +259,11 @@ export class Card extends ControlCard {
     );
     const headline = status === "Online" ? uptime || status : status || uptime;
     const result = group(
-      title(this, c.name || "Server Monitor", c.availability_entity),
+      title(
+        this,
+        c.name || t(this.hass, "Server Monitor"),
+        c.availability_entity,
+      ),
     );
     refine(result, "mdi:server-outline");
     result.classList.add("ikio-server-monitor");
@@ -264,7 +277,9 @@ export class Card extends ControlCard {
       );
       temperature.setAttribute(
         "aria-label",
-        `System temperature: ${valueText(this.hass, c.temperature_entity)}`,
+        t(this.hass, "System temperature: {p0}", {
+          p0: valueText(this.hass, c.temperature_entity),
+        }),
       );
       temperature.prepend(glyph("mdi:thermometer"));
       meta.append(temperature);
@@ -290,16 +305,19 @@ export class Card extends ControlCard {
           () => details(this, c.uptime_entity),
           { entity: c.uptime_entity, key: "header-uptime" },
         );
-        uptimeButton.setAttribute("aria-label", `Uptime: ${headline}`);
+        uptimeButton.setAttribute(
+          "aria-label",
+          t(this.hass, "Uptime: {p0}", { p0: headline }),
+        );
         statusNode.append(uptimeButton);
-      } else statusNode.append(el("span", headline));
+      } else statusNode.append(el("span", t(this.hass, headline)));
       meta.append(statusNode);
     }
     header.append(meta);
     const extraReadings = (c.extra_readings || []).filter((row) => row.entity);
     if (extraReadings.length) {
       const chips = el("div", undefined, "system-extra-readings");
-      chips.setAttribute("aria-label", "Extra readings");
+      chips.setAttribute("aria-label", t(this.hass, "Extra readings"));
       extraReadings.forEach((row, index) =>
         chips.append(sensorChip(this, row, `extra-reading-${index}`)),
       );
@@ -328,7 +346,10 @@ export class Card extends ControlCard {
         c[metric + "_total_entity"] ||
         c[metric + "_free_entity"]
       ) {
-        const label = metric === "disk" ? "Disk" : metric.toUpperCase(),
+        const label = t(
+            this.hass,
+            metric === "disk" ? "Disk" : metric.toUpperCase(),
+          ),
           capacity =
             metric !== "cpu" && c[metric + "_used_entity"]
               ? capacityText(
@@ -357,7 +378,10 @@ export class Card extends ControlCard {
         if (capacity) resource.append(note(capacity));
         if (percent !== null && (percent < 0 || percent > 100))
           resource.append(
-            note(`${label} measurement outside 0–100%`, "ae-warn"),
+            note(
+              t(this.hass, "{p0} measurement outside 0–100%", { p0: label }),
+              "ae-warn",
+            ),
           );
       }
     }
@@ -368,7 +392,11 @@ export class Card extends ControlCard {
       if (level)
         result.append(
           note(
-            `${metric}: ${level === "critical" ? "error" : "warning"} threshold reached (${formatNumber(this.hass, value)})`,
+            t(this.hass, "{p0}: {p1} threshold reached ({p2})", {
+              p0: metric,
+              p1: level === "critical" ? "error" : "warning",
+              p2: formatNumber(this.hass, value),
+            }),
             level === "critical" ? "system-error-note" : "ae-warn",
           ),
         );
@@ -376,7 +404,7 @@ export class Card extends ControlCard {
     const services = [];
     const serviceGrid = el("div", undefined, "system-service-grid");
     for (const [index, service] of (c.services || []).entries()) {
-      const name = service.name || "Service";
+      const name = service.name || t(this.hass, "Service");
       const statusId = service.status_entity || service.control_entity;
       const health = serviceHealth(this.state(statusId));
       const block = el(
@@ -392,19 +420,27 @@ export class Card extends ControlCard {
           })
         : el("div");
       identity.classList.add("system-service-identity");
-      identity.setAttribute("aria-label", `${name}: ${health.text}`);
+      identity.setAttribute(
+        "aria-label",
+        `${name}: ${t(this.hass, health.text)}`,
+      );
       const dot = el("span", undefined, "system-service-dot");
       dot.setAttribute("aria-hidden", "true");
       const caption = el("span", undefined, "system-service-caption");
       caption.append(el("span", name, "system-service-name"));
       if (health.level !== "running")
-        caption.append(el("span", health.text, "system-service-state"));
+        caption.append(
+          el("span", t(this.hass, health.text), "system-service-state"),
+        );
       identity.replaceChildren(dot, caption);
       block.append(identity);
       const controls = el("div", undefined, "system-service-controls");
       if (service.control_entity) {
         const power = button(
-          `Power ${name}: ${stateText(this.hass, service.control_entity)}`,
+          t(this.hass, "Power {p0}: {p1}", {
+            p0: name,
+            p1: stateText(this.hass, service.control_entity),
+          }),
           () => this.toggle(service.control_entity),
           {
             icon: "mdi:power",
@@ -417,13 +453,16 @@ export class Card extends ControlCard {
       }
       if (service.restart_action) {
         const restart = button(
-          `Restart ${name}`,
+          t(this.hass, "Restart {p0}", { p0: name }),
           () =>
             requestReview(
               this,
               service.restart_action,
-              `Restart ${name}`,
-              "The service may be temporarily unavailable while restarting.",
+              t(this.hass, "Restart {p0}", { p0: name }),
+              t(
+                this.hass,
+                "The service may be temporarily unavailable while restarting.",
+              ),
               () => this.action(service.restart_action, `Restart ${name}`),
             ),
           {
@@ -448,7 +487,9 @@ export class Card extends ControlCard {
       const footer = disclosure(
         this,
         "system-services",
-        serviceCount ? `Services · ${serviceCount}` : "System details",
+        serviceCount
+          ? t(this.hass, "Services · {p0}", { p0: serviceCount })
+          : t(this.hass, "System details"),
         ...services,
       );
       footer.classList.add("system-footer");

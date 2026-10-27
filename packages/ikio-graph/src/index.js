@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui";
 import {
   ControlCard,
   el,
@@ -169,7 +170,9 @@ export function graph(
     .filter((p) => p.value !== null);
   if (!data.length && sparkline) return el("span");
   if (!data.length)
-    return note("No history available. Live readings remain available.");
+    return note(
+      t(hass, "No history available. Live readings remain available."),
+    );
   const low = Math.min(...data.map((p) => p.value)),
     high = Math.max(...data.map((p) => p.value));
   const constant = low === high;
@@ -219,7 +222,11 @@ export function graph(
     class: "ae-graph",
     preserveAspectRatio: axisLabels || sparkline ? "none" : "xMidYMid meet",
     role: "img",
-    "aria-label": `${series.map((s) => s.name).join(", ")} history, ${axisText(low, unit)} to ${axisText(high, unit)}`,
+    "aria-label": t(hass, "{series} history, {low} to {high}", {
+      series: series.map((s) => s.name).join(", "),
+      low: axisText(low, unit),
+      high: axisText(high, unit),
+    }),
   });
   const graphId = ++graphSequence;
   const defs = svgNode("defs");
@@ -378,14 +385,16 @@ export class HistoryCard extends ControlCard {
     this.loadHistory();
   }
   historyView(rows, options = {}) {
-    if (this.historyError) return note(this.historyError);
+    if (this.historyError) return note(t(this.hass, this.historyError));
     if (this.loading && !Object.keys(this.history || {}).length)
-      return note("Loading history…");
+      return note(t(this.hass, "Loading history…"));
     const units = rows
       .map((r) => this.state(r.entity)?.attributes?.unit_of_measurement)
       .filter(Boolean);
     if (new Set(units).size > 1)
-      return note("Choose entities with the same unit for a shared graph.");
+      return note(
+        t(this.hass, "Choose entities with the same unit for a shared graph."),
+      );
     const unit = units[0] || "";
     const now = Date.now();
     return graph(

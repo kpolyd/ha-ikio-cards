@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import {
   ControlCard,
   group,
@@ -187,13 +188,18 @@ export class Card extends ControlCard {
   render() {
     const c = this.config;
     if (!this.entityIds.length && !this.imageSource() && !c.license_plate)
-      return note("Choose car sensors and location in the visual editor.");
+      return note(
+        t(this.hass, "Choose car sensors and location in the visual editor."),
+      );
     const tracker = this.state(c.tracker_entity);
     const result = group();
     result.classList.add("ae-drive");
     const header = el("div", undefined, "ae-drive-header");
     const heading = el("h2");
-    heading.append(icon("mdi:car"), el("span", c.name || "Vehicle"));
+    heading.append(
+      icon("mdi:car"),
+      el("span", c.name || t(this.hass, "Vehicle")),
+    );
     const headingGroup = el("div", undefined, "ae-drive-heading");
     headingGroup.append(heading);
     header.append(headingGroup);
@@ -201,11 +207,11 @@ export class Card extends ControlCard {
     if (parkingId) {
       let location = valueText(this.hass, parkingId);
       if (parkingId === c.tracker_entity && location === "home")
-        location = "Home";
+        location = t(this.hass, "Home");
       if (parkingId === c.tracker_entity && location === "not_home")
-        location = "Away";
+        location = t(this.hass, "Away");
       const parking = reading(
-        "Parking",
+        t(this.hass, "Parking"),
         location,
         parkingId,
         "ae-drive-parking",
@@ -232,12 +238,15 @@ export class Card extends ControlCard {
           plate.append(code);
         }
         plate.append(el("span", c.license_plate, "ae-drive-plate-number"));
-        plate.setAttribute("aria-label", `License plate: ${c.license_plate}`);
+        plate.setAttribute(
+          "aria-label",
+          t(this.hass, "License plate: {p0}", { p0: c.license_plate }),
+        );
         identifiers.append(plate);
       }
       if (c.vin_entity) {
         const vin = reading(
-          "VIN",
+          t(this.hass, "VIN"),
           stateText(this.hass, c.vin_entity),
           c.vin_entity,
           "ae-drive-vin",
@@ -269,7 +278,7 @@ export class Card extends ControlCard {
         `car-image-${source}`,
       );
       image.src = imageUrl;
-      image.alt = `${c.name || "Vehicle"} image`;
+      image.alt = t(this.hass, "{p0} image", { p0: c.name || "Vehicle" });
       image.decoding = "async";
       image.referrerPolicy = "no-referrer";
       event(image, "error", (e) => {
@@ -279,14 +288,14 @@ export class Card extends ControlCard {
       });
       if (!this.imageError) header.append(image);
     }
-    if (hasImage && (this.imageError || !imageUrl))
+    if (hasImage && (t(this.hass, this.imageError) || !imageUrl))
       header.append(
         el(
           "span",
-          this.imageError ||
+          t(this.hass, this.imageError) ||
             (source.startsWith("media-source://")
-              ? "Loading car image…"
-              : "Car image unavailable"),
+              ? t(this.hass, "Loading car image…")
+              : t(this.hass, "Car image unavailable")),
           "ae-drive-image-note",
         ),
       );
@@ -299,7 +308,7 @@ export class Card extends ControlCard {
     ]) {
       const id = c[key + "_entity"];
       if (!id) continue;
-      const item = reading(label, valueText(this.hass, id), id);
+      const item = reading(t(this.hass, label), valueText(this.hass, id), id);
       item.prepend(icon(glyph));
       const state = this.state(id);
       const percent =
@@ -355,14 +364,20 @@ export class Card extends ControlCard {
               : true;
         })?.entity || entries[0]?.entity;
       const item = reading(
-        key === "locks" ? "Locks" : key === "doors" ? "Doors" : "Windows",
+        key === "locks"
+          ? t(this.hass, "Locks")
+          : key === "doors"
+            ? t(this.hass, "Doors")
+            : t(this.hass, "Windows"),
         status,
         representative,
         `drive-${presentation.tone}`,
       );
       item.dataset.key = `status-${key}`;
       item.dataset.status = status;
-      item.querySelector(".ae-value").replaceChildren(el("span", status));
+      item
+        .querySelector(".ae-value")
+        .replaceChildren(el("span", t(this.hass, status)));
       item.prepend(icon(presentation.icon));
       statuses.append(item);
     }
@@ -374,23 +389,33 @@ export class Card extends ControlCard {
     if (Number.isFinite(stamp))
       footer.append(
         note(
-          `Location · ${Math.max(0, Math.floor((Date.now() - stamp) / 60000))} min ago`,
+          t(this.hass, "Location · {p0} min ago", {
+            p0: Math.max(0, Math.floor((Date.now() - stamp) / 60000)),
+          }),
         ),
       );
     else if (parkingId || c.location_timestamp_entity)
-      footer.append(note("Location update time unknown"));
+      footer.append(note(t(this.hass, "Location update time unknown")));
     const url = mapUrl(tracker);
     if (c.tracker_entity) {
-      const link = el("a", "Open location in maps", "ae-location-link", "maps");
-      link.title = "Open location in Google Maps";
-      link.setAttribute("aria-label", "Open location in Google Maps");
+      const link = el(
+        "a",
+        t(this.hass, "Open location in maps"),
+        "ae-location-link",
+        "maps",
+      );
+      link.title = t(this.hass, "Open location in Google Maps");
+      link.setAttribute(
+        "aria-label",
+        t(this.hass, "Open location in Google Maps"),
+      );
       if (url) {
         link.href = url;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
       } else {
         link.setAttribute("aria-disabled", "true");
-        link.textContent = "Location coordinates unavailable";
+        link.textContent = t(this.hass, "Location coordinates unavailable");
       }
       footer.append(link);
     }

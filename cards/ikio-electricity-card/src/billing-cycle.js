@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 // Five-field numeric cron, evaluated in HA's IANA timezone. Kept local to
 // Energy: no backend service, browser-timezone dependency or runtime imports.
 const MINUTE = 60000,
@@ -159,7 +160,14 @@ export function cronBillingCycle(expression, timeZone, now = Date.now()) {
   }
 }
 export function billingCycleLabel(cycle, hass) {
-  if (cycle.error) return cycle.error;
+  if (cycle.error) {
+    const prefix = "Billing period unavailable: ";
+    return cycle.error.startsWith(prefix)
+      ? t(hass, "Billing period unavailable: {reason}", {
+          reason: t(hass, cycle.error.slice(prefix.length)),
+        })
+      : t(hass, cycle.error);
+  }
   const locale = hass?.locale?.language || hass?.language;
   const zone = cycle.timeZone;
   const full = new Intl.DateTimeFormat("en-GB-u-ca-gregory-nu-latn", {

@@ -1,3 +1,4 @@
+import { t } from "@ikio/card-ui/i18n";
 import { el, event, entityName, unitValue, formatNumber } from "@ikio/card-ui";
 
 // This is a live consumption partition, not a second history request or an
@@ -5,7 +6,7 @@ import { el, event, entityName, unitValue, formatNumber } from "@ikio/card-ui";
 export function distributionModel(config, hass) {
   const states = hass?.states || {};
   const total = unitValue(states[config.power_entity], "power");
-  const fail = (message) => ({ total, message });
+  const fail = (message) => ({ total, message: t(hass, message) });
   if (!Number.isFinite(total))
     return fail(
       "Power distribution unavailable: check total power and its unit.",
@@ -37,7 +38,11 @@ export function distributionModel(config, hass) {
     const value = unitValue(state, "power");
     if (!Number.isFinite(value) || value < 0)
       return fail(
-        `Power distribution unavailable: ${name} needs a non-negative power reading in W, kW or MW.`,
+        t(
+          hass,
+          "Power distribution unavailable: {name} needs a non-negative power reading in W, kW or MW.",
+          { name },
+        ),
       );
     const entry = hass?.entities?.[id];
     const areaId = entry?.area_id || hass?.devices?.[entry?.device_id]?.area_id;
@@ -45,7 +50,7 @@ export function distributionModel(config, hass) {
     if (!groups.has(key))
       groups.set(key, {
         id: `area:${key}`,
-        name: hass?.areas?.[areaId]?.name || "Unassigned",
+        name: hass?.areas?.[areaId]?.name || t(hass, "Unassigned"),
         value: 0,
         devices: [],
       });
@@ -110,7 +115,7 @@ export function distributionModel(config, hass) {
       area.devices.push({
         id: `other:${area.id}`,
         area: area.id,
-        name: `Other (${area.name})`,
+        name: t(hass, "Other ({name})", { name: area.name }),
         value: small.reduce((s, d) => s + d.value, 0),
         color: area.color,
       });
@@ -118,13 +123,13 @@ export function distributionModel(config, hass) {
   if (remainder > 0)
     areas.push({
       id: "untracked",
-      name: "Untracked",
+      name: t(hass, "Untracked"),
       value: remainder,
       color: "var(--ae-muted)",
       devices: [
         {
           id: "device:untracked",
-          name: "Untracked",
+          name: t(hass, "Untracked"),
           value: remainder,
           area: "untracked",
           entity: config.untracked_entity,
@@ -201,13 +206,13 @@ export function distributionView(
     "ae-power-distribution",
     "power-distribution",
   );
-  section.setAttribute("aria-label", "Current power distribution");
+  section.setAttribute("aria-label", t(hass, "Current power distribution"));
   if (model.message) {
     section.append(el("p", model.message, "ae-note ae-warn"));
     return section;
   }
   const current = model.items.find((item) => item.id === selection) || {
-    name: "Total",
+    name: t(hass, "Total"),
     value: model.total,
     entity: totalEntity,
   };
@@ -387,8 +392,9 @@ export function distributionView(
     class: "ae-ring-caption",
     "data-center-name": "",
   });
-  (nameLines.length > 2 ? ["Selected"] : nameLines).forEach((line, i) =>
-    centerName.append(svgElement("tspan", { x: cx, dy: i ? 13 : 0 }, line)),
+  (nameLines.length > 2 ? [t(hass, "Selected")] : nameLines).forEach(
+    (line, i) =>
+      centerName.append(svgElement("tspan", { x: cx, dy: i ? 13 : 0 }, line)),
   );
   center.append(centerName);
   const number = svgElement(

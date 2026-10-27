@@ -15,6 +15,10 @@ This guide applies to the whole repository. Read the applicable `cards/<card>/AG
 - Before UI work, read `docs/ikio/DESIGN_APPROACH.md` and the relevant findings in `docs/ikio/DESIGN_REVIEW.md`. Light, Energy, Drive (Car) and Security are approved reference designs: preserve their layouts and interactions unless the owner explicitly requests changes. Scope shared-style changes so they do not redesign these cards indirectly.
 - Use UI UX Pro Max as an advisory design-review reference, as described in the design guide. Prefer focused accessibility/interaction/layout queries; verify that results fit Home Assistant Web Components. The owner's preferences and repository decisions take precedence over generic skill recommendations. Do not regenerate Ikio's palette, add a framework or require a skill installation to make an ordinary fix.
 
+## Translations
+
+All Ikio UI strings and editor labels use the shared catalogs in `packages/ikio-card-ui/src/translations`. Follow `docs/ikio/TRANSLATIONS.md`, use complete messages with placeholders/plurals, and never translate configuration keys, service data, entity names or arbitrary integration values. Keep demos explicitly English. Run `npm run check:translations` after adding UI text.
+
 ## Checks
 
 Use Node 24 from `.node-version` and its bundled npm. Keep `engine-strict` enabled. From the root run:
