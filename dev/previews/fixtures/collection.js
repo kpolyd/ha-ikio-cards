@@ -137,6 +137,8 @@ state("binary_sensor.car_door", "off");
 state("binary_sensor.car_window", "on");
 state("device_tracker.car", "home", { latitude: 0, longitude: 0 });
 state("vacuum.robot", "docked", {
+  friendly_name: "Robot vacuum",
+  icon: "mdi:robot-vacuum",
   battery_level: 86,
   supported_features: 8192 | 4 | 16 | 32,
   fan_speed: "Quiet",
@@ -255,9 +257,8 @@ const configs = {
   },
   media: {
     name: "Living room speaker", entity: "media_player.tv", power_entity: "sensor.media_power",
-    more_controls: [{ entity: "light.strip", name: "Backlight" }, { entity: "scene.movie", name: "Movie night" }],
   },
-  vacuum: { name: "Roborock Q8 Max", entity: "vacuum.robot" },
+  vacuum: { entity: "vacuum.robot" },
   alarmo: {
     show_activity: true,
     name: "Home security",
@@ -509,6 +510,22 @@ const hass = {
     setTimeout(update, 150);
   },
 };
+// Vacuum follows HA; provide simulated HA tokens without changing other cards.
+function applyVacuumTheme(card, theme) {
+  if (card.localName !== "ikio-vacuum-card") return;
+  const light = theme === "light";
+  const tokens = {
+    "--ha-card-background": light ? "#f3f7f6" : "#17282e",
+    "--secondary-background-color": light ? "#e4eeeb" : "#21353b",
+    "--divider-color": light ? "#bdcfca" : "#34474d",
+    "--primary-text-color": light ? "#17282e" : "#e5e9e7",
+    "--secondary-text-color": light ? "#50645f" : "#a4adb2",
+    "--primary-color": light ? "#245d85" : "#90caf9",
+    "--warning-color": light ? "#805900" : "#f2c66d",
+    "--error-color": light ? "#9a3830" : "#f2a69b",
+  };
+  for (const [name, value] of Object.entries(tokens)) card.style.setProperty(name, value);
+}
 function update() {
   for (const card of cards) card.hass = { ...hass, states: { ...states } };
 }
@@ -523,6 +540,7 @@ for (const type of types) {
   section.append(caption, card);
   document.querySelector("main").append(section);
   cards.push(card);
+  applyVacuumTheme(card, "dark");
   card.setConfig(configs[type]);
   card.addEventListener(
     "hass-more-info",
@@ -534,11 +552,13 @@ for (const type of types) {
 update();
 for (const button of document.querySelectorAll("[data-theme]"))
   button.onclick = () => {
-    for (let i = 0; i < cards.length; i++)
+    for (let i = 0; i < cards.length; i++) {
+      applyVacuumTheme(cards[i], button.dataset.theme);
       cards[i].setConfig({
         ...configs[types[i]],
         appearance: { theme: button.dataset.theme },
       });
+    }
     update();
   };
 document.querySelector("#width").onchange = (e) => {
@@ -578,8 +598,10 @@ window.ikioPreview = {
   states,
   configs,
   async configure({ theme = "dark", width = 360, scenario = "normal" } = {}) {
-    for (const [i, card] of cards.entries())
+    for (const [i, card] of cards.entries()) {
+      applyVacuumTheme(card, theme);
       card.setConfig({ ...configs[types[i]], appearance: { theme } });
+    }
     document.body.style.background = theme === "dark" ? "#0d171b" : "#f4f6f5";
     document.querySelector("main").style.gridTemplateColumns = `${width}px`;
     if (scenario === "unavailable")

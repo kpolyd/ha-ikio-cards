@@ -83,6 +83,10 @@ Use real buttons, selects, ranges and details/summary where appropriate. Expose 
 
 Climate now focuses on one climate entity per card. Its approved compact semicircle emphasizes target temperature; current temperature, humidity and power are secondary. Mode colours affect the target and segmented mode selection. Fridge readings and standalone humidity/fan controls are excluded; generic sensors can use the Chip card. See specification section 66.
 
+Vacuum uses one required vacuum selector and follows the entity name/icon and HA theme. Keep its 28 px native icon, state and quiet battery in the compact header, with primary action, relevant dock action and visibly labelled suction together below. Gentle cleaning motion stays inside the existing header and stops for other states, hidden/disconnected cards, editor preview and reduced motion. More controls and optional configuration fields were removed by explicit owner decision; see specification section 71.
+
+Media keeps title-adjacent transport, progress and the compact volume buttons. Artwork feathers into the normal card surface on all four edges while text and controls remain crisp. Put optional whole-watt power readings beside the power button in the header, retaining native sensor details. More controls is removed; off collapses to the header. Preserve other media configuration and all capability, pending, error, focus and lifecycle behaviour. See specification section 72.
+
 ## Applying UI UX Pro Max
 
 External reference: [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill). This review used upstream commit [`d14efff8ed1faa4187f004f79926f428c8074ec7`](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/d14efff8ed1faa4187f004f79926f428c8074ec7).
