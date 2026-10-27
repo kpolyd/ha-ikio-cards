@@ -101,6 +101,8 @@ The reference was consulted from a pinned scratch checkout for this review. It w
 
 ## Redesign workflow and acceptance
 
+For every new card or redesign, agree with the owner on two deliverables before implementation: (1) a visual mock showing the proposed card and its relevant states, and (2) the complete visual-editor configuration, including repeatable lists, defaults, optional fields and migration behavior. Approval of only the mock or only the configuration is insufficient. Do not begin implementation until both are explicitly agreed. This standing owner instruction supersedes any earlier workflow that allowed implementation after reviewing only a mock.
+
 Use [DESIGN_REVIEW.md](DESIGN_REVIEW.md) to pick a card. Start with its main task and retain its configured capabilities. Show a compact mockup using simulated data before implementing a substantial new layout, following the owner's established iteration pattern. Include normal, busy and unavailable states so the mock is reviewable. Keep each redesign separate from refactoring and releases.
 
 Verify container widths around 280, 320, 390 and 520 px plus a wider layout. Check dark/light/HA appearances, long names, large values, zoom/text enlargement, keyboard navigation, focus visibility and reduced motion. Check 4.5:1 for normal text and 3:1 for meaningful non-text indicators against their actual backgrounds; decorative separators can remain subtle. Test error/pending states and retain usable controls without hover.
