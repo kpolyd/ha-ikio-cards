@@ -9,6 +9,7 @@ import { TagName } from "release-please/build/src/util/tag-name.js";
 import {
   releaseConfig,
   finishPublishedPullRequests,
+  useIndividualCommits,
 } from "../release-please.mjs";
 import { checkCommitMessage } from "../check-commits.mjs";
 import { changelogSection } from "../publish-release.mjs";
@@ -102,7 +103,8 @@ test("manifest scans cards and shared packages after the published tag, preservi
     async *mergeCommitIterator() {
       yield {
         sha: "merge",
-        message: "Merge pull request #42",
+        message:
+          "Merge pull request #42 from example/media\n\nfeat(media): show artwork",
         files: ["cards/ikio-media-card/src/card.js"],
       };
       yield {
@@ -115,7 +117,11 @@ test("manifest scans cards and shared packages after the published tag, preservi
         message: "fix(ui): preserve focus",
         files: ["packages/ikio-card-ui/src/index.js"],
       };
-      yield { sha: "published", message: "Merge pull request #31", files: [] };
+      yield {
+        sha: "published",
+        message: "Merge pull request #31\n\nfeat!: old breaking change",
+        files: [],
+      };
       yield {
         sha: "old",
         message: "feat!: old breaking change",
@@ -124,7 +130,7 @@ test("manifest scans cards and shared packages after the published tag, preservi
     },
   };
   const manifest = new Manifest(
-    github,
+    useIndividualCommits(github),
     "main",
     { ".": releaseConfig },
     { ".": Version.parse("0.12.0") },
@@ -133,6 +139,7 @@ test("manifest scans cards and shared packages after the published tag, preservi
   const [pr] = await manifest.buildPullRequests();
   assert.equal(pr.version.toString(), "0.13.0");
   assert.match(pr.body.toString(), /show artwork/);
+  assert.equal(pr.body.toString().match(/show artwork/g).length, 1);
   assert.match(pr.body.toString(), /preserve focus/);
   assert.doesNotMatch(pr.body.toString(), /old breaking change/);
   assert.ok(
