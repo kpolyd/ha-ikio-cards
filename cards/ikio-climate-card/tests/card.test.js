@@ -56,67 +56,213 @@ test("every schema field and repeating list has a visual editor and preserves HA
   editor.remove();
 });
 
-test("device selection sends no command and range targets keep the other bound", async () => {
+function setup(config = {}, attributes = {}, mode = "cool") {
   const card = document.createElement("ikio-climate-card");
-  document.body.append(card);
-  card.setConfig({ climate_entity: "climate.ac", fan_entity: "fan.bedroom" });
   const calls = [];
+  card.setConfig({ climate_entity: "climate.test", ...config });
   card.hass = {
     states: {
-      "climate.ac": {
-        entity_id: "climate.ac",
-        state: "heat_cool",
+      "climate.test": {
+        entity_id: "climate.test",
+        state: mode,
         attributes: {
-          supported_features: 2,
-          hvac_modes: ["off", "heat_cool"],
-          min_temp: 10,
+          friendly_name: "Test thermostat",
+          supported_features: 1,
+          hvac_modes: ["heat", "off", "cool", "auto"],
+          min_temp: 16,
           max_temp: 30,
-          target_temp_low: 18,
-          target_temp_high: 25,
-          target_temp_step: 1,
+          temperature: 22,
+          current_temperature: 24.5,
+          target_temp_step: 0.5,
+          temperature_unit: "°C",
+          ...attributes,
         },
       },
-      "fan.bedroom": {
-        entity_id: "fan.bedroom",
-        state: "off",
-        attributes: { supported_features: 1, percentage: 0 },
-      },
     },
-    callService: async (...a) => calls.push(a),
-  };
-  const target = card.shadowRoot.querySelector("input");
-  target.value = "19";
-  target.dispatchEvent(new dom.window.Event("change"));
-  await Promise.resolve();
-  assert.equal(calls[0][2].target_temp_high, 25);
-  assert.equal(calls[0][2].target_temp_low, 19);
-  card.remove();
-});
-
-test("room readings survive unavailable devices and fridge remains separately identified", () => {
-  const card = document.createElement("ikio-climate-card");
-  card.setConfig({
-    temperature_entity: "sensor.room",
-    fridge_entity: "sensor.fridge",
-    climate_entity: "climate.ac",
-  });
-  card.hass = {
-    states: {
-      "sensor.room": { state: "23", attributes: { unit_of_measurement: "°C" } },
-      "sensor.fridge": {
-        state: "4",
-        attributes: { unit_of_measurement: "°C" },
-      },
-      "climate.ac": { state: "unavailable", attributes: {} },
-    },
+    callService: async (...args) => calls.push(args),
   };
   document.body.append(card);
-  assert.match(card.shadowRoot.textContent, /23 °C/);
-  assert.match(
-    card.shadowRoot.querySelector(".ikio-fridge").textContent,
-    /Fridge4 °C/,
+  return { card, calls };
+}
+test("mode order, selected colour state and target commands follow HA with a larger step override", async () => {
+  const { card, calls } = setup({ temperature_step: 1 });
+  assert.deepEqual(
+    [...card.shadowRoot.querySelectorAll(".climate-modes button")].map(
+      (b) => b.textContent,
+    ),
+    ["Off", "Cool", "Heat", "Auto"],
   );
-  assert.match(card.shadowRoot.textContent, /Device unavailable/);
-  assert.equal(card.shadowRoot.querySelector("input"), null);
+  assert.equal(
+    card.shadowRoot.querySelector(".climate-card").dataset.mode,
+    "cool",
+  );
+  assert.equal(card.shadowRoot.querySelector("input").step, "1");
+  card.shadowRoot.querySelector('[aria-label="Increase target"]').click();
+  await Promise.resolve();
+  assert.deepEqual(calls[0], [
+    "climate",
+    "set_temperature",
+    { temperature: 23, entity_id: "climate.test" },
+  ]);
+  assert.equal(card.shadowRoot.querySelector("output").textContent, "22°C");
+  assert.ok(
+    card.shadowRoot.querySelector('[aria-label="Increase target"]').disabled,
+  );
+  card.remove();
+});
+test("drag previews do not send commands until release; keyboard range changes use the integration step", async () => {
+  const { card, calls } = setup();
+  const input = card.shadowRoot.querySelector("input");
+  assert.equal(input.step, "0.5");
+  input.value = "23.5";
+  input.dispatchEvent(new dom.window.Event("input"));
+  assert.equal(calls.length, 0);
+  assert.match(card.shadowRoot.querySelector("output").textContent, /23.5/);
+  input.dispatchEvent(new dom.window.Event("change"));
+  await Promise.resolve();
+  assert.equal(calls[0][2].temperature, 23.5);
+  card.remove();
+});
+test("range targets preserve the other bound and block crossing", async () => {
+  const { card, calls } = setup(
+    {},
+    { supported_features: 2, target_temp_low: 18, target_temp_high: 25 },
+    "heat_cool",
+  );
+  const input = card.shadowRoot.querySelector("input");
+  assert.equal(input.max, "25");
+  input.value = "19";
+  input.dispatchEvent(new dom.window.Event("change"));
+  await Promise.resolve();
+  assert.equal(calls[0][2].target_temp_low, 19);
+  assert.equal(calls[0][2].target_temp_high, 25);
+  card.remove();
+});
+test("native settings are capability gated, toggles hide them and positions use their own entity services", async () => {
+  const { card, calls } = setup(
+    {
+      show_preset: false,
+      horizontal_position_entity: "select.horizontal",
+      vertical_position_entity: "number.vertical",
+    },
+    {
+      supported_features: 1 | 8 | 16 | 32 | 512,
+      fan_modes: ["auto", "low"],
+      fan_mode: "auto",
+      preset_modes: ["eco"],
+      swing_modes: ["off", "vertical"],
+      swing_horizontal_modes: ["off", "on"],
+    },
+  );
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "select.horizontal": {
+        state: "center",
+        attributes: { options: ["left", "center", "right"] },
+      },
+      "number.vertical": {
+        state: "2",
+        attributes: { min: 0, max: 5, step: 1 },
+      },
+    },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector('select[aria-label="Preset"]'),
+    null,
+  );
+  assert.ok(card.shadowRoot.querySelector('select[aria-label="Swing"]'));
+  const position = card.shadowRoot.querySelector(
+    'select[aria-label="Horizontal position"]',
+  );
+  position.value = "left";
+  position.dispatchEvent(new dom.window.Event("change"));
+  await Promise.resolve();
+  assert.deepEqual(calls[0], [
+    "select",
+    "select_option",
+    { option: "left", entity_id: "select.horizontal" },
+  ]);
+  const vertical = card.shadowRoot.querySelector(
+    'input[aria-label="Vertical position"]',
+  );
+  vertical.value = "4";
+  vertical.dispatchEvent(new dom.window.Event("change"));
+  await Promise.resolve();
+  assert.deepEqual(calls[1], [
+    "number",
+    "set_value",
+    { value: 4, entity_id: "number.vertical" },
+  ]);
+  card.remove();
+});
+test("unavailable devices preserve independent readings, removed fridge does not render, off retains measurements", () => {
+  const { card } = setup({
+    temperature_entity: "sensor.room",
+    fridge_entity: "sensor.fridge",
+  });
+  card.hass = {
+    ...card.hass,
+    states: {
+      "sensor.room": { state: "23", attributes: { unit_of_measurement: "°C" } },
+      "climate.test": { state: "unavailable", attributes: {} },
+    },
+  };
+  assert.match(card.content.textContent, /23 °C/);
+  assert.match(card.content.textContent, /Device unavailable/);
+  assert.equal(card.content.querySelector("input"), null);
+  assert.equal(card.config.fridge_entity, undefined);
+  card.remove();
+  const off = setup({}, {}, "off").card;
+  assert.match(off.content.textContent, /24.5 °C/);
+  assert.ok(off.content.querySelector("input").disabled);
+  off.remove();
+});
+test("settings disclosure survives HA updates and legacy configuration migrates without losing HA metadata", () => {
+  const { card } = setup(
+    {
+      climate_power_entity: "sensor.power",
+      fan_entity: "fan.old",
+      grid_options: { columns: 6 },
+    },
+    { supported_features: 9, fan_modes: ["auto", "low"] },
+  );
+  assert.equal(card.config.power_entity, "sensor.power");
+  assert.equal(card.config.fan_entity, undefined);
+  assert.deepEqual(card.config.grid_options, { columns: 6 });
+  let details = card.content.querySelector("details");
+  assert.equal(details.open, false);
+  details.open = true;
+  details.dispatchEvent(new dom.window.Event("toggle"));
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "climate.test": {
+        ...card.state("climate.test"),
+        attributes: {
+          ...card.state("climate.test").attributes,
+          current_temperature: 24,
+        },
+      },
+    },
+  };
+  assert.equal(card.content.querySelector("details").open, true);
+  assert.equal(card.content.querySelector("details"), details);
+  card.remove();
+});
+test("preview blocks service calls and backend failures remain visible", async () => {
+  const { card, calls } = setup();
+  card.preview = true;
+  card.shadowRoot.querySelector('[aria-label="Increase target"]').click();
+  assert.equal(calls.length, 0);
+  card.preview = false;
+  card.hass.callService = async () => {
+    throw Error("Test failure");
+  };
+  card.shadowRoot.querySelector('[aria-label="Increase target"]').click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.match(card.error.textContent, /Test failure/);
   card.remove();
 });

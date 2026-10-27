@@ -81,7 +81,7 @@ Show pending feedback near the action and wait for HA confirmation. Bound loadin
 
 Use real buttons, selects, ranges and details/summary where appropriate. Expose visible names for ambiguous settings: an accessible name alone does not help a sighted user understand several similarly styled dropdowns. Icon-only familiar transport actions can remain compact with an accessible name. Wrap long names and identifiers; do not rely on hover-only text to recover clipped essentials. A smaller font is not a substitute for reflow.
 
-For fridge temperature, retain a distinct small cold-blue reading with a fridge-specific icon/label, approximately 20% quieter than the principal room reading as previously requested. Exact sizing belongs in the Comfort mockup; the goal is to distinguish appliance interior temperature from room temperature.
+Climate now focuses on one climate entity per card. Its approved compact semicircle emphasizes target temperature; current temperature, humidity and power are secondary. Mode colours affect the target and segmented mode selection. Fridge readings and standalone humidity/fan controls are excluded; generic sensors can use the Chip card. See specification section 66.
 
 ## Applying UI UX Pro Max
 

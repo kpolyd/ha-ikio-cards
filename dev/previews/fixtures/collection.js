@@ -212,11 +212,10 @@ const configs = {
     ],
   },
   climate: {
-    name: "Living room comfort",
+    name: "Living room",
     temperature_entity: "sensor.temperature",
     humidity_entity: "sensor.humidity",
     climate_entity: "climate.room",
-    humidifier_entity: "humidifier.room",
   },
   appliances: {
     name: "Water heater",
