@@ -24,7 +24,7 @@ Eleven independent cards share colours, typography, controls and one synchronize
 
 For UI work, see the [Ikio design approach](docs/ikio/DESIGN_APPROACH.md) and [current design review](docs/ikio/DESIGN_REVIEW.md). Light, Energy, Drive and Security are the approved reference designs; the review proposes refinements for the other seven cards.
 
-Current collection version: **0.6.4**. The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
+Current collection version: see [`ikio/package.json`](ikio/package.json). The source targets Home Assistant frontend 2026.10; live compatibility still requires verification. HACS custom-repository installation is supported; validated versions are published as GitHub releases.
 
 ### HACS (recommended)
 
@@ -63,7 +63,9 @@ Run a focused workspace command with, for example, `npm test --workspace @ikio/e
 
 Serve the repository root after building and open `dev/previews/collection.html` for the simulated interactive gallery. It never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
 
-The collection version is stored in `ikio/package.json`. After changing it, run `node scripts/ikio-version.mjs`, update the changelog and installation URLs, then validate. All cards and internal packages share that version.
+The collection version is defined only in `ikio/package.json`. Private card and shared-library workspaces have no independent versions; internal dependencies use local `file:` workspace links. After changing the collection version, update the changelog, run `npm run preview:readme` and `npm run prepare:hacs`, then validate. `npm run check:ikio-version` rejects duplicate workspace versions and non-local internal dependencies.
+
+Version selection is manual: Conventional Commit messages do not calculate or bump it. CI automatically publishes the chosen version after checks pass on `main`; an already published version is skipped. Use patch increments for compatible fixes, minor increments for features, and minor increments for breaking changes during 0.x.
 
 ## Distribution and licensing
 
