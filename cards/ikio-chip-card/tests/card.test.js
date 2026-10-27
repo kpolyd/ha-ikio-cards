@@ -118,3 +118,77 @@ test("visual editor supplies sensor/name/theme and preserves unrelated dashboard
   assert.deepEqual(saved.grid_options, config.grid_options);
   editor.remove();
 });
+
+test("chip registers in the badge picker and reuses card configuration, styling and native details", async () => {
+  const entry = window.customBadges.filter(
+    (badge) => badge.type === "ikio-chip-badge",
+  );
+  assert.equal(entry.length, 1);
+  assert.equal(entry[0].name, "Ikio Chip");
+  assert.equal(entry[0].preview, true);
+  const Class = customElements.get("ikio-chip-badge");
+  assert.ok(Class);
+  assert.deepEqual(
+    Class.getStubConfig(),
+    customElements.get("ikio-chip-card").getStubConfig(),
+  );
+  const badge = document.createElement("ikio-chip-badge");
+  const config = {
+    type: "custom:ikio-chip-badge",
+    entity: "sensor.demo",
+    name: "Database",
+    appearance: { theme: "light" },
+  };
+  badge.setConfig(config);
+  badge.hass = {
+    states: {
+      "sensor.demo": {
+        entity_id: "sensor.demo",
+        state: "42",
+        attributes: { unit_of_measurement: "MB", icon: "mdi:database" },
+      },
+    },
+  };
+  document.body.append(badge);
+  assert.equal(
+    badge.shadowRoot.querySelectorAll(".ikio-sensor-chip").length,
+    1,
+  );
+  assert.equal(
+    badge.shadowRoot.querySelector(".ikio-chip-name").textContent,
+    "Database",
+  );
+  assert.equal(
+    badge.shadowRoot.querySelector(".ikio-chip-value").textContent,
+    "42 MB",
+  );
+  assert.equal(badge.getAttribute("appearance"), "light");
+  assert.equal(
+    badge.shadowRoot.querySelector("ha-state-icon").stateObj,
+    badge.hass.states["sensor.demo"],
+  );
+  let entity;
+  badge.addEventListener("hass-more-info", (e) => (entity = e.detail.entityId));
+  const chip = badge.shadowRoot.querySelector("button");
+  assert.ok(badge.holds.has(chip));
+  chip.click();
+  assert.equal(entity, "sensor.demo");
+  badge.hass = {
+    states: {
+      "sensor.demo": {
+        entity_id: "sensor.demo",
+        state: "unavailable",
+        attributes: {},
+      },
+    },
+  };
+  assert.equal(
+    badge.shadowRoot.querySelector(".ikio-chip-value").textContent,
+    "unavailable",
+  );
+  const editor = await Class.getConfigElement();
+  editor.setConfig(config);
+  assert.equal(editor.config.type, "custom:ikio-chip-badge");
+  badge.remove();
+  assert.equal(badge.holds.size, 0);
+});

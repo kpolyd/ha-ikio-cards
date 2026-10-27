@@ -27,6 +27,7 @@ export class SensorActivity {
     this.users = [];
   }
   stop() {
+    this.stopLive();
     this.generation = (this.generation || 0) + 1;
     clearTimeout(this.timer);
     this.timer = undefined;
@@ -90,7 +91,186 @@ export class SensorActivity {
       c.update();
       return;
     }
+    this.startLive();
     this.run(reuse && this.entries.length ? "refresh" : "more");
+  }
+  closeLiveSubscription() {
+    this.liveToken = (this.liveToken || 0) + 1;
+    clearTimeout(this.liveTimeout);
+    clearTimeout(this.liveFlushTimer);
+    this.liveTimeout = undefined;
+    this.liveFlushTimer = undefined;
+    this.liveBuffer = [];
+    const unsubscribe = this.unsubscribeLive;
+    this.unsubscribeLive = undefined;
+    if (unsubscribe)
+      Promise.resolve()
+        .then(unsubscribe)
+        .catch(() => {});
+  }
+  stopLive() {
+    this.closeLiveSubscription();
+    this.liveConnection?.removeEventListener?.("ready", this.liveReady);
+    this.liveConnection?.removeEventListener?.(
+      "disconnected",
+      this.liveDisconnected,
+    );
+    this.liveConnection = undefined;
+    this.liveReady = undefined;
+    this.liveDisconnected = undefined;
+    this.liveState = "idle";
+  }
+  startLive() {
+    const connection = this.connection;
+    if (!connection?.subscribeMessage) {
+      this.liveState = "fallback";
+      return;
+    }
+    this.liveConnection = connection;
+    this.liveReady = () => {
+      if (this.key && this.card.visible && this.card.isConnected)
+        this.subscribeLive();
+    };
+    this.liveDisconnected = () => {
+      this.closeLiveSubscription();
+      this.liveState = "reconnecting";
+    };
+    connection.addEventListener?.("ready", this.liveReady);
+    connection.addEventListener?.("disconnected", this.liveDisconnected);
+    this.subscribeLive();
+  }
+  subscribeLive() {
+    this.closeLiveSubscription();
+    this.liveState = "connecting";
+    const token = this.liveToken,
+      generation = this.generation;
+    const connection = this.liveConnection;
+    const valid = () =>
+      this.liveToken === token &&
+      this.generation === generation &&
+      this.key &&
+      this.card.visible &&
+      this.card.isConnected;
+    const failed = () => {
+      if (!valid()) return;
+      this.closeLiveSubscription();
+      this.liveState = "fallback";
+      this.scheduleRefresh();
+    };
+    this.liveTimeout = setTimeout(failed, 10000);
+    Promise.resolve()
+      .then(() => {
+        if (!valid()) return;
+        return connection.subscribeMessage(
+          (message) => {
+            if (!valid() || !Array.isArray(message?.events)) return;
+            const entries = message.events.filter(
+              (entry) =>
+                entry &&
+                this.entities.includes(entry.entity_id) &&
+                Number.isFinite(entry.when) &&
+                entry.when * 1000 >= this.floor(),
+            );
+            if (!entries.length) return;
+            this.liveBuffer = merge(this.liveBuffer || [], entries);
+            this.liveFlushTimer ??= setTimeout(() => this.flushLive(), 100);
+          },
+          {
+            type: "logbook/event_stream",
+            start_time: new Date(
+              Math.max(this.floor(), this.liveEnd - 2000),
+            ).toISOString(),
+            entity_ids: this.entities,
+          },
+          { resubscribe: false },
+        );
+      })
+      .then((unsubscribe) => {
+        if (!valid()) {
+          if (unsubscribe)
+            Promise.resolve()
+              .then(unsubscribe)
+              .catch(() => {});
+          return;
+        }
+        if (typeof unsubscribe !== "function") {
+          failed();
+          return;
+        }
+        clearTimeout(this.liveTimeout);
+        this.liveTimeout = undefined;
+        this.unsubscribeLive = unsubscribe;
+        this.liveState = "active";
+        this.scheduleRefresh();
+      })
+      .catch(failed);
+  }
+  flushLive() {
+    clearTimeout(this.liveFlushTimer);
+    this.liveFlushTimer = undefined;
+    if (!this.key || !this.card.visible || !this.card.isConnected) {
+      this.liveBuffer = [];
+      return;
+    }
+    const recent = this.liveBuffer || [];
+    this.liveBuffer = [];
+    if (!recent.length) return;
+    const floor = this.floor();
+    this.liveEnd = recent.reduce(
+      (end, entry) => Math.max(end, entry.when * 1000),
+      this.liveEnd,
+    );
+    const known = new Set(this.entries.map(identity));
+    const added = recent.filter((entry) => !known.has(identity(entry)));
+    if (
+      !added.length &&
+      this.entries.every((entry) => entry.when * 1000 >= floor)
+    )
+      return;
+    this.rememberScroll();
+    this.entries = merge(added, this.entries).filter(
+      (entry) => entry.when * 1000 >= floor,
+    );
+    const displayed = new Set(this.entries.map(identity));
+    this.pending = this.pending.filter(
+      (entry) => !displayed.has(identity(entry)) && entry.when * 1000 >= floor,
+    );
+    this.card.update();
+  }
+  scheduleRefresh(mode = "refresh") {
+    clearTimeout(this.timer);
+    this.timer = undefined;
+    if (!this.key || !this.card.visible || !this.card.isConnected) return;
+    const generation = this.generation;
+    this.timer = setTimeout(() => {
+      if (generation === this.generation) this.tick(mode);
+    }, 60000);
+  }
+  async tick(mode = "refresh") {
+    if (!this.key || !this.card.visible || !this.card.isConnected) return;
+    if (
+      this.liveState === "active" ||
+      this.liveState === "connecting" ||
+      this.liveState === "reconnecting"
+    ) {
+      // Maintain the rolling history window without querying HA every minute.
+      const before = this.entries.length;
+      const floor = this.floor();
+      const current = this.entries.filter(
+        (entry) => entry.when * 1000 >= floor,
+      );
+      this.pending = this.pending.filter((entry) => entry.when * 1000 >= floor);
+      if (current.length !== before) {
+        this.rememberScroll();
+        this.entries = current;
+        this.card.update();
+      }
+      this.scheduleRefresh(mode);
+      return;
+    }
+    if (this.liveConnection?.subscribeMessage) this.subscribeLive();
+    if (!this.loading) await this.run(mode);
+    else this.scheduleRefresh(mode);
   }
   floor() {
     return Date.now() - (this.card.config.activity_hours || 24) * 3600000;
@@ -243,10 +423,7 @@ export class SensorActivity {
         this.cancel = undefined;
         this.loading = false;
         c.update();
-        this.timer = setTimeout(
-          () => this.run(this.error ? mode : "refresh"),
-          60000,
-        );
+        this.scheduleRefresh(this.error ? mode : "refresh");
       }
     }
   }

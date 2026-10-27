@@ -9,7 +9,7 @@ All eleven cards are registered, separately buildable and available in the visua
 - **Lights:** compact buttons, area/location labels, switch support and native details on hold.
 - **Graph:** numeric history, fixed normalized user palette, continuous value gradient, min/max colour configuration, multi-series legend and distinct line patterns, gaps and outlier handling.
 - **Energy:** current power, cycle Day/Night/Total and costs above the graph; identically styled clickable device grid below; separate Untracked row and explanation for calculated readings. Forecast validity/age gates are optional.
-- **Comfort:** independent room readings, climate/dehumidifier/fan selection, supported setpoints/modes and range targets, optional power.
+- **Climate:** one climate entity per card, compact target-temperature semicircle, supported mode toggle with mode colours, optional readings and capability-driven device settings. Exact position controls can map separate select/number entities. Humidity and standalone fan devices are no longer part of this card; a dedicated humidity card is the next design task.
 - **Appliance:** switch, power/energy, existing backend timed-run script bindings and optional backend timer display.
 - **Media:** supported icon controls, volume/mute, source, artwork and playback progress/seek.
 - **Cleaning:** state-aware start/pause/resume/stop, relevant dock action, selected suction value, optional maintenance/mission scripts.

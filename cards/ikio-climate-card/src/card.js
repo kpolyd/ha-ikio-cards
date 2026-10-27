@@ -1,8 +1,8 @@
-import { installRefinement, refine, disclosure, glyph } from "@ikio/card-ui";
 import {
   ControlCard,
+  el,
+  event,
   group,
-  row,
   title,
   reading,
   note,
@@ -11,15 +11,55 @@ import {
   range,
   features,
   valueText,
-  stateText,
   available,
+  installRefinement,
+  refine,
+  disclosure,
+  glyph,
+  updateChipIcons,
 } from "@ikio/card-ui";
-import { validate } from "./config.js";
+import { validate, normalize } from "./config.js";
+import { climateStyles } from "./styles.js";
+const modes = {
+  off: ["Off", "mdi:power"],
+  cool: ["Cool", "mdi:snowflake"],
+  heat: ["Heat", "mdi:weather-sunny"],
+  heat_cool: ["Heat / cool", "mdi:sun-snowflake"],
+  auto: ["Auto", "mdi:autorenew"],
+  dry: ["Dry", "mdi:water-percent"],
+  fan_only: ["Fan", "mdi:fan"],
+};
+const finite = (v) => typeof v === "number" && Number.isFinite(v);
+function svgNode(tag, attrs) {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+}
 export class Card extends ControlCard {
   validate = validate;
   constructor() {
     super();
     installRefinement(this);
+    this.shadowRoot.prepend(el("style", climateStyles));
+    this.drafts = new Map();
+  }
+  setConfig(c) {
+    super.setConfig(normalize(c));
+  }
+  onConfig() {
+    this.active = "climate";
+    this.drafts?.clear();
+    this.dragging = undefined;
+  }
+  onDisconnect() {
+    this.dragging = undefined;
+    this.drafts.clear();
+  }
+  onVisibility() {
+    if (!this.visible) {
+      this.drafts.clear();
+      this.dragging = undefined;
+    }
   }
   static getStubConfig() {
     return { schema_version: 1 };
@@ -28,9 +68,6 @@ export class Card extends ControlCard {
     await import("./editor.js");
     return document.createElement("ikio-climate-card-editor");
   }
-  onConfig() {
-    this.active = this.config.default_device;
-  }
   controlSelect(id, label, options, value, domain, service, key) {
     const node = select(label, options, value, (v) =>
       this.send(
@@ -38,315 +75,362 @@ export class Card extends ControlCard {
         domain,
         service,
         { [key]: v },
-        (state) => state?.attributes?.[key] === v,
+        (s) => (key === "option" ? s?.state : s?.attributes?.[key]) === v,
       ),
     );
     node.querySelector("select").disabled = this.blocked(id);
     return node;
   }
-  target(
-    id,
-    label,
-    value,
-    min,
-    max,
-    step,
-    domain,
-    key,
-    service = "set_temperature",
-    extra = {},
-  ) {
-    if (
-      !Number.isFinite(value) ||
-      !Number.isFinite(min) ||
-      !Number.isFinite(max) ||
-      min >= max
-    )
-      return null;
-    const control = range(label, value, min, max, step || 1, (v) =>
-      this.send(
+  step(a) {
+    const native =
+      finite(a.target_temp_step) && a.target_temp_step > 0
+        ? a.target_temp_step
+        : 1;
+    const requested = this.config.temperature_step;
+    return finite(requested)
+      ? Math.max(native, Math.ceil(requested / native - 1e-8) * native)
+      : native;
+  }
+  dial(id, label, key, value, min, max, step, extra = {}) {
+    if (![value, min, max].every(finite) || min >= max)
+      return note(`${label} unavailable`);
+    const draftKey = `${id}:${key}`;
+    const shown = this.drafts.get(draftKey) ?? value;
+    const snap = (v) =>
+      Number(
+        Math.max(
+          min,
+          Math.min(max, min + Math.round((v - min) / step) * step),
+        ).toFixed(6),
+      );
+    const disabled = this.blocked(id) || this.state(id)?.state === "off";
+    const commit = (v) => {
+      this.drafts.delete(draftKey);
+      return this.send(
         id,
-        domain,
-        service,
-        { ...extra, [key]: v },
-        (state) => Math.abs((state?.attributes?.[key] ?? -999) - v) < 0.1,
+        "climate",
+        "set_temperature",
+        { ...extra, [key]: snap(v) },
+        (s) =>
+          finite(s?.attributes?.[key]) &&
+          Math.abs(s.attributes[key] - snap(v)) < 0.001,
+      );
+    };
+    const wrap = el("div", undefined, "climate-dial-row", key);
+    const less = button(
+      `Decrease ${label.toLowerCase()}`,
+      () => commit(shown - step),
+      { icon: "mdi:minus", disabled: disabled || shown <= min, entity: id },
+    );
+    const more = button(
+      `Increase ${label.toLowerCase()}`,
+      () => commit(shown + step),
+      { icon: "mdi:plus", disabled: disabled || shown >= max, entity: id },
+    );
+    const dial = el("div", undefined, "climate-dial");
+    const svg = svgNode("svg", {
+      viewBox: "0 0 280 155",
+      class: "climate-arc",
+      "aria-hidden": "true",
+    });
+    const fraction = Math.max(0, Math.min(1, (shown - min) / (max - min))),
+      angle = Math.PI * (1 - fraction);
+    const path = "M20 140 A120 120 0 0 1 260 140";
+    svg.append(
+      svgNode("path", { d: path, class: "dial-track" }),
+      svgNode("path", {
+        d: path,
+        class: "dial-fill",
+        pathLength: 100,
+        "stroke-dasharray": `${fraction * 100} 100`,
+      }),
+      svgNode("circle", {
+        cx: 140 + 120 * Math.cos(angle),
+        cy: 140 - 120 * Math.sin(angle),
+        r: 10,
+        class: "dial-handle",
+      }),
+    );
+    const point = (e) => {
+      const box = e.currentTarget.getBoundingClientRect();
+      if (!box.width || !box.height) return;
+      const x = ((e.clientX - box.left) * 280) / box.width - 140,
+        y = 140 - ((e.clientY - box.top) * 155) / box.height;
+      this.drafts.set(
+        draftKey,
+        snap(min + (1 - Math.atan2(Math.max(0, y), x) / Math.PI) * (max - min)),
+      );
+      this.update();
+    };
+    event(svg, "pointerdown", (e) => {
+      if (disabled) return;
+      e.preventDefault();
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      this.dragging = draftKey;
+      point(e);
+    });
+    event(svg, "pointermove", (e) => {
+      if (this.dragging === draftKey && !disabled) point(e);
+    });
+    event(svg, "pointerup", (e) => {
+      if (this.dragging !== draftKey) return;
+      this.dragging = undefined;
+      e.currentTarget.releasePointerCapture?.(e.pointerId);
+      if (!disabled) commit(this.drafts.get(draftKey) ?? shown);
+    });
+    event(svg, "pointercancel", () => {
+      this.dragging = undefined;
+      this.drafts.delete(draftKey);
+      this.update();
+    });
+    const caption = el("div", undefined, "dial-caption");
+    const output = el("output", `${shown}`, "dial-value");
+    output.append(
+      el(
+        "span",
+        this.state(id)?.attributes?.temperature_unit ||
+          this.hass?.config?.unit_system?.temperature ||
+          "°C",
+        "dial-unit",
       ),
     );
-    control.querySelector("input").disabled = this.blocked(id);
-    return control;
+    caption.append(el("span", label, "ae-label"), output);
+    const input = el("input", undefined, "dial-input");
+    Object.assign(input, {
+      type: "range",
+      min: String(min),
+      max: String(max),
+      step: String(step),
+      value: String(shown),
+      disabled,
+    });
+    input.setAttribute("aria-label", label);
+    input.setAttribute(
+      "aria-valuetext",
+      `${shown} ${this.state(id)?.attributes?.temperature_unit || this.hass?.config?.unit_system?.temperature || "°C"}`,
+    );
+    event(input, "input", (e) => {
+      this.drafts.set(draftKey, Number(e.currentTarget.value));
+      this.update();
+    });
+    event(input, "change", (e) => commit(Number(e.currentTarget.value)));
+    dial.append(svg, caption, input);
+    wrap.append(less, dial, more);
+    if (disabled) wrap.classList.add("dial-disabled");
+    return wrap;
+  }
+  position(axis) {
+    if (!this.config[`show_${axis}`]) return null;
+    const id = this.config[`${axis}_position_entity`],
+      s = this.state(id);
+    if (!id) return null;
+    const label = `${axis[0].toUpperCase() + axis.slice(1)} position`;
+    if (!available(s)) return note(`${label} unavailable`);
+    if (id.startsWith("select.") && s.attributes?.options?.length)
+      return this.controlSelect(
+        id,
+        label,
+        s.attributes.options,
+        s.state,
+        "select",
+        "select_option",
+        "option",
+      );
+    if (id.startsWith("number.")) {
+      const a = s.attributes || {},
+        v = Number(s.state);
+      if (![v, a.min, a.max].every(finite) || a.min >= a.max)
+        return note(`${label} unavailable`);
+      const node = range(label, v, a.min, a.max, a.step || 1, (value) =>
+        this.send(
+          id,
+          "number",
+          "set_value",
+          { value },
+          (state) => Number(state?.state) === value,
+        ),
+      );
+      node.querySelector("input").disabled = this.blocked(id);
+      return node;
+    }
+    return null;
+  }
+  afterRender() {
+    updateChipIcons(this);
   }
   render() {
     const c = this.config,
-      devices = ["climate", "humidifier", "fan"].filter(
-        (k) => c[k + "_entity"],
-      );
-    if (!devices.includes(this.active)) this.active = devices[0];
-    const id = c[this.active + "_entity"],
+      id = c.climate_entity,
       s = this.state(id),
-      a = s?.attributes || {},
-      domain = this.active;
+      a = s?.attributes || {};
+    const status = !id
+      ? ""
+      : !available(s)
+        ? "Unavailable"
+        : (a.hvac_action || modes[s.state]?.[0] || s.state).replaceAll(
+            "_",
+            " ",
+          );
     const result = group(
-      title(
-        this,
-        c.name || "Climate",
-        id,
-        id ? a.hvac_action || stateText(this.hass, id) : undefined,
-      ),
+      title(this, c.name || (id ? this.label(id) : "Climate"), id, status),
     );
     refine(result, "mdi:home-thermometer-outline");
-    const readings = row(
-      ...[
-        ["temperature", "Temperature"],
-        ["humidity", "Humidity"],
-        ["fridge", "Fridge"],
-      ]
-        .filter(([k]) => c[k + "_entity"])
-        .map(([k, label]) =>
-          reading(
-            label,
-            valueText(this.hass, c[k + "_entity"]),
-            c[k + "_entity"],
-            k === "temperature" ? "ae-hero" : "",
-          ),
-        ),
-    );
-    readings.classList.add("ikio-metrics");
-    if (c.fridge_entity) {
-      const fridge = [...readings.children].find(
-        (node) => node.dataset.entity === c.fridge_entity,
-      );
-      if (fridge) {
-        fridge.classList.add("ikio-fridge");
-        fridge.querySelector(".ae-label").prepend(glyph("mdi:fridge-outline"));
-      }
-    }
-    result.append(readings);
-    if (!devices.length) {
-      if (!readings.children.length)
-        result.append(
-          note(
-            "Choose room sensors and/or comfort devices in the visual editor.",
-          ),
-        );
+    const nativeIcon = el("ha-state-icon");
+    nativeIcon.dataset.chipEntity = id || "";
+    nativeIcon.setAttribute("aria-hidden", "true");
+    if (id) result.querySelector("header>ha-icon")?.replaceWith(nativeIcon);
+    result.classList.add("climate-card");
+    result.dataset.mode = s?.state || "off";
+    if (!id) {
+      result.append(note("Choose a climate entity in the visual editor."));
       return result;
     }
-    if (devices.length > 1) {
-      const tabs = row(
-        ...devices.map((k) => {
-          const b = button(
-            k === "climate"
-              ? "Air conditioner"
-              : k === "humidifier"
-                ? "Dehumidifier"
-                : "Fan",
-            () => {
-              this.active = k;
-              this.update();
-            },
-          );
-          b.setAttribute("aria-pressed", String(k === domain));
-          return b;
-        }),
-      );
-      tabs.classList.add("ikio-device-tabs");
-      tabs.setAttribute("role", "group");
-      tabs.setAttribute("aria-label", "Climate device");
-      result.append(tabs);
+    if (available(s)) {
+      const step = this.step(a);
+      if (features(s, 2) && (s.state === "heat_cool" || !features(s, 1))) {
+        result.append(
+          this.dial(
+            id,
+            "Lower target",
+            "target_temp_low",
+            a.target_temp_low,
+            a.min_temp,
+            Math.min(a.max_temp, a.target_temp_high),
+            step,
+            { target_temp_high: a.target_temp_high },
+          ),
+          this.dial(
+            id,
+            "Upper target",
+            "target_temp_high",
+            a.target_temp_high,
+            Math.max(a.min_temp, a.target_temp_low),
+            a.max_temp,
+            step,
+            { target_temp_low: a.target_temp_low },
+          ),
+        );
+      } else if (features(s, 1))
+        result.append(
+          this.dial(
+            id,
+            "Target",
+            "temperature",
+            a.temperature,
+            a.min_temp,
+            a.max_temp,
+            step,
+          ),
+        );
     }
+    const readings = el("div", undefined, "climate-readings");
+    const unit =
+      this.state(id)?.attributes?.temperature_unit ||
+      this.hass?.config?.unit_system?.temperature ||
+      "°C";
+    const add = (label, sensor, fallback, icon) => {
+      if (!sensor && fallback === undefined) return;
+      const node = reading(
+        label,
+        sensor ? valueText(this.hass, sensor) : fallback,
+        sensor,
+      );
+      node.querySelector(".ae-label").prepend(glyph(icon));
+      readings.append(node);
+    };
+    add(
+      "Current",
+      c.temperature_entity,
+      finite(a.current_temperature)
+        ? `${a.current_temperature} ${unit}`
+        : undefined,
+      "mdi:thermometer",
+    );
+    add(
+      "Humidity",
+      c.humidity_entity,
+      finite(a.current_humidity) ? `${a.current_humidity}%` : undefined,
+      "mdi:water-percent",
+    );
+    add("Power", c.power_entity, undefined, "mdi:lightning-bolt");
+    if (readings.children.length) result.append(readings);
     if (!available(s)) {
       result.append(
-        note("Device unavailable. Valid room readings remain visible."),
+        note("Device unavailable. Valid sensor readings remain visible."),
       );
       return result;
     }
-    const advanced = [];
-    if (domain === "climate") {
-      const mainControls = row();
-      mainControls.classList.add("ikio-climate-controls");
-      if (a.hvac_modes?.length) {
-        const modes = select("HVAC mode", a.hvac_modes, s.state, (v) =>
-          this.send(
-            id,
-            "climate",
-            "set_hvac_mode",
-            { hvac_mode: v },
-            (state) => state?.state === v,
-          ),
-        );
-        modes.querySelector("select").disabled = this.blocked(id);
-        mainControls.append(modes);
-      }
-      if (features(s, 2) && s.state === "heat_cool") {
-        const lo = this.target(
-          id,
-          "Lower target",
-          a.target_temp_low,
-          a.min_temp,
-          Math.min(a.max_temp, a.target_temp_high),
-          a.target_temp_step,
-          "climate",
-          "target_temp_low",
-          "set_temperature",
-          { target_temp_high: a.target_temp_high },
-        );
-        const hi = this.target(
-          id,
-          "Upper target",
-          a.target_temp_high,
-          Math.max(a.min_temp, a.target_temp_low),
-          a.max_temp,
-          a.target_temp_step,
-          "climate",
-          "target_temp_high",
-          "set_temperature",
-          { target_temp_low: a.target_temp_low },
-        );
-        if (lo) mainControls.append(lo);
-        if (hi) mainControls.append(hi);
-      } else if (features(s, 1)) {
-        const target = this.target(
-          id,
-          "Target",
-          a.temperature,
-          a.min_temp,
-          a.max_temp,
-          a.target_temp_step,
-          "climate",
-          "temperature",
-        );
-        if (target) mainControls.append(target);
-      }
-      for (const [flag, label, values, key, service] of [
-        [8, "Fan mode", "fan_modes", "fan_mode", "set_fan_mode"],
-        [16, "Preset", "preset_modes", "preset_mode", "set_preset_mode"],
-        [32, "Swing", "swing_modes", "swing_mode", "set_swing_mode"],
-        [
-          512,
-          "Horizontal swing",
-          "swing_horizontal_modes",
-          "swing_horizontal_mode",
-          "set_swing_horizontal_mode",
-        ],
-      ])
-        if (features(s, flag) && a[values]?.length)
-          advanced.push(
-            this.controlSelect(
+    if (a.hvac_modes?.length) {
+      const section = el("section", undefined, "climate-modes-section");
+      section.append(el("span", "Mode", "ae-label"));
+      const buttons = el("div", undefined, "climate-modes");
+      buttons.setAttribute("role", "group");
+      buttons.setAttribute("aria-label", "HVAC mode");
+      const order = [
+        ...Object.keys(modes),
+        ...a.hvac_modes.filter((m) => !modes[m]),
+      ];
+      for (const mode of order.filter((m) => a.hvac_modes.includes(m))) {
+        const label = modes[mode]?.[0] || mode.replaceAll("_", " ");
+        const b = button(
+          label,
+          () =>
+            this.send(
               id,
-              label,
-              a[values],
-              a[key],
               "climate",
-              service,
-              key,
+              "set_hvac_mode",
+              { hvac_mode: mode },
+              (state) => state?.state === mode,
             ),
-          );
-      result.append(mainControls);
-    } else if (domain === "humidifier") {
-      result.append(
-        button(
-          s.state === "on" ? "Turn off" : "Turn on",
-          () => this.toggle(id),
-          { icon: "mdi:power", disabled: this.blocked(id) },
-        ),
-      );
-      const target = this.target(
-        id,
-        "Target humidity",
-        a.humidity,
-        a.min_humidity ?? 0,
-        a.max_humidity ?? 100,
-        1,
-        "humidifier",
-        "humidity",
-        "set_humidity",
-      );
-      if (target) result.append(target);
-      if (features(s, 1) && a.available_modes?.length)
-        advanced.push(
-          this.controlSelect(
-            id,
-            "Mode",
-            a.available_modes,
-            a.mode,
-            "humidifier",
-            "set_mode",
-            "mode",
-          ),
+          { disabled: this.blocked(id), entity: id, key: mode },
         );
-    } else {
-      result.append(
-        button(
-          s.state === "on" ? "Turn off" : "Turn on",
-          () => this.toggle(id),
-          { icon: "mdi:power", disabled: this.blocked(id) },
-        ),
-      );
-      if (features(s, 1)) {
-        const speed = this.target(
-          id,
-          "Fan speed",
-          a.percentage,
-          0,
-          100,
-          a.percentage_step || 1,
-          "fan",
-          "percentage",
-          "set_percentage",
-        );
-        if (speed) result.append(speed);
+        b.prepend(glyph(modes[mode]?.[1] || "mdi:thermostat"));
+        b.setAttribute("aria-pressed", String(s.state === mode));
+        buttons.append(b);
       }
-      if (features(s, 8) && a.preset_modes?.length)
-        advanced.push(
-          this.controlSelect(
-            id,
-            "Preset",
-            a.preset_modes,
-            a.preset_mode,
-            "fan",
-            "set_preset_mode",
-            "preset_mode",
-          ),
-        );
-      if (features(s, 2))
-        advanced.push(
-          button(
-            a.oscillating ? "Stop oscillation" : "Oscillate",
-            () =>
-              this.send(
-                id,
-                "fan",
-                "oscillate",
-                { oscillating: !a.oscillating },
-                (state) => state?.attributes?.oscillating === !a.oscillating,
-              ),
-            { disabled: this.blocked(id) },
-          ),
-        );
-      if (features(s, 4))
-        advanced.push(
-          this.controlSelect(
-            id,
-            "Direction",
-            ["forward", "reverse"],
-            a.direction,
-            "fan",
-            "set_direction",
-            "direction",
-          ),
-        );
+      section.append(buttons);
+      result.append(section);
     }
-    if (advanced.length)
+    const settings = [];
+    for (const [flag, toggle, label, values, key, service] of [
+      [8, "fan", "Fan", "fan_modes", "fan_mode", "set_fan_mode"],
+      [
+        16,
+        "preset",
+        "Preset",
+        "preset_modes",
+        "preset_mode",
+        "set_preset_mode",
+      ],
+      [32, "swing", "Swing", "swing_modes", "swing_mode", "set_swing_mode"],
+      [
+        512,
+        "swing",
+        "Horizontal swing",
+        "swing_horizontal_modes",
+        "swing_horizontal_mode",
+        "set_swing_horizontal_mode",
+      ],
+    ])
+      if (c[`show_${toggle}`] && features(s, flag) && a[values]?.length)
+        settings.push(
+          this.controlSelect(
+            id,
+            label,
+            a[values],
+            a[key],
+            "climate",
+            service,
+            key,
+          ),
+        );
+    settings.push(this.position("horizontal"), this.position("vertical"));
+    if (settings.some(Boolean))
       result.append(
-        disclosure(this, "comfort-settings", "Device settings", ...advanced),
+        disclosure(this, "climate-settings", "Device settings", ...settings),
       );
-    if (c[domain + "_power_entity"])
-      result.append(
-        reading(
-          "Power",
-          valueText(this.hass, c[domain + "_power_entity"]),
-          c[domain + "_power_entity"],
-        ),
-      );
+    if (this.pending.size || this.requests.size)
+      result.append(note("Updating device…"));
     return result;
   }
 }

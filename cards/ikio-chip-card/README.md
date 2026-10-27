@@ -13,3 +13,18 @@ appearance:
 ```
 
 Collection version: see [the shared version](../../ikio/package.json). Automated DOM and compiled-fixture checks do not establish native HA/device compatibility.
+
+## Dashboard badges
+
+The same chip is available as **Ikio Chip** in Home Assistant's badge picker. Edit a dashboard view, add a badge, select Ikio Chip, then choose a sensor, optional name and appearance. It uses the existing Ikio resource, so no additional installation is needed. The badge and card share their visual editor, rendering and native details on tap/hold.
+
+```yaml
+badges:
+  - type: custom:ikio-chip-badge
+    entity: sensor.example_database_size
+    name: Database
+    appearance:
+      theme: ha
+```
+
+The card type remains `custom:ikio-chip-card`. Use `custom:ikio-chip-badge` in a view's badges list.

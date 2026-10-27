@@ -4,6 +4,8 @@ Owner decisions consolidated on 25 October 2026. This guide describes how Ikio s
 
 ## Product character
 
+Every card is a generic, reusable Home Assistant component, not a solution tailored to the owner’s household. Derive the design and configuration from general user tasks and supported entity capabilities. Avoid household-specific slots, assumptions, labels, defaults or arbitrary one-per-type limits. Prefer configurable repeatable devices and readings where appropriate, and state actual supported domains/capabilities clearly. The owner’s setup is an example for evaluating a design, not its structural specification.
+
 Ikio is a compact Home Assistant dashboard for everyday use on phones and larger displays. Make the device's current condition clear, then make its common action easy to reach. Use quiet teal surfaces, readable readings, restrained semantic accents, thin separators and native HA icons. Group related information with alignment and spacing. Avoid decorative chrome, excessive controls and generic dashboard ornaments.
 
 Compactness means removing repetition and prioritizing content. It does not mean shrinking every label or touch target. Preserve full values, meaningful units, keyboard access and explicit unavailable states.
@@ -79,7 +81,7 @@ Show pending feedback near the action and wait for HA confirmation. Bound loadin
 
 Use real buttons, selects, ranges and details/summary where appropriate. Expose visible names for ambiguous settings: an accessible name alone does not help a sighted user understand several similarly styled dropdowns. Icon-only familiar transport actions can remain compact with an accessible name. Wrap long names and identifiers; do not rely on hover-only text to recover clipped essentials. A smaller font is not a substitute for reflow.
 
-For fridge temperature, retain a distinct small cold-blue reading with a fridge-specific icon/label, approximately 20% quieter than the principal room reading as previously requested. Exact sizing belongs in the Comfort mockup; the goal is to distinguish appliance interior temperature from room temperature.
+Climate now focuses on one climate entity per card. Its approved compact semicircle emphasizes target temperature; current temperature, humidity and power are secondary. Mode colours affect the target and segmented mode selection. Fridge readings and standalone humidity/fan controls are excluded; generic sensors can use the Chip card. See specification section 66.
 
 ## Applying UI UX Pro Max
 
@@ -100,6 +102,8 @@ Check the actual result identity and applicability. Retry an off-topic query onc
 The reference was consulted from a pinned scratch checkout for this review. It was not installed globally or vendored into Ikio. Future use can consult the links or an available verified installation; absence of the tool does not block routine work.
 
 ## Redesign workflow and acceptance
+
+For every new card or redesign, agree with the owner on two deliverables before implementation: (1) a visual mock showing the proposed card and its relevant states, and (2) the complete visual-editor configuration, including repeatable lists, defaults, optional fields and migration behavior. Approval of only the mock or only the configuration is insufficient. Do not begin implementation until both are explicitly agreed. This standing owner instruction supersedes any earlier workflow that allowed implementation after reviewing only a mock.
 
 Use [DESIGN_REVIEW.md](DESIGN_REVIEW.md) to pick a card. Start with its main task and retain its configured capabilities. Show a compact mockup using simulated data before implementing a substantial new layout, following the owner's established iteration pattern. Include normal, busy and unavailable states so the mock is reviewable. Keep each redesign separate from refactoring and releases.
 

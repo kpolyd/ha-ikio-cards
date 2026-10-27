@@ -10,7 +10,7 @@ const types = [
 ];
 const descriptions = {
   "climate":
-    "Room readings first, smaller fridge temperature, and advanced device settings tucked away.",
+    "Compact target-temperature dial, supported HVAC modes, and optional device settings.",
   media:
     "Compact track information, paired audio controls, and a quiet extras footer.",
   "vacuum":
@@ -149,13 +149,10 @@ for (const [id, value, unit] of [
   sensor(id, value, unit);
 const configs = {
   "climate": {
-    name: "Room comfort",
+    name: "Living room",
     temperature_entity: "sensor.temperature",
     humidity_entity: "sensor.humidity",
-    fridge_entity: "sensor.fridge",
     climate_entity: "climate.room",
-    humidifier_entity: "humidifier.room",
-    fan_entity: "fan.room",
   },
   media: {
     name: "Media",

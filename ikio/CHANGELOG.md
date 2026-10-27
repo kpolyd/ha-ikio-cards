@@ -1,5 +1,13 @@
 # Ikio changelog
 
+## 0.9.0 — Focused Climate, Chip badge and live Alarmo activity
+
+- Stream new Alarmo activity over the existing HA connection, preserving paginated history and falling back to incremental polling if streaming is unavailable.
+- Make the shared Ikio Chip available as a native dashboard badge with the same visual editor.
+- Redesign Climate around one climate entity per card, a compact target-temperature semicircle, mode colours and a segmented mode selector. Add optional current/humidity/power readings, larger temperature steps, visibility toggles and select/number position bindings. Remove fridge and fixed standalone humidity/fan slots; migrate existing climate power bindings.
+- **Migration:** Climate now accepts only `climate.*` devices. Existing climate/sensor bindings remain and climate power migrates automatically; old humidifier/fan-only configurations need a climate entity. The separate humidity card will be designed later.
+- Record the standing requirement for generic card designs and approval of both mock and configuration before implementation.
+
 ## 0.8.1 — Centered, tighter Server Monitor chips
 
 - Center Extra readings chips in Server Monitor, including each wrapped row.
