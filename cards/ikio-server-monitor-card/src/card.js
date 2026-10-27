@@ -394,7 +394,7 @@ export class Card extends ControlCard {
           note(
             t(this.hass, "{p0}: {p1} threshold reached ({p2})", {
               p0: metric,
-              p1: level === "critical" ? "error" : "warning",
+              p1: t(this.hass, level === "critical" ? "error" : "warning"),
               p2: formatNumber(this.hass, value),
             }),
             level === "critical" ? "system-error-note" : "ae-warn",

@@ -75,7 +75,7 @@ export function ringReading(label, percent, entity, level, hass, digits = 1) {
     percent === null ? "—" : `${formatNumber(hass, percent, digits)}%`;
   result.setAttribute(
     "aria-label",
-    `${label}: ${percent === null ? "unavailable" : text}${level ? `, ${level}` : ""}`,
+    `${label}: ${percent === null ? t(hass, "unavailable") : text}${level ? `, ${t(hass, level)}` : ""}`,
   );
   result.replaceChildren();
   const ring = el(
