@@ -35,6 +35,22 @@ export const releaseConfig = {
   skipGithubRelease: true,
 };
 
+// Merge bodies repeat the PR title, which Release Please can parse again.
+// Keep merge SHAs so history still stops at the published tag; use leaf text.
+export function useIndividualCommits(client) {
+  const history = client.mergeCommitIterator.bind(client);
+  client.mergeCommitIterator = async function* (...args) {
+    for await (const commit of history(...args)) {
+      yield /^Merge (?:pull request #|branch |remote-tracking branch )/.test(
+        commit.message,
+      )
+        ? { ...commit, message: "" }
+        : commit;
+    }
+  };
+  return client;
+}
+
 // The existing publisher owns tags, release ordering, HACS and preview checks.
 // Clear pending labels only after that publisher has succeeded for this version.
 export async function finishPublishedPullRequests({
@@ -90,7 +106,7 @@ export async function prepareReleasePullRequest({ github, context, token }) {
     token,
   });
   const manifest = new Manifest(
-    client,
+    useIndividualCommits(client),
     "main",
     { ".": releaseConfig },
     { ".": Version.parse(version) },
