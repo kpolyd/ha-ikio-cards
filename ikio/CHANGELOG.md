@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## 0.8.0 — Sensor chips and compact Server Monitor
+
+- Add Ikio Chip: a standalone sensor card with native icon, optional name, stacked name/value, shared themes and tap/hold entity details.
+- Reuse that chip in Server Monitor’s Extra readings above CPU/RAM/Disk rings. Configure any number of sensor/name rows; the former DB Size binding migrates automatically and remains removable through the editor.
+- Replace tall service blocks with compact tiles: two per row on mobile and three on wider cards, with concise status indicators and optional power/restart controls. Preserve native details, disabled/pending states and inline restart confirmation.
+- Extend HACS delivery, manual packages and versioned previews to all twelve cards.
+
 ## 0.7.1 — Compact, incremental Alarmo activity
 
 - Keep activity in a scrollable region showing roughly 5–6 normal entries, with natural height for shorter lists and a subtle scrollbar.
