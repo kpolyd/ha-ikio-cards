@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { checkVacuum } from "./browser-vacuum.mjs";
+import { checkRouter } from "./browser-router.mjs";
 import { checkGraphLayout } from "./browser-graph-layout.mjs";
 
 // Simulated HA fixtures only. No network or real device service calls.
@@ -14,9 +15,14 @@ const selected = process.argv.slice(2);
 if (
   selected.some(
     (name) =>
-      !["media", "climate", "dehumidifier", "vacuum", "graph-layout"].includes(
-        name,
-      ),
+      ![
+        "media",
+        "climate",
+        "dehumidifier",
+        "vacuum",
+        "graph-layout",
+        "router",
+      ].includes(name),
   )
 )
   throw Error(
@@ -25,6 +31,7 @@ if (
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({ headless: true });
 try {
+  if (shouldRun("router")) results.push(await checkRouter(browser, out));
   if (shouldRun("media")) {
     const page = await browser.newPage({
       viewport: { width: 740, height: 1000 },

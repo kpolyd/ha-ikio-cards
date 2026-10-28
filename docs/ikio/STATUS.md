@@ -140,3 +140,8 @@ Validation: all 226 workspace tests and 20 script tests pass, including 13 new D
 Implemented automatic artwork behind the playing title, title-adjacent transport and timeline, plus the stacked speaker/percentage mute control between volume buttons. Source and the empty controls row disappear while off. The approved visual editor replaces fixed backlight/shortcuts with repeatable entity/name controls and migrates legacy configuration without losing metadata or reintroducing an explicitly emptied list.
 
 Validation: 240 workspace tests and 20 script tests passed, including 18 Media cases covering migration/editor fields, volume bounds/unknown/native stepping, backend-confirmed mute/actions, artwork failure/focus preservation, independent controls while off, seeking, source values, translations, previews/errors and lifecycle timers. Translation/format/version/build/HACS checks passed. Chromium generated 104 collection captures and checked Media at 280/320/390/520 px in dark/light/HA appearances, with simulated volume/mute/pause/seek/source/extra actions, retained disclosure, compact off state, and Greek long text/artwork fallback. Manual packaging is checked before publication. These checks do not establish native HA editor/icon or live-device outcomes.
+
+
+## Router card (28 October 2026)
+
+Added the owner-approved generic Router card as the fourteenth workspace, with full visual configuration, independent Internet status, IP connection path, conditional compact cellular gauges, extra readings and a taller traffic graph with shared min/mid/max labels. English/Greek catalogs and compiled previews include the new card. Automated DOM and simulated browser checks are separate from native HA/live-router verification.
