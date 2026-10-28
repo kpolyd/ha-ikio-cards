@@ -1,3 +1,4 @@
+import { rateDisplay } from "./rate-display.js";
 import {
   t,
   ControlCard,
@@ -184,11 +185,10 @@ export class Card extends ControlCard {
     }
   }
   rateText(id) {
-    const state = this.state(id),
-      value = numeric(state);
-    return value === null
-      ? valueText(this.hass, id)
-      : `${formatNumber(this.hass, value, 6)} ${state.attributes?.unit_of_measurement || ""}`.trim();
+    return rateDisplay(this.hass, {
+      entity: id,
+      unit: this.state(id)?.attributes?.unit_of_measurement,
+    });
   }
   networkView() {
     const rows = this.networkRows();

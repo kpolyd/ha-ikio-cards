@@ -135,15 +135,15 @@ test("shared traffic scale normalizes units and marks min, midpoint, max", async
   assert.equal(chart.querySelectorAll("[data-extremum]").length, 3);
   assert.equal(
     chart.querySelector('[data-extremum="max"]').textContent,
-    "2 MB/s",
+    "16 Mbit/s",
   );
   assert.equal(
     chart.querySelector('[data-extremum="mid"]').textContent,
-    "1 MB/s",
+    "8 Mbit/s",
   );
   assert.equal(
     chart.querySelector('[data-extremum="min"]').textContent,
-    "0 B/s",
+    "0 Mbit/s",
   );
   assert.equal(chart.style.getPropertyValue("--router-plot-height"), "160px");
   assert.equal(
@@ -243,4 +243,134 @@ test("editor hides cellular settings until selected and preserves bindings and H
   assert.equal(saved.rsrp_entity, "sensor.rsrp");
   assert.deepEqual(saved.grid_options, { columns: 6 });
   e.remove();
+});
+
+test("live network rates use HA's native formatter including configured precision", () => {
+  const c = card(
+    { network_rx_entity: "sensor.rx", network_tx_entity: "sensor.tx" },
+    { "sensor.rx": s(1.234567, "Mbit/s"), "sensor.tx": s(2, "kB/s") },
+  );
+  const calls = [];
+  c.hass = {
+    ...c.hass,
+    entities: {
+      "sensor.rx": { display_precision: 2 },
+      "sensor.tx": { display_precision: 0 },
+    },
+    formatEntityState(state) {
+      calls.push(state);
+      return `${Number(state.state).toFixed(this.entities[state.entity_id].display_precision)} ${state.attributes.unit_of_measurement}`;
+    },
+  };
+  const values = [
+    ...c.content.querySelectorAll(".system-network-legend .ae-value"),
+  ].map((n) => n.textContent);
+  assert.deepEqual(values, ["1.23 Mbit/s", "2 kB/s"]);
+  assert.ok(
+    calls.some(
+      (state) => state.entity_id === "sensor.rx" && state.state === "1.234567",
+    ),
+  );
+  c.remove();
+});
+
+test("rate display fallback honors registry zero/three decimal precision, trailing zeroes and locale", async () => {
+  const { rateDisplay } = await import("../src/rate-display.js");
+  const row = { entity: "sensor.rx", unit: "MB/s" };
+  const hass = {
+    states: { "sensor.rx": s(1.234567, "MB/s") },
+    entities: { "sensor.rx": { display_precision: 0 } },
+    locale: { language: "en" },
+  };
+  assert.equal(rateDisplay(hass, row), "1 MB/s");
+  hass.entities["sensor.rx"].display_precision = 3;
+  assert.equal(rateDisplay(hass, row, 1000000), "1.000 MB/s");
+  hass.locale.number_format = "decimal_comma";
+  assert.equal(rateDisplay(hass, row, 1234567), "1,235 MB/s");
+  delete hass.entities["sensor.rx"].display_precision;
+  hass.locale.number_format = "comma_decimal";
+  hass.states["sensor.rx"].state = "0.0020";
+  assert.equal(rateDisplay(hass, row), "0.0020 MB/s");
+  hass.states["sensor.rx"].state = "1e-7";
+  assert.equal(rateDisplay(hass, row), "0.0000001 MB/s");
+});
+
+test("axis keeps the reference sensor's unit and precision after normalizing mixed rate units", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const now = Date.now(),
+    rows = [
+      { key: "network_rx", entity: "sensor.rx", unit: "Mbit/s" },
+      { key: "network_tx", entity: "sensor.tx", unit: "kB/s" },
+    ];
+  const hass = {
+    states: { "sensor.rx": s(8, "Mbit/s"), "sensor.tx": s(0, "kB/s") },
+    entities: {
+      "sensor.rx": { display_precision: 2 },
+      "sensor.tx": { display_precision: 0 },
+    },
+    locale: { language: "en" },
+  };
+  const history = {
+    "sensor.rx": [
+      { lu: (now - 1800000) / 1000, s: "8" },
+      { lu: now / 1000, s: "16" },
+    ],
+    "sensor.tx": [{ lu: (now - 1800000) / 1000, s: "0" }],
+  };
+  const chart = networkPlot(rows, history, now, hass);
+  assert.deepEqual(
+    ["min", "mid", "max"].map(
+      (key) => chart.querySelector(`[data-extremum="${key}"]`).textContent,
+    ),
+    ["0.00 Mbit/s", "8.00 Mbit/s", "16.00 Mbit/s"],
+  );
+  const geometry = chart.querySelector("path").getAttribute("d");
+  hass.entities["sensor.rx"].display_precision = 0;
+  const zero = networkPlot(rows, history, now, hass);
+  assert.equal(
+    zero.querySelector('[data-extremum="mid"]').textContent,
+    "8 Mbit/s",
+  );
+  assert.equal(zero.querySelector("path").getAttribute("d"), geometry);
+  const upload = networkPlot([rows[1]], history, now, hass);
+  assert.equal(
+    upload.querySelector('[data-extremum="constant"]').textContent,
+    "0 kB/s",
+  );
+});
+
+test("axis delegates synthesized tick values to the HA formatter", async () => {
+  const { networkPlot } = await import("../src/views.js");
+  const now = Date.now(),
+    calls = [];
+  const hass = {
+    states: { "sensor.rx": s("0.300", "MB/s") },
+    formatEntityState(state) {
+      calls.push(state);
+      return Number(state.state).toFixed(3) + " MB/s";
+    },
+  };
+  const chart = networkPlot(
+    [{ key: "network_rx", entity: "sensor.rx", unit: "MB/s" }],
+    {
+      "sensor.rx": [
+        { lu: (now - 1800000) / 1000, s: "0" },
+        { lu: now / 1000, s: "0.3" },
+      ],
+    },
+    now,
+    hass,
+  );
+  assert.equal(
+    chart.querySelector('[data-extremum="mid"]').textContent,
+    "0.150 MB/s",
+  );
+  assert.ok(
+    calls.every(
+      (state) =>
+        state.entity_id === "sensor.rx" &&
+        state.attributes.unit_of_measurement === "MB/s",
+    ),
+  );
+  assert.ok(calls.some((state) => Number(state.state) === 0.15));
 });

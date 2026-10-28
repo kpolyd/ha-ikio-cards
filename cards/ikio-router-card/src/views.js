@@ -1,4 +1,5 @@
-import { t, el, formatNumber } from "@ikio/card-ui";
+import { rateDisplay } from "./rate-display.js";
+import { t, el } from "@ikio/card-ui";
 import { downsample, windowPoints } from "@ikio/graph";
 import { rateHistory } from "./adapter.js";
 const svgNode = (tag, attrs = {}) => {
@@ -46,13 +47,10 @@ export function networkPlot(
   const yMin = constant ? 0 : low;
   const yMax = high || 1;
   const y = (value) => 7 + ((yMax - value) / (yMax - yMin)) * (height - 14);
-  const rateLabel = (value) => {
-    const power =
-      value > 0
-        ? Math.min(4, Math.max(0, Math.floor(Math.log10(value) / 3)))
-        : 0;
-    return `${formatNumber(hass, value / 1000 ** power, 1)} ${["B/s", "kB/s", "MB/s", "GB/s", "TB/s"][power]}`;
-  };
+  // One shared axis needs one display unit. Prefer the configured download
+  // sensor, falling back to upload; each live reading keeps its own settings.
+  const reference = rows.find((row) => row.key === "network_rx") || rows[0];
+  const rateLabel = (value) => rateDisplay(hass, reference, value);
   const svg = svgNode("svg", {
     viewBox: `0 0 300 ${height}`,
     preserveAspectRatio: "none",
