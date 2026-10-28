@@ -26,7 +26,7 @@ import {
   details,
 } from "@ikio/card-ui";
 import { validate, migrateConfig } from "./config.js";
-import { graphPalette } from "@ikio/graph";
+import { graphPalette, fetchHistory } from "@ikio/graph";
 import {
   utilization,
   capacityText,
@@ -148,16 +148,12 @@ export class Card extends ControlCard {
     const now = Date.now();
     try {
       const data = await Promise.race([
-        this.hass.callWS({
-          type: "history/history_during_period",
-          start_time: new Date(now - 1800000).toISOString(),
-          end_time: new Date(now).toISOString(),
-          entity_ids: [...new Set(rows.map((row) => row.entity))],
-          include_start_time_state: true,
-          significant_changes_only: false,
-          minimal_response: false,
-          no_attributes: false,
-        }),
+        fetchHistory(
+          this.hass,
+          rows.map((row) => row.entity),
+          0.5,
+          now,
+        ),
         cancelled,
       ]);
       if (!valid()) return;

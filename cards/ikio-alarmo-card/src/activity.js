@@ -26,6 +26,8 @@ export class SensorActivity {
     this.entries = [];
     this.pending = [];
     this.users = [];
+    this.rowHeights = new Map();
+    this.scrollPosition = 0;
   }
   stop() {
     this.stopLive();
@@ -39,6 +41,8 @@ export class SensorActivity {
   }
   reset() {
     this.stop();
+    this.rowHeights.clear();
+    this.scrollPosition = 0;
     this.cacheKey = undefined;
     this.entries = [];
     this.pending = [];
@@ -295,6 +299,22 @@ export class SensorActivity {
     };
   }
   afterRender() {
+    const list = this.card.content.querySelector(".security-activity-scroll");
+    if (list) {
+      for (const row of list.querySelectorAll(".security-activity-row")) {
+        let height = row.getBoundingClientRect().height;
+        const heading = row.previousElementSibling;
+        if (heading?.tagName === "H4") {
+          const style =
+            heading.ownerDocument.defaultView.getComputedStyle(heading);
+          height +=
+            heading.getBoundingClientRect().height +
+            parseFloat(style.marginTop || 0) +
+            parseFloat(style.marginBottom || 0);
+        }
+        if (height > 0) this.rowHeights.set(row.dataset.key, height);
+      }
+    }
     if (!this.anchor) return;
     const viewport = this.card.content.querySelector(
       ".security-activity-scroll",
@@ -312,6 +332,14 @@ export class SensorActivity {
     this.anchor = undefined;
   }
   onScroll(viewport) {
+    this.scrollPosition = viewport.scrollTop;
+    if (this.entries.length > 100 && !this.scrollRender) {
+      this.scrollRender = true;
+      queueMicrotask(() => {
+        this.scrollRender = false;
+        if (this.card.isConnected && this.card.visible) this.card.update();
+      });
+    }
     if (
       viewport.clientHeight > 0 &&
       viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop < 96 &&
@@ -504,8 +532,37 @@ export class SensorActivity {
       second: "2-digit",
       hour12: false,
     });
-    let day;
+    const rowKey = (entry) =>
+      `activity-${entry.when}-${entry.entity_id}-${entry.context_id || ""}`;
+    const offsets = [0];
+    let priorDay;
     for (const entry of this.entries) {
+      const dayKey = dateFormat.format(new Date(entry.when * 1000));
+      offsets.push(
+        offsets.at(-1) +
+          (this.rowHeights.get(rowKey(entry)) ||
+            (dayKey === priorDay ? 48 : 80)),
+      );
+      priorDay = dayKey;
+    }
+    let first = 0;
+    const anchorIndex = this.anchor?.key
+      ? this.entries.findIndex((entry) => rowKey(entry) === this.anchor.key)
+      : -1;
+    const scroll =
+      anchorIndex >= 0 ? offsets[anchorIndex] : this.scrollPosition;
+    while (first < this.entries.length && offsets[first + 1] < scroll) first++;
+    first = Math.max(0, first - 20);
+    const last = Math.min(this.entries.length, first + 100);
+    const spacer = (height, key) => {
+      const node = el("div", undefined, undefined, key);
+      node.style.height = `${height}px`;
+      node.setAttribute("aria-hidden", "true");
+      return node;
+    };
+    if (first) viewport.append(spacer(offsets[first], "activity-before"));
+    let day;
+    for (const entry of this.entries.slice(first, last)) {
       const date = new Date(entry.when * 1000);
       const dateLabel = dateFormat.format(date);
       if (dateLabel !== day) {
@@ -619,6 +676,8 @@ export class SensorActivity {
       );
       viewport.append(row);
     }
+    if (last < this.entries.length)
+      viewport.append(spacer(offsets.at(-1) - offsets[last], "activity-after"));
     const footer = el(
       "p",
       this.loading

@@ -1,3 +1,4 @@
+import { checkReview } from "./browser-review.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -22,6 +23,7 @@ if (
         "vacuum",
         "graph-layout",
         "router",
+        "review",
       ].includes(name),
   )
 )
@@ -31,6 +33,7 @@ if (
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({ headless: true });
 try {
+  if (shouldRun("review")) results.push(await checkReview(browser));
   if (shouldRun("router")) results.push(await checkRouter(browser, out));
   if (shouldRun("media")) {
     const page = await browser.newPage({

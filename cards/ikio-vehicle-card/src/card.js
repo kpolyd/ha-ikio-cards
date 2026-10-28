@@ -140,11 +140,17 @@ export class Card extends ControlCard {
     if (!force && this.imageKey === source) return;
     this.imageKey = source;
     const request = (this.imageRequest = (this.imageRequest || 0) + 1);
+    let timeout;
     try {
-      const result = await this.hass.callWS({
-        type: "media_source/resolve_media",
-        media_content_id: source,
-      });
+      const result = await Promise.race([
+        this.hass.callWS({
+          type: "media_source/resolve_media",
+          media_content_id: source,
+        }),
+        new Promise((_, reject) => {
+          timeout = setTimeout(() => reject(Error("Image timed out")), 10000);
+        }),
+      ]);
       if (
         request !== this.imageRequest ||
         source !== this.imageSource() ||
@@ -165,6 +171,11 @@ export class Card extends ControlCard {
         return;
       this.resolvedImage = "";
       this.imageError = "Car image unavailable";
+      clearTimeout(this.imageTimer);
+      if (this.visible)
+        this.imageTimer = setTimeout(() => this.loadImage(true), 30000);
+    } finally {
+      clearTimeout(timeout);
     }
     this.update();
   }

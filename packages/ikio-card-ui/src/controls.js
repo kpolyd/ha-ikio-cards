@@ -9,13 +9,34 @@ export function numeric(state) {
   const n = Number(state.state);
   return Number.isFinite(n) ? n : null;
 }
+const numberFormats = new Map();
 export function formatNumber(hass, value, digits = 2) {
-  return Number.isFinite(value)
-    ? new Intl.NumberFormat(
-        hass?.locale?.language || hass?.language || undefined,
-        { maximumFractionDigits: digits },
-      ).format(value)
-    : "—";
+  const preference = hass?.locale?.number_format;
+  const locale =
+    preference === "system"
+      ? undefined
+      : {
+          comma_decimal: "en-US",
+          decimal_comma: "de",
+          space_comma: "fr",
+          quote_decimal: "de-CH",
+          none: "en-US",
+        }[preference] ||
+        hass?.locale?.language ||
+        hass?.language;
+  const key = JSON.stringify([locale, preference, digits]);
+  if (!numberFormats.has(key)) {
+    if (numberFormats.size >= 32)
+      numberFormats.delete(numberFormats.keys().next().value);
+    numberFormats.set(
+      key,
+      new Intl.NumberFormat(locale, {
+        maximumFractionDigits: digits,
+        useGrouping: preference !== "none",
+      }),
+    );
+  }
+  return Number.isFinite(value) ? numberFormats.get(key).format(value) : "—";
 }
 export function stateText(hass, id) {
   const s = hass?.states?.[id];
@@ -194,11 +215,18 @@ function patch(old, next) {
     old["on" + name] = next._handlers?.[name] || null;
   old._handlers = next._handlers;
   if ("disabled" in old) old.disabled = next.disabled;
-  if ("value" in old && old.getRootNode().activeElement !== old)
-    old.value = next.value;
+
   if ("checked" in old) old.checked = next.checked;
+  if (
+    old.nodeName !== "SELECT" &&
+    "value" in old &&
+    old.getRootNode().activeElement !== old
+  )
+    old.value = next.value;
   if (!next.hasAttribute("data-native"))
     patchChildren(old, [...next.childNodes]);
+  if (old.nodeName === "SELECT" && old.getRootNode().activeElement !== old)
+    old.value = next.value;
   return old;
 }
 export function patchChildren(parent, children) {
@@ -213,7 +241,8 @@ export function patchChildren(parent, children) {
       const match = [...parent.children].find(
         (n) => n.dataset.key === next.dataset.key,
       );
-      if (match) parent.insertBefore(match, current);
+      parent.insertBefore(match || next, current);
+      if (!match) continue;
     }
     patch(parent.childNodes[i], next);
   }
@@ -250,6 +279,10 @@ export class ControlCard extends IkioCard {
     this.visibility = () => {
       this.visible = !document.hidden && this.intersecting !== false;
       this.onVisibility?.();
+      if (this.visible && this.renderDirty) {
+        this.renderDirty = false;
+        this.update();
+      }
     };
     document.addEventListener("visibilitychange", this.visibility);
     if (globalThis.IntersectionObserver) {
@@ -308,7 +341,11 @@ export class ControlCard extends IkioCard {
   blocked(id) {
     return (
       this.preview ||
-      !available(this.state(id)) ||
+      !(
+        available(this.state(id)) ||
+        (/^(button|input_button|scene)\./.test(id) &&
+          this.state(id)?.state === "unknown")
+      ) ||
       this.pending.has(id) ||
       this.requests.has(id)
     );

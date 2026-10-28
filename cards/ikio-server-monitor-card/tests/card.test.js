@@ -440,7 +440,7 @@ test("network history batches both rate sensors, preserves gaps and stops reques
   assert.deepEqual(calls[0].entity_ids, ["sensor.rx", "sensor.tx"]);
   assert.equal(calls[0].include_start_time_state, true);
   assert.equal(calls[0].significant_changes_only, false);
-  assert.equal(calls[0].minimal_response, false);
+  assert.equal(calls[0].minimal_response, true);
   assert.equal(
     Date.parse(calls[0].end_time) - Date.parse(calls[0].start_time),
     1800000,

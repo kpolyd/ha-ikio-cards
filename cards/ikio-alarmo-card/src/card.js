@@ -252,7 +252,16 @@ export class Card extends ControlCard {
       this.countdownKey = key;
       this.countdownConnection = this.hass?.connection;
     }
-    this.clock ??= setInterval(() => this.update(), 1000);
+    this.clock ??= setInterval(() => {
+      const value = this.countdownValue();
+      const seconds = this.content.querySelector(".security-seconds");
+      const arc = this.content.querySelector(".security-countdown-arc");
+      if (value && seconds && arc) {
+        seconds.textContent = ` · ${value.seconds} s`;
+        arc.setAttribute("stroke-dasharray", `${value.fraction * 100} 100`);
+      }
+      this.syncCountdown();
+    }, 1000);
     if (
       !this.hass?.callWS ||
       this.countdownLoading ||

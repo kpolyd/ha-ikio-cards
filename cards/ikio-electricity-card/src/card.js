@@ -166,6 +166,17 @@ export class Card extends HistoryCard {
       ),
     ];
   }
+  untrackedPoints(ids) {
+    const key = JSON.stringify(ids);
+    if (this.untrackedSource !== this.history || this.untrackedKey !== key) {
+      this.untrackedSource = this.history;
+      this.untrackedKey = key;
+      this.untrackedPointsCache = untrackedHistory(
+        ids.map((id) => normalizeHistory(this.history?.[id], "W")),
+      );
+    }
+    return this.untrackedPointsCache;
+  }
   tariffReading(label, entity, calculated) {
     const value =
       calculated === undefined
@@ -201,6 +212,7 @@ export class Card extends HistoryCard {
           unit: "W",
           hass: this.hass,
           sparkline: true,
+          graphId: `device-${encodeURIComponent(entity || name)}`,
           colourStops: this.graphStops,
           min: this.config.expected_min ?? 0,
           max: this.config.expected_max ?? 3500,
@@ -376,11 +388,10 @@ export class Card extends HistoryCard {
         `${formatNumber(this.hass, calc.value, 0)} W`,
         undefined,
         c.non_overlapping
-          ? untrackedHistory(
-              [c.power_entity, ...circuits.map((r) => r.power_entity)].map(
-                (entity) => windowPoints(history(entity), start, end),
-              ),
-            )
+          ? this.untrackedPoints([
+              c.power_entity,
+              ...circuits.map((r) => r.power_entity),
+            ])
           : [],
         start,
         end,

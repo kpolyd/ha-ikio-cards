@@ -42,9 +42,12 @@ export function colour(value, min = 0, max = 3500, colourStops = stops) {
   }
   return colourStops.at(-1)[1];
 }
+const normalized = new WeakMap();
 export function normalizeHistory(data, unit) {
+  if (data && normalized.get(data)?.has(unit))
+    return normalized.get(data).get(unit);
   let previousAttributes = {};
-  return (data || [])
+  const result = (data || [])
     .map((item) => {
       previousAttributes = item.a || item.attributes || previousAttributes;
       const time = Number.isFinite(item.lu)
@@ -71,6 +74,11 @@ export function normalizeHistory(data, unit) {
     })
     .filter((p) => Number.isFinite(p.time))
     .sort((a, b) => a.time - b.time);
+  if (data) {
+    if (!normalized.has(data)) normalized.set(data, new Map());
+    normalized.get(data).set(unit, result);
+  }
+  return result;
 }
 export function downsample(points, limit = 240) {
   if (points.length <= limit) return points;
@@ -98,6 +106,17 @@ export function downsample(points, limit = 240) {
   return out;
 }
 const caches = new WeakMap();
+const stamp = (item) =>
+  Number.isFinite(item.lu)
+    ? item.lu * 1000
+    : Date.parse(item.last_updated || item.last_changed);
+function expandHistory(items) {
+  let attributes = {};
+  return (items || []).map((item) => {
+    attributes = item.a || item.attributes || attributes;
+    return { ...item, a: attributes };
+  });
+}
 export async function fetchHistory(hass, ids, hours, now = Date.now()) {
   const owner = hass.connection || hass;
   let cache = caches.get(owner);
@@ -105,24 +124,65 @@ export async function fetchHistory(hass, ids, hours, now = Date.now()) {
     cache = new Map();
     caches.set(owner, cache);
   }
-  const key = JSON.stringify([ids, hours, Math.floor(now / 60000)]);
-  if (cache.has(key)) return cache.get(key);
-  const promise = hass.callWS({
-    type: "history/history_during_period",
-    start_time: new Date(now - hours * 3600000).toISOString(),
-    end_time: new Date(now).toISOString(),
-    entity_ids: ids,
-    minimal_response: true,
-    no_attributes: false,
-  });
-  cache.set(key, promise);
-  if (cache.size > 12) cache.delete(cache.keys().next().value);
-  try {
-    return await promise;
-  } catch (e) {
-    cache.delete(key);
-    throw e;
+  ids = [...new Set(ids)].sort();
+  const key = JSON.stringify([ids, hours]);
+  let entry = cache.get(key);
+  if (entry?.pending) return entry.pending;
+  if (entry?.data && now >= entry.end && now - entry.end < 60000)
+    return entry.data;
+  if (!entry) {
+    entry = {};
+    cache.set(key, entry);
   }
+  if (cache.size > 32) cache.delete(cache.keys().next().value);
+  const floor = now - hours * 3600000;
+  const incremental = entry.data && entry.end > floor && now >= entry.end;
+  const start = incremental ? Math.max(floor, entry.end - 60000) : floor;
+  let timer;
+  const pending = (async () => {
+    try {
+      const data = await Promise.race([
+        new Promise((resolve) =>
+          resolve(
+            hass.callWS({
+              type: "history/history_during_period",
+              start_time: new Date(start).toISOString(),
+              end_time: new Date(now).toISOString(),
+              entity_ids: ids,
+              include_start_time_state: true,
+              significant_changes_only: false,
+              minimal_response: true,
+              no_attributes: false,
+            }),
+          ),
+        ),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(Error("History timed out")), 10000);
+        }),
+      ]);
+      const merged = {};
+      for (const id of ids) {
+        const recent = expandHistory(data[id]);
+        const prior = incremental
+          ? (entry.data[id] || []).filter((item) => stamp(item) < start)
+          : [];
+        const items = [...prior, ...recent]
+          .filter((item) => Number.isFinite(stamp(item)))
+          .sort((a, b) => stamp(a) - stamp(b));
+        const first = items.findIndex((item) => stamp(item) >= floor);
+        merged[id] =
+          first < 0 ? items.slice(-1) : items.slice(Math.max(0, first - 1));
+      }
+      entry.data = merged;
+      entry.end = now;
+      return merged;
+    } finally {
+      clearTimeout(timer);
+      entry.pending = undefined;
+    }
+  })();
+  entry.pending = pending;
+  return pending;
 }
 function svgNode(tag, attrs = {}) {
   const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -159,6 +219,7 @@ export function graph(
     formatAxis,
     sparkline = false,
     colourStops = stops,
+    graphId = ++graphSequence,
   } = {},
 ) {
   series = series.map((s) => ({
@@ -228,7 +289,6 @@ export function graph(
       high: axisText(high, unit),
     }),
   });
-  const graphId = ++graphSequence;
   const defs = svgNode("defs");
   svg.append(defs);
   if (axisLabels && axisGuides) {
@@ -276,6 +336,7 @@ export function graph(
       previous = false;
     for (const point of downsample(s.points)) {
       if (point.value === null) {
+        if (previous && sparkline) d += `H${x(point.time)} `;
         previous = false;
         continue;
       }
@@ -346,6 +407,8 @@ export class HistoryCard extends ControlCard {
   onDisconnect() {
     clearInterval(this.refreshTimer);
     this.historyKey = "";
+    this.historyRequest = (this.historyRequest || 0) + 1;
+    this.loading = false;
   }
   historyEntities() {
     return [];
@@ -360,22 +423,42 @@ export class HistoryCard extends ControlCard {
       !this.isConnected
     )
       return;
+    if (this.historyConnection !== this.hass.connection) {
+      this.historyConnection = this.hass.connection;
+      this.historyRequest = (this.historyRequest || 0) + 1;
+      this.historyKey = "";
+      this.loading = false;
+    }
     const key = JSON.stringify([ids, this.config.hours || 6]);
     if (!force && key === this.historyKey) return;
     this.historyKey = key;
+    if (this.loading) return;
     const revision = this.revision;
+    const connection = this.hass.connection;
+    const request = (this.historyRequest = (this.historyRequest || 0) + 1);
+    const valid = () =>
+      revision === this.revision &&
+      request === this.historyRequest &&
+      connection === this.hass?.connection;
     this.loading = true;
+    let timer;
     try {
-      const data = await fetchHistory(this.hass, ids, this.config.hours || 6);
-      if (revision !== this.revision) return;
+      const data = await Promise.race([
+        fetchHistory(this.hass, ids, this.config.hours || 6),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(Error("History timed out")), 10000);
+        }),
+      ]);
+      if (!valid()) return;
       this.history = data;
       this.historyError = "";
     } catch {
-      if (revision !== this.revision) return;
+      if (!valid()) return;
       this.historyError =
         "History could not be loaded. Live readings remain available.";
     } finally {
-      if (revision === this.revision) {
+      clearTimeout(timer);
+      if (valid()) {
         this.loading = false;
         this.update();
       }
@@ -405,6 +488,7 @@ export class HistoryCard extends ControlCard {
         points: normalizeHistory(this.history?.[r.entity], unit),
       })),
       {
+        graphId: (this.graphId ??= ++graphSequence),
         min: this.config.expected_min ?? 0,
         max: this.config.expected_max ?? 3500,
         start: now - (this.config.hours || 6) * 3600000,

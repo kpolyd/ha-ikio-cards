@@ -123,3 +123,50 @@ test("only accepted button commands vibrate once through both send and act paths
     card.remove();
   }
 });
+
+test("prepending keyed rows retains existing controls and selection follows new options", () => {
+  const root = document.createElement("div");
+  const row = (key) => ui.el("button", key, "", key);
+  ui.patchChildren(root, [row("a"), row("b")]);
+  const [a, b] = root.children;
+  ui.patchChildren(root, [row("new"), row("a"), row("b")]);
+  assert.equal(root.children[1], a);
+  assert.equal(root.children[2], b);
+  ui.patchChildren(root, [ui.select("Mode", ["a", "b"], "a", () => {})]);
+  ui.patchChildren(root, [ui.select("Mode", ["c", "d"], "d", () => {})]);
+  assert.equal(root.querySelector("select").value, "d");
+});
+test("number formatting respects independent HA number preference", () => {
+  assert.equal(
+    ui.formatNumber(
+      { locale: { language: "en", number_format: "decimal_comma" } },
+      1234.5,
+    ),
+    "1.234,5",
+  );
+});
+test("unknown stateless actions can run but unavailable actions cannot", async () => {
+  class Stateless extends ui.ControlCard {
+    render() {
+      return [];
+    }
+  }
+  customElements.define("review-stateless", Stateless);
+  const c = document.createElement("review-stateless");
+  c.setConfig({});
+  const calls = [];
+  c.hass = {
+    states: {
+      "button.restart": { state: "unknown" },
+      "scene.test": { state: "unknown" },
+      "button.offline": { state: "unavailable" },
+    },
+    callService: async (...args) => calls.push(args),
+  };
+  await c.action("button.restart");
+  await c.action("scene.test");
+  await c.action("button.offline");
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0][1], "press");
+  assert.equal(calls[1][1], "turn_on");
+});
