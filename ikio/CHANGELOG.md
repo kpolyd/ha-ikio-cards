@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.15.3](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.2...v0.15.3) (2026-10-28)
+
+
+### Bug Fixes
+
+* **cards:** correct controls and history updates while reducing render work ([fb7f349](https://github.com/kpolyd/ha-ikio-cards/commit/fb7f34905fab7087b7382aa2d2a74d3beba832e8))
+
 ## [0.15.2](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.1...v0.15.2) (2026-10-28)
 
 
