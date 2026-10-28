@@ -104,6 +104,67 @@ export async function checkGraphLayout(browser, out) {
           });
         }
       }
+    for (const [value, unit, expected] of [
+      [12500, "B/s", "12.5 kB/s"],
+      [12500, "kB/s", "12.5 MB/s"],
+      [0.002, "MB/s", "2 kB/s"],
+      [8, "Mbit/s", "8 Mbit/s"],
+      [0.0005, "Mbps", "500 bit/s"],
+      [0.5, "MiB/s", "512 KiB/s"],
+      [2048, "Kibit/s", "2 Mibit/s"],
+      [0, "GB/s", "0 B/s"],
+    ]) {
+      await server.evaluate(
+        (card, sample) => {
+          const id = card.config.network_rx_entity;
+          const now = Date.now() / 1000;
+          card.network = {
+            ...card.network,
+            [id]: [
+              {
+                lu: now - 1801,
+                s: String(sample.value),
+                a: { unit_of_measurement: sample.unit },
+              },
+            ],
+          };
+          card.hass = {
+            ...card.hass,
+            locale: { language: "en" },
+            states: {
+              ...card.hass.states,
+              [id]: {
+                ...card.hass.states[id],
+                state: String(sample.value),
+                attributes: {
+                  ...card.hass.states[id].attributes,
+                  unit_of_measurement: sample.unit,
+                },
+              },
+            },
+            formatEntityState(state) {
+              // Exercise HA's entity-ID requirement, absent from older previews.
+              state.entity_id.split(".");
+              return `${Number(state.state)} ${state.attributes.unit_of_measurement || ""}`.trim();
+            },
+          };
+        },
+        { value, unit },
+      );
+      assert.equal(
+        await server
+          .locator(".system-network-legend .ae-value")
+          .first()
+          .textContent(),
+        expected,
+        unit,
+      );
+      assert.ok(
+        await server.locator(".system-network-plot path").count(),
+        unit,
+      );
+      assert.ok(await server.locator("[data-extremum]").count(), unit);
+    }
     assert.deepEqual(errors, []);
     return { card: "graph-layout", passed: true };
   } finally {
