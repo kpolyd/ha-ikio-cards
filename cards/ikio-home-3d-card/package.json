@@ -1,0 +1,20 @@
+{
+  "name": "@ikio/home-3d-card",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ikio/card-ui": "file:../../packages/ikio-card-ui",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10",
+    "prettier": "3.6.2",
+    "jsdom": "26.1.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test tests/*.test.js",
+    "format": "prettier --write src tests examples build.mjs",
+    "format:check": "prettier --check src tests examples build.mjs"
+  }
+}

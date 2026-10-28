@@ -5,6 +5,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { checkVacuum } from "./browser-vacuum.mjs";
+import { checkHome3D } from "./browser-home-3d.mjs";
 import { checkWeather } from "./browser-weather.mjs";
 import { checkRouter } from "./browser-router.mjs";
 import { checkGraphLayout } from "./browser-graph-layout.mjs";
@@ -20,6 +21,7 @@ if (
       ![
         "lights",
         "weather",
+        "home-3d",
         "media",
         "climate",
         "dehumidifier",
@@ -31,10 +33,13 @@ if (
   )
 )
   throw Error(
-    "Choose weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
+    "Choose home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  args: ["--enable-unsafe-swiftshader"],
+});
 try {
   if (shouldRun("lights")) {
     const page = await browser.newPage({
@@ -141,6 +146,7 @@ try {
     results.push({ card: "lights", passed: true });
     await page.close();
   }
+  if (shouldRun("home-3d")) results.push(await checkHome3D(browser, out));
   if (shouldRun("weather")) results.push(await checkWeather(browser, out));
   if (shouldRun("review")) results.push(await checkReview(browser));
   if (shouldRun("router")) results.push(await checkRouter(browser, out));

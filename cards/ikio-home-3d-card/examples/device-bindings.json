@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "scene": [
+    {
+      "object": "studio-lamp",
+      "entity": "lamp",
+      "behavior": "light"
+    },
+    {
+      "object": "studio-screen",
+      "entity": "screen",
+      "behavior": "screen",
+      "activeStates": ["playing"],
+      "activeMaterial": {
+        "color": "#5599bb"
+      }
+    },
+    {
+      "object": "studio-window",
+      "entity": "window",
+      "behavior": "opening"
+    }
+  ],
+  "labels": [
+    {
+      "entity": "temperature",
+      "type": "climate",
+      "position": {
+        "x": 2,
+        "y": 1,
+        "z": 1.5
+      },
+      "humidity": "humidity"
+    },
+    {
+      "entity": "window",
+      "type": "contact",
+      "position": {
+        "x": 4,
+        "y": 2.2,
+        "z": 1.5
+      },
+      "icon": "window"
+    }
+  ],
+  "groups": [],
+  "layout": {
+    "edge": 4,
+    "top": 74,
+    "visibleTop": 70,
+    "collisionGap": 3,
+    "offsets": [0, -32, 32]
+  }
+}

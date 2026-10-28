@@ -20,6 +20,7 @@ test("all renamed cards and editors register with current names and no legacy al
     "server-monitor": "Server Monitor",
     router: "Router",
     weather: "Weather",
+    "home-3d": "Home 3D",
     climate: "Climate",
     dehumidifier: "Dehumidifier",
     media: "Media",
@@ -47,7 +48,7 @@ test("all renamed cards and editors register with current names and no legacy al
     assert.ok(card.shadowRoot.textContent.length, id);
     card.remove();
   }
-  assert.equal(window.customCards.length, 15);
+  assert.equal(window.customCards.length, 16);
   for (const old of [
     "light",
     "energy",

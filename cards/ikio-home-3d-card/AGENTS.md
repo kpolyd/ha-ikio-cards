@@ -1,0 +1,3 @@
+# Ikio Home 3D
+
+Follow the root guide. Preserve the migrated renderer, toolbar, top/full-wall defaults, standard Ikio dark/light/HA appearance independent of solar lighting, badges, one-finger scrolling/two-finger manipulation, fitting, cached shadows and sun sampling. Required home_model, entity_inventory and device_bindings point to three external JSON files. Never import personal defaults, private model coordinates or household entity mappings into source, bundles, examples or previews. Examples and tests use a fictional studio. Load all files atomically with validation, cancellation, bounded loading and stale-response protection. Keep config file content out of error logs. All file fields belong in the visual editor. No GLB conversion or redesign is requested.

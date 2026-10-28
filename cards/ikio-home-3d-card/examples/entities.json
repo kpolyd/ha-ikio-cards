@@ -1,0 +1,49 @@
+[
+  {
+    "id": "lamp",
+    "entity": "light.example_lamp",
+    "name": "Studio lamp",
+    "room": "Studio",
+    "demo": {
+      "state": "off"
+    }
+  },
+  {
+    "id": "screen",
+    "entity": "media_player.example_screen",
+    "name": "Screen",
+    "room": "Studio",
+    "demo": {
+      "state": "off"
+    }
+  },
+  {
+    "id": "window",
+    "entity": "binary_sensor.example_window",
+    "name": "Window",
+    "room": "Studio",
+    "demo": {
+      "state": "off"
+    }
+  },
+  {
+    "id": "temperature",
+    "entity": "sensor.example_temperature",
+    "name": "Temperature",
+    "room": "Studio",
+    "demo": {
+      "state": "20",
+      "unit": "°C"
+    }
+  },
+  {
+    "id": "humidity",
+    "entity": "sensor.example_humidity",
+    "name": "Humidity",
+    "room": "Studio",
+    "demo": {
+      "state": "50",
+      "unit": "%"
+    }
+  }
+]

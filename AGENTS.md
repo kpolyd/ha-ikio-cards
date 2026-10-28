@@ -4,12 +4,13 @@ This guide applies to the whole repository. Read the applicable `cards/<card>/AG
 
 ## Structure
 
-- Fifteen cards live in separate `cards/ikio-*-card` npm workspaces.
+- Sixteen cards live in separate `cards/ikio-*-card` npm workspaces.
 - `packages/ikio-card-ui` and `packages/ikio-graph` provide shared code. Keep domain-specific capabilities in card adapters.
 - The root lockfile is shared. Never introduce workspace lockfiles or runtime CDN imports.
 - Edit source, then rebuild; generated `dist/` and `release/` output is ignored. The root `ha-ikio-cards.js` and `licenses/` are intentionally tracked for HACS raw-file delivery. Update them with `npm run prepare:hacs` and verify with `npm run check:hacs`; do not edit the minified bundle by hand.
-- Do not add household bindings, coordinates, camera images, credentials or the separate 3D card. Tests and previews use clearly simulated entities.
+- Do not add household bindings, coordinates, camera images, credentials. Tests and previews use clearly simulated entities.
 - `docs/ikio/SPECIFICATION.md` records decisions, with later sections overriding earlier ones. Keep all configuration available through visual editors; hold always opens native entity details.
+- Home 3D is now included by explicit owner request. It takes three external configuration files; personal model/configuration data must stay outside this public repository.
 - Every card must be generic and reusable across households. Do not structure cards, entity slots, labels, limits or defaults around the owner’s personal setup. Prefer configurable, repeatable devices/readings and derive controls from supported HA capabilities. Use household examples only to illustrate a general design; state genuine technical/domain limits explicitly.
 - Before implementing a new card or redesign, obtain the owner’s explicit agreement on BOTH the visual mock and the complete configuration proposal. Agreement on only one does not authorize implementation. Iterate on both first; keep implementation, merging and release as separate authorized stages. This is a standing owner requirement for all future card design work.
 - Before UI work, read `docs/ikio/DESIGN_APPROACH.md` and the relevant findings in `docs/ikio/DESIGN_REVIEW.md`. Light, Energy, Drive (Car) and Security are approved reference designs: preserve their layouts and interactions unless the owner explicitly requests changes. Scope shared-style changes so they do not redesign these cards indirectly.

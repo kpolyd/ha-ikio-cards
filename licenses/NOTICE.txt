@@ -1,1 +1,1 @@
-Ikio Cards has no runtime third-party JavaScript dependencies. Built with esbuild (MIT).
+Ikio Cards bundles Three.js (MIT) for Home 3D. Built with esbuild (MIT). See Three-LICENSE.txt.
