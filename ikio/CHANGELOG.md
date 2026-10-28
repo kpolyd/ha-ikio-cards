@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.17.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.16.0...v0.17.0) (2026-10-28)
+
+
+### Features
+
+* **home-3d:** add externally configured viewer with Ikio themes ([cfaa6fa](https://github.com/kpolyd/ha-ikio-cards/commit/cfaa6fa58f08a8370892da2baaccd8c3f03dcec2))
+
 ## [0.16.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.3...v0.16.0) (2026-10-28)
 
 
