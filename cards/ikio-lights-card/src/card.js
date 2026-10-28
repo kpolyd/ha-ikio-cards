@@ -12,6 +12,7 @@ const css = `
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .tile{min-width:0;border-radius:10px;background:var(--ae-well);overflow:hidden}
 .tile.on{background:var(--ae-active)}
+:host([appearance=ha]) .tile.on{background:color-mix(in srgb,var(--state-light-active-color,var(--state-active-color,var(--primary-color,#ffc107))) 24%,var(--ae-well))}
 .toggle{width:100%;min-height:44px;padding:4px 4px;text-align:left;background:none;display:flex;gap:4px;align-items:center}
 .labels{min-width:0}.name{display:block;font-size:12px;overflow-wrap:anywhere}
 .location{display:block;font-size:12px;color:var(--ae-muted);margin-top:3px;overflow-wrap:anywhere}

@@ -17,6 +17,7 @@ Thirteen independent cards share colours, typography, controls and one synchroni
 | [Alarmo](cards/ikio-alarmo-card/README.md) | Alarm, contacts, presence and optional Alarmo override |
 | [Camera](cards/ikio-camera-card/README.md) | On-demand live view and optional snapshot controls |
 | [Electricity](cards/ikio-electricity-card/README.md) | Current power, billing-cycle totals/costs and device breakdown |
+| [Weather](cards/ikio-weather-card/README.md) | Current conditions, temperature forecast and rainfall in one compact chart |
 | [Router](cards/ikio-router-card/README.md) | Connection status, cellular signal and network traffic |
 | [Server Monitor](cards/ikio-server-monitor-card/README.md) | Host metrics, availability and service controls |
 | [Vehicle](cards/ikio-vehicle-card/README.md) | Vehicle readings, locks/doors/windows and map link |
@@ -38,7 +39,7 @@ Current collection version: see [`ikio/package.json`](ikio/package.json). The so
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All fourteen cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
+All fifteen cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 
@@ -138,6 +139,10 @@ Actual compiled cards with simulated Home Assistant data. Click an image to open
 ### Router
 
 [![Router](https://kpolyd.github.io/ha-ikio-cards/previews/0.15.3/screenshots/router/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.15.3/index.html#router)
+
+### Weather
+
+[![Weather](https://kpolyd.github.io/ha-ikio-cards/previews/0.15.3/screenshots/weather/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.15.3/index.html#weather)
 <!-- IKIO_PREVIEWS_END -->
 
 ## Languages

@@ -5,6 +5,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { checkVacuum } from "./browser-vacuum.mjs";
+import { checkWeather } from "./browser-weather.mjs";
 import { checkRouter } from "./browser-router.mjs";
 import { checkGraphLayout } from "./browser-graph-layout.mjs";
 
@@ -17,6 +18,8 @@ if (
   selected.some(
     (name) =>
       ![
+        "lights",
+        "weather",
         "media",
         "climate",
         "dehumidifier",
@@ -28,11 +31,117 @@ if (
   )
 )
   throw Error(
-    "Choose media, climate, dehumidifier, vacuum or graph-layout browser scenarios",
+    "Choose weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({ headless: true });
 try {
+  if (shouldRun("lights")) {
+    const page = await browser.newPage({
+      viewport: { width: 740, height: 1000 },
+    });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.route("**/*", (route) =>
+      route.request().url().startsWith("file:")
+        ? route.continue()
+        : route.abort(),
+    );
+    await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
+    await page.waitForFunction(() => window.ikioPreview?.ready);
+    const card = page.locator("ikio-lights-card");
+    for (const theme of ["dark", "light", "ha-dark", "ha-light"])
+      for (const width of [280, 320, 390, 520]) {
+        await page.evaluate(
+          ({ theme, width }) =>
+            window.ikioPreview.configure({
+              theme: theme.startsWith("ha-") ? "ha" : theme,
+              width,
+            }),
+          { theme, width },
+        );
+        await card.evaluate((c, theme) => {
+          if (theme.startsWith("ha-")) {
+            const dark = theme === "ha-dark";
+            for (const [key, value] of Object.entries({
+              "--ha-card-background": dark ? "#1c1c1c" : "#ffffff",
+              "--secondary-background-color": dark ? "#282828" : "#e5e5e5",
+              "--primary-text-color": dark ? "#eeeeee" : "#212121",
+              "--secondary-text-color": dark ? "#aaaaaa" : "#727272",
+              "--divider-color": dark ? "#444444" : "#cccccc",
+              "--primary-color": "#03a9f4",
+              "--state-light-active-color": "#ff9800",
+            }))
+              c.style.setProperty(key, value);
+          }
+        }, theme);
+        const colours = await card.evaluate((c) => {
+          const row = c.rows[0];
+          const setState = (state) => {
+            c.hass = {
+              ...c.hass,
+              states: {
+                ...c.hass.states,
+                [row.row.entity]: { ...c.hass.states[row.row.entity], state },
+              },
+            };
+            return getComputedStyle(row.tile).backgroundColor;
+          };
+          const off = setState("off");
+          const on = setState("on");
+          return {
+            off,
+            on,
+            restored: setState("off"),
+            stable: c.rows[0].toggle === row.toggle,
+            pressed: row.toggle.getAttribute("aria-pressed"),
+          };
+        });
+        assert.notEqual(
+          colours.on,
+          colours.off,
+          `${theme}/${width}: on must differ from off`,
+        );
+        assert.equal(colours.restored, colours.off);
+        assert.equal(colours.stable, true);
+        assert.equal(colours.pressed, "false");
+        if (theme.startsWith("ha-")) {
+          const fallback = await card.evaluate((c) => {
+            c.style.removeProperty("--state-light-active-color");
+            const row = c.rows[0];
+            c.hass = {
+              ...c.hass,
+              states: {
+                ...c.hass.states,
+                [row.row.entity]: {
+                  ...c.hass.states[row.row.entity],
+                  state: "on",
+                },
+              },
+            };
+            return getComputedStyle(row.tile).backgroundColor;
+          });
+          assert.notEqual(
+            fallback,
+            colours.off,
+            "Primary colour fallback remains visibly active",
+          );
+          assert.notEqual(
+            fallback,
+            colours.on,
+            "HA light active colour overrides the primary fallback",
+          );
+        }
+        if (width === 390) {
+          await card.scrollIntoViewIfNeeded();
+          await card.screenshot({ path: resolve(out, `lights-${theme}.png`) });
+        }
+      }
+    assert.deepEqual(errors, []);
+    results.push({ card: "lights", passed: true });
+    await page.close();
+  }
+  if (shouldRun("weather")) results.push(await checkWeather(browser, out));
   if (shouldRun("review")) results.push(await checkReview(browser));
   if (shouldRun("router")) results.push(await checkRouter(browser, out));
   if (shouldRun("media")) {

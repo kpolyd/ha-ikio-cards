@@ -145,3 +145,10 @@ Validation: 240 workspace tests and 20 script tests passed, including 18 Media c
 ## Router card (28 October 2026)
 
 Added the owner-approved generic Router card as the fourteenth workspace, with full visual configuration, independent Internet status, IP connection path, conditional compact cellular gauges, extra readings and a taller traffic graph with shared min/mid/max labels. English/Greek catalogs and compiled previews include the new card. Automated DOM and simulated browser checks are separate from native HA/live-router verification.
+
+
+## Weather card implementation (28 October 2026; not released)
+
+Added the approved compact Weather card as the fifteenth workspace. One weather entity supplies current conditions and a combined temperature/rainfall forecast. The complete visual editor exposes the approved toggles, forecast type/count and appearance. Native forecast subscriptions follow capabilities and lifecycle, with timeout/retry and stale-response guards. English/Greek labels, provider units, missing-data gaps, native details and the earlier Lights HA state-colour correction are included in the working tree.
+
+Validation: collection-wide workspace and script tests, translation/format/version/build/HACS checks, and all reusable simulated browser scenarios passed. Fourteen focused Weather tests cover configuration/editor preservation, forecast types, zero/missing values, units, locales/time zones, subscription failures/timeout/retry, visibility/remapping/reconnect, holds and icons. Compiled Weather checks cover 280/320/390/520 px, dark/light/HA, Greek, the three-type selector, graph/rain toggles and connection failure recovery. Generated collection captures and manual packaging are checked before delivery. These checks do not establish live Home Assistant/provider outcomes. Implementation is local; no merge or release has been performed.
