@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.16.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.3...v0.16.0) (2026-10-28)
+
+
+### Features
+
+* **weather:** add compact forecast card and restore light state colours ([9e1583e](https://github.com/kpolyd/ha-ikio-cards/commit/9e1583e2c8f7a8f087acac0ee6d280af4e423e13))
+
 ## [0.15.3](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.2...v0.15.3) (2026-10-28)
 
 
