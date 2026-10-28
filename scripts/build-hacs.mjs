@@ -10,7 +10,7 @@ const { version } = JSON.parse(await readFile("ikio/package.json", "utf8"));
 const cards = (await readdir("cards"))
   .filter((name) => name.startsWith("ikio-"))
   .sort();
-if (cards.length !== 15) throw Error("Expected all fifteen Ikio cards");
+if (cards.length !== 16) throw Error("Expected all sixteen Ikio cards");
 // Bundle dynamic editor imports into this file too: HACS downloads one asset.
 // The editors still initialize only when getConfigElement() is called.
 const result = await build({
@@ -28,6 +28,10 @@ const result = await build({
   target: "es2020",
   minify: true,
   legalComments: "inline",
+  loader: { ".css": "text" },
+  footer: {
+    js: `/* Three.js (MIT)\n${await readFile("cards/ikio-home-3d-card/licenses/Three-LICENSE.txt", "utf8")} */`,
+  },
   banner: {
     js: `/* Ikio Cards ${version} | https://github.com/kpolyd/ha-ikio-cards */`,
   },
@@ -44,17 +48,21 @@ await copyFile(
 );
 await writeFile(
   "dist/licenses/NOTICE.txt",
-  "Ikio Cards has no runtime third-party JavaScript dependencies. Built with esbuild (MIT).\n",
+  "Ikio Cards bundles Three.js (MIT) for Home 3D. Built with esbuild (MIT). See Three-LICENSE.txt.\n",
+);
+await copyFile(
+  "cards/ikio-home-3d-card/licenses/Three-LICENSE.txt",
+  "dist/licenses/Three-LICENSE.txt",
 );
 console.log(
-  `Ikio ${version}: fifteen cards and editors in dist/ha-ikio-cards.js`,
+  `Ikio ${version}: sixteen cards and editors in dist/ha-ikio-cards.js`,
 );
 
 // HACS reads this tracked file from the selected release tag through raw GitHub.
 if (process.argv.includes("--write")) {
   await copyFile("dist/ha-ikio-cards.js", "ha-ikio-cards.js");
   await mkdir("licenses", { recursive: true });
-  for (const name of ["NOTICE.txt", "esbuild-LICENSE.md"])
+  for (const name of ["NOTICE.txt", "esbuild-LICENSE.md", "Three-LICENSE.txt"])
     await copyFile(`dist/licenses/${name}`, `licenses/${name}`);
   console.log("Updated tracked HACS bundle and notices");
 }

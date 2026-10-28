@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "name": "Example studio",
+  "coordinates": {
+    "origin": {
+      "x": 0,
+      "z": 0
+    },
+    "rotationY": 0,
+    "bearing": 90
+  },
+  "overviewTarget": {
+    "x": 2,
+    "z": 1.5
+  },
+  "rooms": {
+    "Overview": [2, 1.5],
+    "Studio": [2, 1.5]
+  },
+  "materials": {
+    "wall": {
+      "color": "#ddddee"
+    },
+    "white": {
+      "color": "#ffffff"
+    },
+    "black": {
+      "color": "#222222"
+    },
+    "glass": {
+      "color": "#aabbcc",
+      "transparent": true,
+      "opacity": 0.3
+    }
+  },
+  "floors": [
+    {
+      "room": "Studio",
+      "position": {
+        "x": 2,
+        "y": -0.14,
+        "z": 1.5
+      },
+      "size": {
+        "width": 4,
+        "height": 0.14,
+        "depth": 3
+      },
+      "material": "white"
+    }
+  ],
+  "objects": [
+    {
+      "id": "studio-wall",
+      "kind": "wall",
+      "position": {
+        "x": 2,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "width": 4,
+        "height": 2.75,
+        "depth": 0.2
+      }
+    },
+    {
+      "id": "studio-lamp",
+      "kind": "light",
+      "name": "Studio lamp",
+      "position": {
+        "x": 2,
+        "y": 2.2,
+        "z": 1.5
+      },
+      "size": {
+        "width": 0.2,
+        "height": 0.1,
+        "depth": 0.2
+      },
+      "power": 6,
+      "color": "#ffeebb"
+    },
+    {
+      "id": "studio-screen",
+      "kind": "box",
+      "position": {
+        "x": 1,
+        "y": 0.8,
+        "z": 1
+      },
+      "size": {
+        "width": 0.7,
+        "height": 0.5,
+        "depth": 0.05
+      },
+      "material": "black"
+    },
+    {
+      "id": "studio-window",
+      "kind": "opening",
+      "openingType": "window",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 1.5
+      },
+      "width": 1,
+      "axis": "z"
+    }
+  ]
+}

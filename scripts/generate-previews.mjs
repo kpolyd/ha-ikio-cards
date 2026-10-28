@@ -21,7 +21,10 @@ const server = createServer(async (req, res) => {
   }
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  args: ["--enable-unsafe-swiftshader"],
+});
 const captures = [];
 try {
   for (const theme of ["dark", "light"])

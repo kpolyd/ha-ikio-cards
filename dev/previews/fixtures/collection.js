@@ -1,3 +1,23 @@
+import home3dModel from "../../../cards/ikio-home-3d-card/examples/home-model.json";
+import home3dEntities from "../../../cards/ikio-home-3d-card/examples/entities.json";
+import home3dBindings from "../../../cards/ikio-home-3d-card/examples/device-bindings.json";
+// Fictional JSON responses let the downloadable gallery run without a server.
+const home3dFiles = new Map([
+  ["/local/ikio-demo/home-model.json", home3dModel],
+  ["/local/ikio-demo/entities.json", home3dEntities],
+  ["/local/ikio-demo/device-bindings.json", home3dBindings],
+]);
+const originalFetch = window.fetch.bind(window);
+window.ikioHomeFileRequests = 0;
+window.fetch = async (input, options = {}) => {
+  const path = new URL(typeof input === "string" ? input : input.url, location.href).pathname;
+  if (path.startsWith("/local/ikio-demo/")) {
+    window.ikioHomeFileRequests++;
+    if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    return new Response(JSON.stringify(home3dFiles.get(path) ?? {}), { status: home3dFiles.has(path) ? 200 : 404, headers: {"Content-Type":"application/json"} });
+  }
+  return originalFetch(input, options);
+};
 import mediaArtwork from "../media-artwork.png";
 import {
   electricityIds,
@@ -78,6 +98,7 @@ const types = [
   "chip",
   "router",
   "weather",
+  "home-3d",
 ].filter((type) => customElements.get(`ikio-${type}-card`));
 const states = {};
 function state(id, value, attributes = {}) {
@@ -385,6 +406,13 @@ const weatherForecasts = {
     is_daytime:i%2===0,condition:i%2?"clear-night":"partlycloudy",precipitation:0})),
 };
 const weatherListeners = new Set();
+configs["home-3d"] = {
+  home_model: "/local/ikio-demo/home-model.json",
+  entity_inventory: "/local/ikio-demo/entities.json",
+  device_bindings: "/local/ikio-demo/device-bindings.json",
+};
+for (const item of home3dEntities) state(item.entity, item.demo?.state || "off", { unit_of_measurement: item.demo?.unit || "" });
+state("sun.sun", "above_horizon", { azimuth:180,elevation:30 });
 const connection = {
   subscribeMessage: async (callback,message) => {
     if (message.type !== "weather/subscribe_forecast") throw Error("Unsupported fixture subscription");

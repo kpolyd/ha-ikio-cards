@@ -10,7 +10,7 @@ export function numeric(state) {
   return Number.isFinite(n) ? n : null;
 }
 const numberFormats = new Map();
-export function formatNumber(hass, value, digits = 2) {
+export function formatNumber(hass, value, digits = 2, minimumDigits = 0) {
   const preference = hass?.locale?.number_format;
   const locale =
     preference === "system"
@@ -24,7 +24,7 @@ export function formatNumber(hass, value, digits = 2) {
         }[preference] ||
         hass?.locale?.language ||
         hass?.language;
-  const key = JSON.stringify([locale, preference, digits]);
+  const key = JSON.stringify([locale, preference, digits, minimumDigits]);
   if (!numberFormats.has(key)) {
     if (numberFormats.size >= 32)
       numberFormats.delete(numberFormats.keys().next().value);
@@ -32,6 +32,7 @@ export function formatNumber(hass, value, digits = 2) {
       key,
       new Intl.NumberFormat(locale, {
         maximumFractionDigits: digits,
+        minimumFractionDigits: minimumDigits,
         useGrouping: preference !== "none",
       }),
     );

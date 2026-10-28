@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,7 +19,11 @@ export async function validateHacsBundle(root = process.cwd()) {
     throw Error(
       "Tracked HACS bundle is stale: run npm run prepare:hacs and commit the result",
     );
-  for (const name of ["NOTICE.txt", "esbuild-LICENSE.md"]) {
+  for (const name of new Set([
+    "NOTICE.txt",
+    "esbuild-LICENSE.md",
+    ...(await readdir(`${root}/dist/licenses`)),
+  ])) {
     const tracked = await readFile(`${root}/licenses/${name}`);
     const generated = await readFile(`${root}/dist/licenses/${name}`);
     if (!tracked.equals(generated)) throw Error(`Tracked ${name} is stale`);
