@@ -139,6 +139,14 @@ export async function checkRouter(browser, out) {
       ),
       false,
     );
+    const downloadLabel = await card
+      .locator(".system-network-legend .ae-label")
+      .first()
+      .boundingBox();
+    assert.ok(
+      downloadLabel.height < 20,
+      "Precision must not split Download across lines",
+    );
     await card.screenshot({
       path: resolve(out, "router-sensor-precision.png"),
     });

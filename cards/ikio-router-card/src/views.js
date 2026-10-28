@@ -8,9 +8,9 @@ const svgNode = (tag, attrs = {}) => {
   return n;
 };
 export const networkStyles = `.ikio-router .system-network{display:grid;gap:0}
-.ikio-router .system-network-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}
-.ikio-router .system-network-legend .ae-reading{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;padding:0}
-.ikio-router .system-network-legend .ae-label{font-size:11px}
+.ikio-router .system-network-legend{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 12px}
+.ikio-router .system-network-legend .ae-reading{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap;min-width:0;gap:4px 6px;padding:0}
+.ikio-router .system-network-legend .ae-label{font-size:11px;white-space:nowrap}
 .ikio-router .system-network-legend .ae-value{font-size:12px}
 .ikio-router .system-network-key{width:14px;border-top:2px solid var(--ae-network-download);flex:none}
 .ikio-router .system-network-key.upload{border-top:2px dashed var(--ae-network-upload)}
