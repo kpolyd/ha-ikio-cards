@@ -1,3 +1,4 @@
+import { rateDisplay, rateFactor } from "./rate-display.js";
 import { t, stateLabel, language, translateError } from "./i18n.js";
 import { IkioCard, element, details, available, entityName } from "./card.js";
 import { bindHold } from "./interactions.js";
@@ -28,6 +29,8 @@ export function valueText(hass, id) {
   if (!s) return t(hass, id ? "Entity not found" : "Not configured");
   if (!available(s)) return stateText(hass, id);
   const n = numeric(s);
+  if (n !== null && rateFactor(s.attributes?.unit_of_measurement) !== null)
+    return rateDisplay(hass, { entity: id });
   return n === null
     ? stateText(hass, id)
     : `${formatNumber(hass, n)} ${s.attributes?.unit_of_measurement || ""}`.trim();

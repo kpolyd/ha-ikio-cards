@@ -61,3 +61,36 @@ export function bindHold(target, onHold, { delay = 550 } = {}) {
     },
   };
 }
+
+/** Delegate feedback so rerenders do not add listeners or duplicate taps. */
+export function bindHaptics(root, enabled = () => true) {
+  const eligible = new WeakSet();
+  root.addEventListener(
+    "click",
+    (event) => {
+      const control = event
+        .composedPath()
+        .find((node) =>
+          node.matches?.('button, summary, a[href], [role="button"]'),
+        );
+      if (
+        enabled() &&
+        control &&
+        !control.matches(':disabled, [aria-disabled="true"]')
+      )
+        eligible.add(event);
+    },
+    true,
+  );
+  // A suppressed hold-click never reaches this listener. Check availability
+  // before the action handler can disable its button while awaiting HA.
+  root.addEventListener("click", (event) => {
+    if (!eligible.has(event)) return;
+    const feedback = new root.ownerDocument.defaultView.Event("haptic", {
+      bubbles: true,
+      composed: true,
+    });
+    feedback.detail = "light";
+    root.dispatchEvent(feedback);
+  });
+}

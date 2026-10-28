@@ -126,7 +126,7 @@ export async function checkRouter(browser, out) {
     });
     assert.equal(
       await card.locator('[data-extremum="min"]').textContent(),
-      "0,000 Mbit/s",
+      "0,000 bit/s",
     );
     assert.equal(
       await card.evaluate((c) =>
@@ -150,6 +150,26 @@ export async function checkRouter(browser, out) {
     await card.screenshot({
       path: resolve(out, "router-sensor-precision.png"),
     });
+    await card.evaluate((c) => {
+      c.hass = {
+        ...c.hass,
+        states: {
+          ...c.hass.states,
+          "sensor.network_rx": {
+            ...c.hass.states["sensor.network_rx"],
+            state: "0.0005",
+          },
+          "sensor.network_tx": {
+            ...c.hass.states["sensor.network_tx"],
+            state: "3000",
+          },
+        },
+      };
+    });
+    assert.deepEqual(
+      await card.locator(".system-network-legend .ae-value").allTextContents(),
+      ["500,000 bit/s", "3 MB/s"],
+    );
     await page.evaluate((options) => window.ikioPreview.configure(options), {
       theme: "dark",
       width: 390,

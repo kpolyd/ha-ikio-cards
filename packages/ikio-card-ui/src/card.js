@@ -1,3 +1,4 @@
+import { bindHaptics } from "./interactions.js";
 import { t, language } from "./i18n.js";
 import { styles } from "./styles.js";
 export function element(tag, text, className) {
@@ -34,6 +35,7 @@ export class IkioCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.shadowRoot.append(element("style", styles));
     this.shell = element("ha-card");
+    bindHaptics(this.shell, () => !this.preview);
     this.content = element("div");
     this.error = element("p", "", "error");
     this.error.setAttribute("role", "status");

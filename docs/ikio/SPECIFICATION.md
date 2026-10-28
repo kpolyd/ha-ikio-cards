@@ -760,3 +760,12 @@ Router live rates and graph axis labels respect Home Assistant sensor display pr
 ## 75. Router radio integration unit compatibility (28 October 2026)
 
 The owner reported correctly linked Quality and SNR sensors rendering blank. The original screenshot reports these readings with dBm units. Accept finite dB/dBm radio values for all three configured metrics, case-insensitively and after trimming whitespace, instead of rejecting ratios labelled dBm by the integration. Preserve the reported unit and value; do not perform an invented dBm-to-dB conversion. Conventional metric units remain the fallback for unitless sensors. Missing, nonnumeric and unrelated-unit inputs still show a dash without an arc. Radio labels also use the native sensor formatter, preserving display precision and locale. Gauge ranges/thresholds and entity detail actions remain unchanged.
+
+
+## 76. Light action haptics and automatic throughput units (28 October 2026)
+
+The owner requested a small vibration when tapping actions. Shared card interaction handling emits one native Home Assistant `haptic` event with `light` detail for enabled button/link/disclosure clicks. Disabled controls, editor previews and the suppressed click after a hold emit none. This is tap acknowledgement, not device-state confirmation. Companion app and OS haptic settings determine physical feedback; desktop browsers may remain silent.
+
+Network speeds automatically scale the displayed value up or down through B/s, kB/s, MB/s, GB/s and TB/s, retaining the source bit/byte distinction and decimal/binary unit family. For example, 0.002 MB/s becomes 2 kB/s. Apply this at the shared reading boundary (including sensor chips), Router live values and axis labels, and Server Monitor live values/axis labels. Preserve HA sensor display precision and locale; standalone formatting defaults to at most two decimals, retaining Server Monitor's one-decimal axis convention. Unavailable values remain unavailable, cumulative data units are not rates, and normalized history/plot geometry retains full precision. This supersedes section 74's fixed source rate-unit requirement. No new configuration is needed.
+
+Validation uses DOM tests and simulated browser scenarios; it does not establish physical vibration or live Home Assistant device behaviour.

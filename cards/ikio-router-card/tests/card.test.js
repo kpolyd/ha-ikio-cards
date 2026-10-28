@@ -143,7 +143,7 @@ test("shared traffic scale normalizes units and marks min, midpoint, max", async
   );
   assert.equal(
     chart.querySelector('[data-extremum="min"]').textContent,
-    "0 Mbit/s",
+    "0 bit/s",
   );
   assert.equal(chart.style.getPropertyValue("--router-plot-height"), "160px");
   assert.equal(
@@ -274,7 +274,7 @@ test("live network rates use HA's native formatter including configured precisio
   c.remove();
 });
 
-test("rate display fallback honors registry zero/three decimal precision, trailing zeroes and locale", async () => {
+test("rate display fallback honors registry zero/three decimal precision, automatic scaling and locale", async () => {
   const { rateDisplay } = await import("../src/rate-display.js");
   const row = { entity: "sensor.rx", unit: "MB/s" };
   const hass = {
@@ -290,12 +290,12 @@ test("rate display fallback honors registry zero/three decimal precision, traili
   delete hass.entities["sensor.rx"].display_precision;
   hass.locale.number_format = "comma_decimal";
   hass.states["sensor.rx"].state = "0.0020";
-  assert.equal(rateDisplay(hass, row), "0.0020 MB/s");
+  assert.equal(rateDisplay(hass, row), "2 kB/s");
   hass.states["sensor.rx"].state = "1e-7";
-  assert.equal(rateDisplay(hass, row), "0.0000001 MB/s");
+  assert.equal(rateDisplay(hass, row), "0.1 B/s");
 });
 
-test("axis keeps the reference sensor's unit and precision after normalizing mixed rate units", async () => {
+test("axis keeps the reference sensor's unit family and precision after normalizing mixed rate units", async () => {
   const { networkPlot } = await import("../src/views.js");
   const now = Date.now(),
     rows = [
@@ -322,7 +322,7 @@ test("axis keeps the reference sensor's unit and precision after normalizing mix
     ["min", "mid", "max"].map(
       (key) => chart.querySelector(`[data-extremum="${key}"]`).textContent,
     ),
-    ["0.00 Mbit/s", "8.00 Mbit/s", "16.00 Mbit/s"],
+    ["0.00 bit/s", "8.00 Mbit/s", "16.00 Mbit/s"],
   );
   const geometry = chart.querySelector("path").getAttribute("d");
   hass.entities["sensor.rx"].display_precision = 0;
@@ -335,7 +335,7 @@ test("axis keeps the reference sensor's unit and precision after normalizing mix
   const upload = networkPlot([rows[1]], history, now, hass);
   assert.equal(
     upload.querySelector('[data-extremum="constant"]').textContent,
-    "0 kB/s",
+    "0 B/s",
   );
 });
 
@@ -347,7 +347,11 @@ test("axis delegates synthesized tick values to the HA formatter", async () => {
     states: { "sensor.rx": s("0.300", "MB/s") },
     formatEntityState(state) {
       calls.push(state);
-      return Number(state.state).toFixed(3) + " MB/s";
+      return (
+        Number(state.state).toFixed(3) +
+        " " +
+        state.attributes.unit_of_measurement
+      );
     },
   };
   const chart = networkPlot(
@@ -363,16 +367,16 @@ test("axis delegates synthesized tick values to the HA formatter", async () => {
   );
   assert.equal(
     chart.querySelector('[data-extremum="mid"]').textContent,
-    "0.150 MB/s",
+    "150.000 kB/s",
   );
   assert.ok(
     calls.every(
       (state) =>
         state.entity_id === "sensor.rx" &&
-        state.attributes.unit_of_measurement === "MB/s",
+        ["B/s", "kB/s"].includes(state.attributes.unit_of_measurement),
     ),
   );
-  assert.ok(calls.some((state) => Number(state.state) === 0.15));
+  assert.ok(calls.some((state) => Number(state.state) === 150));
 });
 
 test("quality and SNR remain visible when a router integration reports dBm", () => {
