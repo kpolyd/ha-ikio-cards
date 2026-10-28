@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.15.2](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.1...v0.15.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* **ui:** limit subtle haptics to accepted command buttons ([1fe8409](https://github.com/kpolyd/ha-ikio-cards/commit/1fe8409a1cb30a6fd631785db802d957b04808fd))
+
 ## [0.15.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.0...v0.15.1) (2026-10-28)
 
 
