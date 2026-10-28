@@ -28,6 +28,40 @@ export default `
   --marker-background: var(--ae-well);
   --marker-active-background: var(--ae-active);
 }
+/* Semantic badge colours remain distinct while HA supplies the surfaces. */
+:host([appearance=ha]) {
+  --temperature-color: #28613e;
+  --humidity-color: #36597f;
+  --power-color: #775600;
+  --fridge-color: #245f73;
+  --device-on-color: #245d85;
+  --status-active-color: #28613e;
+  --device-off-color: #50645f;
+  --title-color: #50645f;
+  --marker-color: #50645f;
+  --marker-open-color: #805900;
+  --badge-error-color: #9a3830;
+}
+:host([appearance=ha][ha-dark]) {
+  --temperature-color: #a4e4b8;
+  --humidity-color: #adcfff;
+  --power-color: #f2d487;
+  --fridge-color: #b9e6ff;
+  --device-on-color: #90caf9;
+  --status-active-color: #a4e4b8;
+  --device-off-color: #a4adb2;
+  --title-color: #a4adb2;
+  --marker-color: #a4adb2;
+  --marker-open-color: #f2c66d;
+  --badge-error-color: #f2a69b;
+}
+:host([appearance=ha]) .sensor-badge[data-alarm-state="triggered"] {
+  background: var(--label-background);
+  border-color: var(--badge-error-color);
+}
+:host([appearance=ha]) .sensor-badge[data-alarm-state="triggered"] .badge-alarm {
+  color: var(--badge-error-color);
+}
 .sensor-badges {
   position: absolute;
   inset: 0;

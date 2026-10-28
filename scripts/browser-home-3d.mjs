@@ -120,6 +120,43 @@ export async function checkHome3D(browser, out) {
       "rgb(18, 52, 86)",
       "HA theme changes apply live",
     );
+    for (const darkMode of [true, false]) {
+      const palette = await card.evaluate((c, darkMode) => {
+        c.hass = { ...c.hass, themes: { ...c.hass.themes, darkMode } };
+        const style = getComputedStyle(c);
+        return [
+          "--temperature-color",
+          "--humidity-color",
+          "--power-color",
+          "--fridge-color",
+          "--device-on-color",
+          "--marker-open-color",
+          "--badge-error-color",
+        ].map((key) => style.getPropertyValue(key).trim());
+      }, darkMode);
+      assert.deepEqual(
+        palette,
+        darkMode
+          ? [
+              "#a4e4b8",
+              "#adcfff",
+              "#f2d487",
+              "#b9e6ff",
+              "#90caf9",
+              "#f2c66d",
+              "#f2a69b",
+            ]
+          : [
+              "#28613e",
+              "#36597f",
+              "#775600",
+              "#245f73",
+              "#245d85",
+              "#805900",
+              "#9a3830",
+            ],
+      );
+    }
     const requests = await page.evaluate(() => window.ikioHomeFileRequests);
     await card.evaluate((c) => {
       c.hass = {

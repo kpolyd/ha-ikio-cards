@@ -791,3 +791,7 @@ Add `custom:ikio-home-3d-card` as the sixteenth workspace. Its complete visual e
 ## 80. Home 3D appearance and solar lighting
 
 Owner correction: time of day and sun position control only scene illumination, brighter during the day and dimmer through sunset. They must never control the model background. Home 3D uses the collection's standard `appearance.theme` values `dark`, `light`, and `ha`, available in the visual editor, defaulting to HA. The background, toolbar and badges use shared appearance tokens. Remove the legacy Day/Night/Auto toolbar selector. Sun direction sampling and other view controls are preserved.
+
+## 81. Home 3D semantic palette
+
+Owner approved distinct information colours for Follow Home Assistant: temperature mint/forest, humidity blue/slate, power gold/ochre, fridge ice blue/cyan, active devices sky/ocean, warnings amber/bronze and errors soft/brick red. HA darkMode selects the dark or light semantic palette live. HA retains background/control colours; sun affects illumination only. Ikio dark/light retain their semantic colours. No new configuration fields.
