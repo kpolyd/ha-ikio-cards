@@ -63,29 +63,63 @@ export async function checkHome3D(browser, out) {
         c.style.setProperty("--primary-text-color", "#ffffff");
         c.style.setProperty("--secondary-background-color", "#234567");
         c.style.setProperty("--divider-color", "#456789");
-        c.setConfig({...c.config, appearance: {theme}});
+        c.setConfig({ ...c.config, appearance: { theme } });
         const model = c.model;
         const backgrounds = [];
         const intensities = [];
         for (const elevation of [-20, 0, 30]) {
-          c.hass = {...c.hass, states: {...c.hass.states, "sun.sun": {state: elevation < 0 ? "below_horizon" : "above_horizon", attributes: {elevation, azimuth: 120}}}};
-          backgrounds.push(getComputedStyle(c.shadowRoot.querySelector(".view")).backgroundColor);
-          intensities.push(c.model.scene.children.find(o => o.isHemisphereLight).intensity);
+          c.hass = {
+            ...c.hass,
+            states: {
+              ...c.hass.states,
+              "sun.sun": {
+                state: elevation < 0 ? "below_horizon" : "above_horizon",
+                attributes: { elevation, azimuth: 120 },
+              },
+            },
+          };
+          backgrounds.push(
+            getComputedStyle(c.shadowRoot.querySelector(".view"))
+              .backgroundColor,
+          );
+          intensities.push(
+            c.model.scene.children.find((o) => o.isHemisphereLight).intensity,
+          );
         }
-        results.push({theme, backgrounds, intensities, sameModel: model === c.model});
+        results.push({
+          theme,
+          backgrounds,
+          intensities,
+          sameModel: model === c.model,
+        });
       }
       return results;
     });
     for (const result of appearances) {
-      assert.equal(new Set(result.backgrounds).size, 1, "sun cannot change background");
-      assert(result.intensities[0] < result.intensities[1] && result.intensities[1] < result.intensities[2]);
+      assert.equal(
+        new Set(result.backgrounds).size,
+        1,
+        "sun cannot change background",
+      );
+      assert(
+        result.intensities[0] < result.intensities[1] &&
+          result.intensities[1] < result.intensities[2],
+      );
       assert(result.sameModel, "appearance changes preserve the model");
     }
     assert.equal(appearances[0].backgrounds[0], "rgb(23, 40, 46)");
     assert.equal(appearances[1].backgrounds[0], "rgb(243, 247, 246)");
     assert.equal(appearances[2].backgrounds[0], "rgb(52, 86, 120)");
-    await card.evaluate(c => c.style.setProperty("--ha-card-background", "#123456"));
-    assert.equal(await card.locator(".view").evaluate(n => getComputedStyle(n).backgroundColor), "rgb(18, 52, 86)", "HA theme changes apply live");
+    await card.evaluate((c) =>
+      c.style.setProperty("--ha-card-background", "#123456"),
+    );
+    assert.equal(
+      await card
+        .locator(".view")
+        .evaluate((n) => getComputedStyle(n).backgroundColor),
+      "rgb(18, 52, 86)",
+      "HA theme changes apply live",
+    );
     const requests = await page.evaluate(() => window.ikioHomeFileRequests);
     await card.evaluate((c) => {
       c.hass = {
