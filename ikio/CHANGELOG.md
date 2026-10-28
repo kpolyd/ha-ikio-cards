@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.15.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.14.1...v0.15.0) (2026-10-28)
+
+
+### Features
+
+* **ui:** add action haptics and automatic network rate units ([36d7d39](https://github.com/kpolyd/ha-ikio-cards/commit/36d7d391d8e20ee4e72f5a2139d9c91215e598ba))
+
 ## [0.14.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.14.0...v0.14.1) (2026-10-28)
 
 
