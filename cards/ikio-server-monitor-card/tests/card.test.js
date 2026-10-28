@@ -768,7 +768,7 @@ test("constant network history has one extremum and zero traffic remains a visib
   );
 });
 
-test("network extrema show at most one decimal while keeping precise plot values", async () => {
+test("network extrema bypass the native entity formatter and retain precise plot values", async () => {
   const { networkPlot } = await import("../src/views.js");
   const chart = networkPlot(
     [{ entity: "sensor.rx", key: "network_rx", unit: "MB/s" }],
@@ -779,7 +779,16 @@ test("network extrema show at most one decimal while keeping precise plot values
       ],
     },
     1800000,
-    { locale: { language: "en" } },
+    {
+      locale: { language: "en" },
+      formatEntityState(state) {
+        assert.ok(
+          state.entity_id,
+          "HA entity formatting requires an entity ID",
+        );
+        throw new Error("Graph ticks must not be formatted as entities");
+      },
+    },
   );
   assert.equal(
     chart.querySelector('[data-extremum="min"]').textContent,
@@ -1027,4 +1036,80 @@ test("legacy DB is editable as Extra readings and can be removed without returni
   assert.equal(card.shadowRoot.querySelector(".system-extra-readings"), null);
   card.remove();
   editor.remove();
+});
+
+test("System renders live rates and history for byte/bit, SI/IEC and alias units with native HA formatting", () => {
+  for (const [value, unit, expected] of [
+    [12500, "B/s", "12.5 kB/s"],
+    [12500, "kB/s", "12.5 MB/s"],
+    [0.002, "MB/s", "2 kB/s"],
+    [8, "Mbit/s", "8 Mbit/s"],
+    [0.0005, "Mbps", "500 bit/s"],
+    [0.5, "MiB/s", "512 KiB/s"],
+    [2048, "Kibit/s", "2 Mibit/s"],
+    [0, "GB/s", "0 B/s"],
+  ]) {
+    const card = systemFixture(
+      { network_rx_entity: "sensor.rx" },
+      {
+        "sensor.rx": {
+          state: String(value),
+          attributes: { unit_of_measurement: unit },
+        },
+      },
+    );
+    const now = Date.now() / 1000;
+    card.network = {
+      "sensor.rx": [
+        { lu: now - 1801, s: String(value), a: { unit_of_measurement: unit } },
+      ],
+    };
+    card.hass = {
+      ...card.hass,
+      locale: { language: "en" },
+      formatEntityState(state) {
+        // HA computes the domain from this ID before formatting numeric values.
+        assert.equal(typeof state.entity_id.split(".")[0], "string");
+        return `${Number(state.state)} ${state.attributes.unit_of_measurement || ""}`.trim();
+      },
+    };
+    assert.equal(
+      card.shadowRoot.querySelector(".system-network-legend .ae-value")
+        .textContent,
+      expected,
+      unit,
+    );
+    assert.ok(card.shadowRoot.querySelector(".system-network-plot path"), unit);
+    assert.ok(card.shadowRoot.querySelector("[data-extremum]"), unit);
+    card.remove();
+  }
+});
+
+test("mixed history rate units normalize without changing geometry or bridging invalid data", async () => {
+  const { rateHistory } = await import("../src/adapter.js");
+  const samples = [
+    ["1000000", "B/s"],
+    ["1000", "kB/s"],
+    ["1", "MB/s"],
+    ["8", "Mbit/s"],
+    ["8", "Mbps"],
+    ["976.5625", "KiB/s"],
+    ["unavailable", "B/s"],
+    ["", "B/s"],
+    ["-1", "MB/s"],
+    ["Infinity", "MB/s"],
+    ["12", "MB"],
+    ["2", "MB/s"],
+  ];
+  const history = samples.map(([s, unit], index) => ({
+    lu: index,
+    s,
+    a: { unit_of_measurement: unit },
+  }));
+  const snapshot = JSON.stringify(history);
+  assert.deepEqual(
+    rateHistory(history, "B/s").map((p) => p.value),
+    [1e6, 1e6, 1e6, 1e6, 1e6, 1e6, null, null, null, null, null, 2e6],
+  );
+  assert.equal(JSON.stringify(history), snapshot);
 });

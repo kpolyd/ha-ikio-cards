@@ -5,7 +5,7 @@ export function rateFactor(unit) {
     .replaceAll(" ", "")
     .replace(/^bytes\/s$/, "B/s")
     .replace(/^bits\/s$/, "bit/s");
-  const match = /^([kKMGT]?i?)(B|b|bit)(?:\/s|ps)$/.exec(text);
+  const match = /^((?:[kKMGT]i?)?)(B|b|bit)(?:\/s|ps)$/.exec(text);
   if (!match) return null;
   const prefix = match[1];
   const power = { "": 0, k: 1, K: 1, M: 2, G: 3, T: 4 }[
@@ -59,7 +59,9 @@ export function rateDisplay(hass, row, bytesPerSecond) {
     state: raw,
     attributes: { ...original?.attributes, unit_of_measurement: unit },
   };
-  if (typeof hass?.formatEntityState === "function")
+  // Axis ticks are measurements, not entities. HA computes an entity domain
+  // from entity_id, so anonymous graph values must use numeric formatting.
+  if (row.entity && typeof hass?.formatEntityState === "function")
     return hass.formatEntityState(state);
 
   // Standalone previews/tests do not have HA's formatter. Mirror its registry
