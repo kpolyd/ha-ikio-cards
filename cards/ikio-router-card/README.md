@@ -24,6 +24,6 @@ Gauge defaults are illustrative configurable display conventions, not a guarante
 | RSRQ (dB) | -20 | -3 | -10 | -15 |
 | SNR/SINR (dB) | -10 | 30 | 13 | 0 |
 
-Bounds clamp the arc only; the actual measurement stays visible. RSRP expects dBm, RSRQ and SNR/SINR expect dB; unitless radio sensors are accepted with the configured metric's unit. Thresholds use strictly below comparisons. Signal percentage must be within 0–100.
+Bounds clamp the arc only; the actual measurement stays visible. Radio sensors accept dB and dBm (case-insensitive, surrounding whitespace ignored). Some integrations report RSRQ/SNR with dBm labels; keep their finite readings and reported units visible without pretending to convert logarithmic quantities. Unitless sensors use the configured metric’s conventional unit. Radio value labels follow Home Assistant’s native sensor formatting too. Thresholds use strictly below comparisons. Signal percentage must be within 0–100.
 
 Validation uses simulated DOM/browser fixtures and does not claim native Home Assistant or live-router verification. No device actions or service calls are provided.

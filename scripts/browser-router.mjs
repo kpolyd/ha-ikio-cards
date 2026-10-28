@@ -170,6 +170,32 @@ export async function checkRouter(browser, out) {
       }, value);
       assert.equal(await card.locator(`.router-internet.${cls}`).count(), 1);
     }
+    await card.evaluate((c) => {
+      c.hass = {
+        ...c.hass,
+        states: {
+          ...c.hass.states,
+          "sensor.demo_rsrq": {
+            entity_id: "sensor.demo_rsrq",
+            state: "-9",
+            attributes: { unit_of_measurement: "dBm" },
+          },
+          "sensor.demo_snr": {
+            entity_id: "sensor.demo_snr",
+            state: "8.4",
+            attributes: { unit_of_measurement: "dBm" },
+          },
+        },
+      };
+    });
+    assert.deepEqual(
+      await card.locator(".router-gauge-value").allTextContents(),
+      ["-100 dBm", "-9 dBm", "8.4 dBm"],
+    );
+    assert.equal(await card.locator(".router-gauge-fill").count(), 3);
+    await card.screenshot({
+      path: resolve(out, "router-radio-reported-units.png"),
+    });
     await card.evaluate((c) =>
       c.setConfig({ ...c.config, connection_type: "fibre" }),
     );

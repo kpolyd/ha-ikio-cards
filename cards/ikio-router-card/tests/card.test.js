@@ -374,3 +374,59 @@ test("axis delegates synthesized tick values to the HA formatter", async () => {
   );
   assert.ok(calls.some((state) => Number(state.state) === 0.15));
 });
+
+test("quality and SNR remain visible when a router integration reports dBm", () => {
+  const c = card(
+    {
+      connection_type: "cellular",
+      rsrq_entity: "sensor.quality",
+      snr_entity: "sensor.snr",
+    },
+    { "sensor.quality": s(-9, "dBm"), "sensor.snr": s(8.4, "dBm") },
+  );
+  assert.deepEqual(
+    [...c.content.querySelectorAll(".router-gauge-value")].map(
+      (n) => n.textContent,
+    ),
+    ["-9 dBm", "8.4 dBm"],
+  );
+  assert.equal(c.content.querySelectorAll(".router-gauge-fill").length, 2);
+  let id;
+  c.addEventListener("hass-more-info", (e) => (id = e.detail.entityId));
+  c.content.querySelectorAll(".router-metric")[1].click();
+  assert.equal(id, "sensor.snr");
+  c.hass = {
+    ...c.hass,
+    entities: {
+      "sensor.quality": { display_precision: 2 },
+      "sensor.snr": { display_precision: 3 },
+    },
+  };
+  assert.deepEqual(
+    [...c.content.querySelectorAll(".router-gauge-value")].map(
+      (n) => n.textContent,
+    ),
+    ["-9.00 dBm", "8.400 dBm"],
+  );
+  c.hass = {
+    ...c.hass,
+    states: { ...c.hass.states, "sensor.snr": s("unavailable", "dBm") },
+  };
+  assert.equal(c.content.querySelectorAll(".router-gauge-fill").length, 1);
+  assert.equal(
+    c.content.querySelectorAll(".router-gauge-value")[1].textContent,
+    "—",
+  );
+  c.remove();
+});
+
+test("radio compatibility tolerates unit casing and whitespace but rejects unrelated units", async () => {
+  const { gauge } = await import("../src/adapter.js");
+  assert.equal(gauge(s(-9, " dBm "), "rsrq", {}).value, -9);
+  assert.equal(gauge(s(8.4, "DBM"), "snr", {}).value, 8.4);
+  assert.equal(gauge(s(8.4, "dB"), "snr", {}).unit, "dB");
+  assert.equal(gauge(s(8.4), "snr", {}).unit, "dB");
+  assert.equal(gauge(s(8.4, "W"), "snr", {}).value, null);
+  assert.equal(gauge(s("unknown", "dBm"), "snr", {}).value, null);
+  assert.equal(gauge(s("not a number", "dBm"), "snr", {}).value, null);
+});

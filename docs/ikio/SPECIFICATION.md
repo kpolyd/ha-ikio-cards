@@ -755,3 +755,8 @@ The editor exposes General, Router, Internet (including connected-state override
 ## 74. Router network display precision correction (28 October 2026)
 
 Router live rates and graph axis labels respect Home Assistant sensor display precision and formatting instead of imposing six/one decimal limits. Prefer HA’s native entity-state formatter; standalone previews fall back to registry display_precision and locale preferences. Keep sensor units, trailing zeroes and zero precision. The shared traffic axis uses download’s unit/settings, falling back to upload for upload-only configurations; each live rate retains its own settings. Mixed-rate units continue to normalize to bytes/s internally and graph coordinates/min/max/mid calculations remain unrounded. Entity-registry-only precision changes update labels without changing history. The approved layout and Server Monitor remain unchanged.
+
+
+## 75. Router radio integration unit compatibility (28 October 2026)
+
+The owner reported correctly linked Quality and SNR sensors rendering blank. The original screenshot reports these readings with dBm units. Accept finite dB/dBm radio values for all three configured metrics, case-insensitively and after trimming whitespace, instead of rejecting ratios labelled dBm by the integration. Preserve the reported unit and value; do not perform an invented dBm-to-dB conversion. Conventional metric units remain the fallback for unitless sensors. Missing, nonnumeric and unrelated-unit inputs still show a dash without an arc. Radio labels also use the native sensor formatter, preserving display precision and locale. Gauge ranges/thresholds and entity detail actions remain unchanged.
