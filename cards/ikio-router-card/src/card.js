@@ -1,3 +1,4 @@
+import { rateDisplay } from "./rate-display.js";
 import {
   t,
   ControlCard,
@@ -184,11 +185,10 @@ export class Card extends ControlCard {
     }
   }
   rateText(id) {
-    const state = this.state(id),
-      value = numeric(state);
-    return value === null
-      ? valueText(this.hass, id)
-      : `${formatNumber(this.hass, value, 6)} ${state.attributes?.unit_of_measurement || ""}`.trim();
+    return rateDisplay(this.hass, {
+      entity: id,
+      unit: this.state(id)?.attributes?.unit_of_measurement,
+    });
   }
   networkView() {
     const rows = this.networkRows();
@@ -328,29 +328,27 @@ export class Card extends ControlCard {
     }
     section.append(heading);
     const metrics = el("div", undefined, "router-metrics");
-    for (const [key, label, abbr, unit] of [
-      ["rsrp", "Strength", "RSRP", "dBm"],
-      ["rsrq", "Quality", "RSRQ", "dB"],
-      ["snr", "SNR", "SNR / SINR", "dB"],
+    for (const [key, label, abbr] of [
+      ["rsrp", "Strength", "RSRP"],
+      ["rsrq", "Quality", "RSRQ"],
+      ["snr", "SNR", "SNR / SINR"],
     ]) {
       const id = c[key + "_entity"];
       if (!id) continue;
       const g = gauge(this.state(id), key, c);
       const value =
-        g.value === null ? "—" : formatNumber(this.hass, g.value, 1);
+        g.value === null
+          ? "—"
+          : rateDisplay(this.hass, { entity: id, unit: g.unit });
       const n = this.entityButton(
         id,
-        `${t(this.hass, label)}: ${value} ${unit}`,
+        `${t(this.hass, label)}: ${value}`,
         `router-metric ${g.level}`,
       );
       n.append(
         el("span", t(this.hass, label), "ae-label"),
         miniGauge(g.fill, g.value !== null),
-        el(
-          "span",
-          `${value}${g.value === null ? "" : " " + unit}`,
-          "router-gauge-value",
-        ),
+        el("span", value, "router-gauge-value"),
         el("span", abbr, "ae-label"),
       );
       metrics.append(n);

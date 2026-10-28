@@ -8,7 +8,7 @@ Compact header and uptime; centred extra-reading chips; Internet → router → 
 
 Cellular connections have a permanently visible compact section above traffic: network type, optional signal percentage, and independent semicircle gauges for RSRP, RSRQ and SNR/SINR. Unconfigured readings hide; missing/invalid measurements show a dash with no severity arc. Other connection types omit this section.
 
-The traffic legend matches Server Monitor. The graph defaults to 132 px high and 30 minutes. Both series share the observed min/max scale, with a midpoint halfway between those values, units on the left and matching subtle guides. Constant history shows one label/guide instead of three overlapping values. Download is solid, upload dashed. Missing history leaves current rates visible; unknown history has gaps. Only rate sensors are supported, with bit/byte and decimal/binary unit conversion; cumulative totals are not inferred as rates. History batches at most once a minute while visible, with a five-second timeout and stale-response cancellation.
+The traffic legend matches Server Monitor. The graph defaults to 132 px high and 30 minutes. Live rates use Home Assistant’s native sensor formatter, including entity display precision, trailing zeroes and number-format preferences. The shared axis uses the download sensor’s unit and precision (upload when download is not configured); mixed units still normalize internally without rounding the graph data. Both series share the observed min/max scale, with a midpoint halfway between those values, units on the left and matching subtle guides. Constant history shows one label/guide instead of three overlapping values. Download is solid, upload dashed. Missing history leaves current rates visible; unknown history has gaps. Only rate sensors are supported, with bit/byte and decimal/binary unit conversion; cumulative totals are not inferred as rates. History batches at most once a minute while visible, with a five-second timeout and stale-response cancellation.
 
 ## Visual configuration
 
@@ -24,6 +24,6 @@ Gauge defaults are illustrative configurable display conventions, not a guarante
 | RSRQ (dB) | -20 | -3 | -10 | -15 |
 | SNR/SINR (dB) | -10 | 30 | 13 | 0 |
 
-Bounds clamp the arc only; the actual measurement stays visible. RSRP expects dBm, RSRQ and SNR/SINR expect dB; unitless radio sensors are accepted with the configured metric's unit. Thresholds use strictly below comparisons. Signal percentage must be within 0–100.
+Bounds clamp the arc only; the actual measurement stays visible. Radio sensors accept dB and dBm (case-insensitive, surrounding whitespace ignored). Some integrations report RSRQ/SNR with dBm labels; keep their finite readings and reported units visible without pretending to convert logarithmic quantities. Unitless sensors use the configured metric’s conventional unit. Radio value labels follow Home Assistant’s native sensor formatting too. Thresholds use strictly below comparisons. Signal percentage must be within 0–100.
 
 Validation uses simulated DOM/browser fixtures and does not claim native Home Assistant or live-router verification. No device actions or service calls are provided.

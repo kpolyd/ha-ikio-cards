@@ -33,10 +33,13 @@ export function gauge(state, metric, config) {
   const settings = Object.fromEntries(
     Object.entries(d).map(([k, v]) => [k, config[metric + "_" + k] ?? v]),
   );
-  const unit = state?.attributes?.unit_of_measurement;
+  // Some router integrations label every radio reading dBm, including
+  // RSRQ/SNR ratios. Preserve the reported value/unit rather than hiding it.
+  const unit = String(state?.attributes?.unit_of_measurement || "").trim();
   const known =
-    value !== null && (!unit || unit === (metric === "rsrp" ? "dBm" : "dB"));
+    value !== null && (!unit || ["db", "dbm"].includes(unit.toLowerCase()));
   return {
+    unit: unit || (metric === "rsrp" ? "dBm" : "dB"),
     value: known ? value : null,
     fill: known
       ? Math.max(

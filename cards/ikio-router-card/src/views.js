@@ -1,4 +1,5 @@
-import { t, el, formatNumber } from "@ikio/card-ui";
+import { rateDisplay } from "./rate-display.js";
+import { t, el } from "@ikio/card-ui";
 import { downsample, windowPoints } from "@ikio/graph";
 import { rateHistory } from "./adapter.js";
 const svgNode = (tag, attrs = {}) => {
@@ -7,9 +8,9 @@ const svgNode = (tag, attrs = {}) => {
   return n;
 };
 export const networkStyles = `.ikio-router .system-network{display:grid;gap:0}
-.ikio-router .system-network-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}
-.ikio-router .system-network-legend .ae-reading{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;padding:0}
-.ikio-router .system-network-legend .ae-label{font-size:11px}
+.ikio-router .system-network-legend{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 12px}
+.ikio-router .system-network-legend .ae-reading{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap;min-width:0;gap:4px 6px;padding:0}
+.ikio-router .system-network-legend .ae-label{font-size:11px;white-space:nowrap}
 .ikio-router .system-network-legend .ae-value{font-size:12px}
 .ikio-router .system-network-key{width:14px;border-top:2px solid var(--ae-network-download);flex:none}
 .ikio-router .system-network-key.upload{border-top:2px dashed var(--ae-network-upload)}
@@ -46,13 +47,10 @@ export function networkPlot(
   const yMin = constant ? 0 : low;
   const yMax = high || 1;
   const y = (value) => 7 + ((yMax - value) / (yMax - yMin)) * (height - 14);
-  const rateLabel = (value) => {
-    const power =
-      value > 0
-        ? Math.min(4, Math.max(0, Math.floor(Math.log10(value) / 3)))
-        : 0;
-    return `${formatNumber(hass, value / 1000 ** power, 1)} ${["B/s", "kB/s", "MB/s", "GB/s", "TB/s"][power]}`;
-  };
+  // One shared axis needs one display unit. Prefer the configured download
+  // sensor, falling back to upload; each live reading keeps its own settings.
+  const reference = rows.find((row) => row.key === "network_rx") || rows[0];
+  const rateLabel = (value) => rateDisplay(hass, reference, value);
   const svg = svgNode("svg", {
     viewBox: `0 0 300 ${height}`,
     preserveAspectRatio: "none",
