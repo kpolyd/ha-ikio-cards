@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.14.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.13.1...v0.14.0) (2026-10-28)
+
+
+### Features
+
+* **router:** add configurable router status and traffic card ([5ca30d5](https://github.com/kpolyd/ha-ikio-cards/commit/5ca30d5ac4012dff7f86049c6f8afc8c027ac8ba))
+
 ## [0.13.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.13.0...v0.13.1) (2026-10-27)
 
 
