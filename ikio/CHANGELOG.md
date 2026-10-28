@@ -1,5 +1,14 @@
 # Ikio changelog
 
+## [0.14.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.14.0...v0.14.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **router:** keep precision labels readable on narrow cards ([e5be9a3](https://github.com/kpolyd/ha-ikio-cards/commit/e5be9a3950bde70a1b5cfaafbcf5576a3d04e850))
+* **router:** respect sensor display precision and rate units ([c800606](https://github.com/kpolyd/ha-ikio-cards/commit/c8006067e36b193d3a8668a3c5e1c1b3f24f1a39))
+* **router:** show quality and SNR with reported radio units ([806ca0c](https://github.com/kpolyd/ha-ikio-cards/commit/806ca0cc2ad0f0fe484c497f6be57992ff14123f))
+
 ## [0.14.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.13.1...v0.14.0) (2026-10-28)
 
 
