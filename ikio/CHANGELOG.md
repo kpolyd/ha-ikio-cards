@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.15.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.15.0...v0.15.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **system:** avoid entity formatting for anonymous network graph ticks ([9f0ece6](https://github.com/kpolyd/ha-ikio-cards/commit/9f0ece6050c3e4a01ba51a5d279e8922b39121c7))
+
 ## [0.15.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.14.1...v0.15.0) (2026-10-28)
 
 
