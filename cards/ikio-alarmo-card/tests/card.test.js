@@ -1295,7 +1295,7 @@ test("activity refresh queries only new time and preserves a scrolled reader and
             {
               entity_id: panelId,
               state: "disarmed",
-              when: Date.now() / 1000,
+              when: Date.parse(msg.end_time) / 1000,
               context_id: "new",
             },
             ...events,
