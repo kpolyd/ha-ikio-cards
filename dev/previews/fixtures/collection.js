@@ -77,6 +77,7 @@ const types = [
   "graph",
   "chip",
   "router",
+  "weather",
 ].filter((type) => customElements.get(`ikio-${type}-card`));
 const states = {};
 function state(id, value, attributes = {}) {
@@ -364,8 +365,34 @@ configs.router = {
 };
 sensor("network_rx", 0.3, "MB/s");
 sensor("network_tx", 0.1, "MB/s");
-const connection = {},
-  cards = [];
+// Forecast subscriptions are local fixtures; no weather service is contacted.
+state("weather.demo", "rainy", {
+  friendly_name: "Weather", supported_features: 3, temperature: 7.7, temperature_unit: "°C",
+  apparent_temperature: 5.2, humidity: 86, wind_speed: 7, wind_bearing: 0,
+  wind_speed_unit: "km/h", pressure: 1012, pressure_unit: "hPa", precipitation_unit: "mm",
+});
+configs.weather = { entity: "weather.demo", name: "Weather" };
+const weatherForecasts = {
+  daily: [8.5,13.7,13.4,12.9,11.7,14.3,12.6].map((temperature,i)=>({
+    datetime: new Date(Date.now()+i*86400000).toISOString(), temperature,
+    templow:[3.3,8.5,7.9,7.8,9.2,8.8,8.3][i], precipitation:[27,.7,6.5,2.3,10,1.8,3.3][i],
+    precipitation_probability:[95,30,85,65,90,45,70][i], condition:i===2?"lightning-rainy":"rainy",
+    wind_speed:[7,5,7,6,5,18,14][i], wind_bearing: i<4?0:225,
+  })),
+  hourly: Array.from({length:12},(_,i)=>({datetime:new Date(Date.now()+i*3600000).toISOString(),temperature:7.7+i*.2,
+    precipitation:Math.max(0,2-i*.2),precipitation_probability:Math.max(0,90-i*5),condition:i>8?"cloudy":"rainy",wind_speed:7,wind_bearing:0})),
+  twice_daily: Array.from({length:8},(_,i)=>({datetime:new Date(Date.now()+i*43200000).toISOString(),temperature:i%2?5:10,
+    is_daytime:i%2===0,condition:i%2?"clear-night":"partlycloudy",precipitation:0})),
+};
+const weatherListeners = new Set();
+const connection = {
+  subscribeMessage: async (callback,message) => {
+    if (message.type !== "weather/subscribe_forecast") throw Error("Unsupported fixture subscription");
+    const listener={callback,type:message.forecast_type};weatherListeners.add(listener);
+    queueMicrotask(()=>{if(weatherListeners.has(listener)) callback({type:listener.type,forecast:weatherForecasts[listener.type]});});
+    return ()=>weatherListeners.delete(listener);
+  },
+}, cards = [];
 const hass = {
   states,
   entities: {
@@ -616,6 +643,10 @@ window.ikioPreview = {
   cards,
   states,
   configs,
+  weatherForecasts,
+  weatherPush(type, forecast) {
+    for(const listener of weatherListeners) if(listener.type === type) listener.callback({type,forecast});
+  },
   async configure({ theme = "dark", width = 360, scenario = "normal" } = {}) {
     for (const [i, card] of cards.entries()) {
       applyVacuumTheme(card, theme);
