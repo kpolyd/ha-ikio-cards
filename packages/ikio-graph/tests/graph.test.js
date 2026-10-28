@@ -399,3 +399,64 @@ test("sparse device history holds its recorded value until the next timestamp in
   );
   assert.ok(!gap.querySelector("path").getAttribute("d").includes("H317.6"));
 });
+
+test("rolling history fetches overlap only, retains units and gaps, and shares reordered requests", async () => {
+  const calls = [];
+  const now = 1800000000000;
+  const hass = {
+    connection: {},
+    callWS: async (request) => {
+      calls.push(request);
+      return calls.length === 1
+        ? {
+            "sensor.a": [
+              {
+                lu: (now - 3600000) / 1000,
+                s: "1",
+                a: { unit_of_measurement: "kW" },
+              },
+              { lu: (now - 30000) / 1000, s: "unavailable" },
+            ],
+          }
+        : {
+            "sensor.a": [
+              {
+                lu: now / 1000,
+                s: "unavailable",
+                a: { unit_of_measurement: "kW" },
+              },
+              { lu: (now + 30000) / 1000, s: "2" },
+            ],
+          };
+    },
+  };
+  await mod.fetchHistory(hass, ["sensor.b", "sensor.a"], 6, now);
+  const next = await mod.fetchHistory(
+    hass,
+    ["sensor.a", "sensor.b"],
+    6,
+    now + 60000,
+  );
+  assert.equal(Date.parse(calls[1].start_time), now - 60000);
+  assert.deepEqual(
+    mod.normalizeHistory(next["sensor.a"], "W").map((p) => p.value),
+    [1000, null, 2000],
+  );
+  await mod.fetchHistory(hass, ["sensor.b", "sensor.a"], 6, now + 60001);
+  assert.equal(calls.length, 2);
+});
+test("a known stepped interval closes at its unavailable boundary", () => {
+  const node = mod.graph(
+    [
+      {
+        name: "Power",
+        points: [
+          { time: 0, value: 100 },
+          { time: 50, value: null },
+        ],
+      },
+    ],
+    { start: 0, end: 100, sparkline: true },
+  );
+  assert.match(node.querySelector("path").getAttribute("d"), /H180/);
+});

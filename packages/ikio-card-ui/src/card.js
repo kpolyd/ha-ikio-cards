@@ -64,7 +64,8 @@ export class IkioCard extends HTMLElement {
       !previous ||
       changedLanguage
     )
-      this.update?.();
+      if (this.visible === false && this.observer) this.renderDirty = true;
+      else this.update?.();
   }
   set preview(value) {
     this._preview = Boolean(value);

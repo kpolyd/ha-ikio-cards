@@ -80,7 +80,24 @@ export class Card extends ControlCard {
     if (!run) {
       clearInterval(this.clock);
       this.clock = undefined;
-    } else if (!this.clock) this.clock = setInterval(() => this.update(), 1000);
+    } else if (!this.clock)
+      this.clock = setInterval(() => this.tickPlayback(), 1000);
+  }
+  tickPlayback() {
+    const p = position(this.state());
+    if (!p || this.seekDraft !== undefined) return;
+    const timeline = this.content.querySelector(".media-timeline");
+    if (!timeline) return;
+    const control = timeline.querySelector("input, progress");
+    if (control && this.shadowRoot.activeElement !== control)
+      control.value = String(p.value);
+    if (control?.tagName === "INPUT")
+      control.setAttribute(
+        "aria-valuetext",
+        `${playbackTime(p.value)} / ${playbackTime(p.duration)}`,
+      );
+    const elapsed = timeline.querySelector(".media-times span");
+    if (elapsed) elapsed.textContent = playbackTime(p.value);
   }
   afterRender() {
     updateChipIcons(this);
