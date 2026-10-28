@@ -71,3 +71,55 @@ test("numeric and unit adapters preserve zero and reject absent data", () => {
     null,
   );
 });
+
+test("only accepted button commands vibrate once through both send and act paths", async () => {
+  class ActionCard extends ui.ControlCard {
+    render() {
+      return [];
+    }
+  }
+  customElements.define("ikio-haptic-test", ActionCard);
+  const card = document.createElement("ikio-haptic-test");
+  card.config = {};
+  card.hass = {
+    states: { "switch.test": { state: "off", attributes: {} } },
+    callService: async () => {},
+  };
+  document.body.append(card);
+  const feedback = [];
+  const listen = (e) => feedback.push(e.detail);
+  window.addEventListener("haptic", listen);
+  try {
+    const node = document.createElement("button");
+    card.shell.append(node);
+    for (const confirm of [undefined, () => false]) {
+      let command;
+      node.onclick = () => {
+        command = card.send("switch.test", "switch", "turn_on", {}, confirm);
+      };
+      node.click();
+      await command;
+      assert.equal(feedback.at(-1), "selection");
+      const count = feedback.length;
+      if (confirm) {
+        node.click(); // pending commands are blocked
+        await command;
+        assert.equal(feedback.length, count);
+      }
+      card.cancelActions();
+    }
+    assert.equal(feedback.length, 2);
+    node.onclick = () => ui.details(card, "switch.test");
+    node.click();
+    await Promise.resolve();
+    await card.send("switch.test", "switch", "turn_on"); // no button activation
+    assert.equal(feedback.length, 2);
+    card.preview = true;
+    node.onclick = () => card.send("switch.test", "switch", "turn_on");
+    node.click();
+    assert.equal(feedback.length, 2);
+  } finally {
+    window.removeEventListener("haptic", listen);
+    card.remove();
+  }
+});

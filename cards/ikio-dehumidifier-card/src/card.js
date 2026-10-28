@@ -244,6 +244,7 @@ export class Card extends ControlCard {
       this.error.textContent = "";
       this.update();
       try {
+        this.actionHaptic();
         const completed = await Promise.race([
           this.hass
             .callService("humidifier", "turn_on", { entity_id: id })
