@@ -76,6 +76,7 @@ const types = [
   "vehicle",
   "graph",
   "chip",
+  "router",
 ].filter((type) => customElements.get(`ikio-${type}-card`));
 const states = {};
 function state(id, value, attributes = {}) {
@@ -342,6 +343,24 @@ const configs = {
     expected_max: 3500,
     hours: 6,
   },
+};
+// Simulated router bindings; never a real household/device connection.
+state("binary_sensor.demo_internet", "on");
+state("binary_sensor.demo_router", "on");
+sensor("demo_wan_ip", "198.51.100.7");
+sensor("demo_local_ip", "192.0.2.1");
+sensor("demo_latency", 28, "ms");
+sensor("demo_devices", 13);
+sensor("demo_network_type", "4G LTE");
+sensor("demo_signal", 75, "%");
+sensor("demo_rsrp", -100, "dBm");
+sensor("demo_rsrq", -9, "dB");
+sensor("demo_snr", 8.4, "dB");
+configs.router = {
+  name:"Router", availability_entity:"binary_sensor.demo_router", uptime_entity:"sensor.uptime",
+  internet_status_entity:"binary_sensor.demo_internet",internet_ip_entity:"sensor.demo_wan_ip",local_ip_entity:"sensor.demo_local_ip",latency_entity:"sensor.demo_latency",devices_entity:"sensor.demo_devices",
+  connection_type:"cellular",network_type_entity:"sensor.demo_network_type",signal_entity:"sensor.demo_signal",rsrp_entity:"sensor.demo_rsrp",rsrq_entity:"sensor.demo_rsrq",snr_entity:"sensor.demo_snr",
+  network_rx_entity:"sensor.network_rx",network_tx_entity:"sensor.network_tx"
 };
 sensor("network_rx", 0.3, "MB/s");
 sensor("network_tx", 0.1, "MB/s");

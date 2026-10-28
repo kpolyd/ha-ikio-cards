@@ -15,6 +15,7 @@ export const cards = [
   "appliances",
   "graph",
   "chip",
+  "router",
 ];
 export const digest = (b) => createHash("sha256").update(b).digest("hex");
 export async function validatePreview(folder, sha, bundle) {
