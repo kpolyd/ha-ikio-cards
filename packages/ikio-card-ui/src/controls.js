@@ -321,6 +321,7 @@ export class ControlCard extends IkioCard {
     this.error.textContent = "";
     this.update();
     try {
+      this.actionHaptic();
       await this.hass.callService(domain, service, { ...data, entity_id: id });
     } catch (e) {
       if (generation === this.generation)

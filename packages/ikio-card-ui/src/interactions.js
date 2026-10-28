@@ -62,35 +62,40 @@ export function bindHold(target, onHold, { delay = 550 } = {}) {
   };
 }
 
-/** Delegate feedback so rerenders do not add listeners or duplicate taps. */
+/** Only an accepted command during a button click may request feedback. */
 export function bindHaptics(root, enabled = () => true) {
-  const eligible = new WeakSet();
+  let activation;
   root.addEventListener(
     "click",
     (event) => {
-      const control = event
+      const button = event
         .composedPath()
-        .find((node) =>
-          node.matches?.('button, summary, a[href], [role="button"]'),
-        );
+        .find((node) => node.matches?.("button"));
       if (
-        enabled() &&
-        control &&
-        !control.matches(':disabled, [aria-disabled="true"]')
+        !enabled() ||
+        !button ||
+        button.matches(':disabled, [aria-disabled="true"]')
       )
-        eligible.add(event);
+        return;
+      const token = {};
+      activation = token;
+      setTimeout(() => {
+        if (activation === token) activation = undefined;
+      }, 0);
     },
     true,
   );
-  // A suppressed hold-click never reaches this listener. Check availability
-  // before the action handler can disable its button while awaiting HA.
-  root.addEventListener("click", (event) => {
-    if (!eligible.has(event)) return;
-    const feedback = new root.ownerDocument.defaultView.Event("haptic", {
-      bubbles: true,
-      composed: true,
-    });
-    feedback.detail = "light";
-    root.dispatchEvent(feedback);
+  root.addEventListener("click", () => {
+    activation = undefined;
   });
+  return () => {
+    if (!activation || !enabled()) return;
+    activation = undefined;
+    const view = root.ownerDocument.defaultView;
+    const feedback = new view.Event("haptic");
+    feedback.detail = "selection";
+    // Target the app's window bridge directly: do not bubble through HA's
+    // component tree, where another handler may forward the same request.
+    view.dispatchEvent(feedback);
+  };
 }

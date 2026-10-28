@@ -35,7 +35,7 @@ export class IkioCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.shadowRoot.append(element("style", styles));
     this.shell = element("ha-card");
-    bindHaptics(this.shell, () => !this.preview);
+    this.actionHaptic = bindHaptics(this.shell, () => !this.preview);
     this.content = element("div");
     this.error = element("p", "", "error");
     this.error.setAttribute("role", "status");
@@ -120,6 +120,7 @@ export class IkioCard extends HTMLElement {
     this.pending.set(id, action);
     this.update?.();
     try {
+      this.actionHaptic();
       await this.hass.callService(domain, service, { ...data, entity_id: id });
     } catch (error) {
       if (generation !== this.generation || this.pending.get(id) !== action)
