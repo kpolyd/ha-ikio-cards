@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.17.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.17.0...v0.17.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **home-3d:** preserve semantic badge colours in HA themes ([2708565](https://github.com/kpolyd/ha-ikio-cards/commit/2708565923bd0c9f4b365d282459de6543d79796))
+
 ## [0.17.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.16.0...v0.17.0) (2026-10-28)
 
 
