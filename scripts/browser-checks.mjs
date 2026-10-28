@@ -107,6 +107,12 @@ try {
     );
     await media.screenshot({ path: resolve(out, "media-dark.png") });
     assert.equal(await media.locator(".media-volume input").count(), 0);
+    await page.evaluate(() => {
+      window.ikioHaptics = [];
+      window.addEventListener("haptic", (event) =>
+        window.ikioHaptics.push(event.detail),
+      );
+    });
     await media
       .getByRole("button", { name: "Increase volume", exact: true })
       .click();
@@ -115,6 +121,7 @@ try {
         window.ikioPreview.states["media_player.tv"].attributes.volume_level ===
         0.4,
     );
+    assert.deepEqual(await page.evaluate(() => window.ikioHaptics), ["light"]);
     await media.getByRole("button", { name: "Mute", exact: true }).click();
     await media.getByRole("button", { name: "Unmute", exact: true }).waitFor();
     assert.equal(

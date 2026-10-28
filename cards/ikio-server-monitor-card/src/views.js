@@ -1,5 +1,5 @@
 import { t } from "@ikio/card-ui/i18n";
-import { reading, el, formatNumber } from "@ikio/card-ui";
+import { reading, el, formatNumber, rateDisplay } from "@ikio/card-ui";
 import { downsample, windowPoints } from "@ikio/graph";
 import { rateHistory } from "./adapter.js";
 const svgNode = (tag, attrs = {}) => {
@@ -122,13 +122,8 @@ export function networkPlot(rows, history, now, hass) {
   const yMin = constant ? 0 : low;
   const yMax = high || 1;
   const y = (value) => 2 + ((yMax - value) / (yMax - yMin)) * 28;
-  const rateLabel = (value) => {
-    const power =
-      value > 0
-        ? Math.min(4, Math.max(0, Math.floor(Math.log10(value) / 3)))
-        : 0;
-    return `${formatNumber(hass, value / 1000 ** power, 1)} ${["B/s", "kB/s", "MB/s", "GB/s", "TB/s"][power]}`;
-  };
+  const rateLabel = (value) =>
+    rateDisplay(hass, { unit: "B/s", precision: 1 }, value);
   const svg = svgNode("svg", {
     viewBox: "0 0 300 32",
     preserveAspectRatio: "none",

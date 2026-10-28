@@ -1,3 +1,4 @@
+import { rateDisplay } from "@ikio/card-ui";
 import { t } from "@ikio/card-ui/i18n";
 import {
   installRefinement,
@@ -187,7 +188,7 @@ export class Card extends ControlCard {
     for (const row of rows) {
       const entry = reading(
         t(this.hass, row.label),
-        valueText(this.hass, row.entity),
+        rateDisplay(this.hass, row),
         row.entity,
       );
       const key = el(

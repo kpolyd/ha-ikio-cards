@@ -123,23 +123,8 @@ export function uptimeLabel(seconds, language = "en") {
   });
 }
 
-// Compare throughput on one byte-per-second scale, retaining byte/bit semantics.
-export function rateFactor(unit) {
-  const text = String(unit || "")
-    .replaceAll(" ", "")
-    .replace(/^bytes\/s$/, "B/s")
-    .replace(/^bits\/s$/, "bit/s");
-  const match = /^([kKMGT]?i?)(B|b|bit)(?:\/s|ps)$/.exec(text);
-  if (!match) return null;
-  const prefix = match[1];
-  const power = { "": 0, k: 1, K: 1, M: 2, G: 3, T: 4 }[
-    prefix.replace("i", "")
-  ];
-  if (power === undefined) return null;
-  return (
-    (prefix.includes("i") ? 1024 : 1000) ** power / (match[2] === "B" ? 1 : 8)
-  );
-}
+export { rateFactor } from "@ikio/card-ui";
+import { rateFactor } from "@ikio/card-ui";
 export function rateHistory(data, unit) {
   let attributes = { unit_of_measurement: unit };
   return (data || [])

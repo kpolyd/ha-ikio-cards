@@ -47,8 +47,8 @@ export function networkPlot(
   const yMin = constant ? 0 : low;
   const yMax = high || 1;
   const y = (value) => 7 + ((yMax - value) / (yMax - yMin)) * (height - 14);
-  // One shared axis needs one display unit. Prefer the configured download
-  // sensor, falling back to upload; each live reading keeps its own settings.
+  // Normalize geometry to bytes/s. Labels scale per value using the download
+  // sensor's unit family and precision, falling back to upload.
   const reference = rows.find((row) => row.key === "network_rx") || rows[0];
   const rateLabel = (value) => rateDisplay(hass, reference, value);
   const svg = svgNode("svg", {
