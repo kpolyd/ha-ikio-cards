@@ -66,6 +66,7 @@ export class Card extends HTMLElement {
   }
   set hass(value) {
     this._hass = value;
+    this.toggleAttribute("ha-dark", value?.themes?.darkMode === true);
     this.states = value?.states || {};
     this.updateLabels();
     this.sync();
