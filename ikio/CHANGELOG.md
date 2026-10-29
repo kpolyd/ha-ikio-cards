@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.19.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.18.0...v0.19.0) (2026-10-29)
+
+
+### Features
+
+* **entity:** add single entity card and enforce editor appearance contract ([586b559](https://github.com/kpolyd/ha-ikio-cards/commit/586b55978a401fb29826770a8fcd3696aa74f184))
+
 ## [0.18.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.17.1...v0.18.0) (2026-10-29)
 
 
