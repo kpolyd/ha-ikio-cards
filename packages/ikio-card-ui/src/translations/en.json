@@ -616,5 +616,7 @@
   "Armed custom": "Armed custom",
   "Pending": "Pending",
   "Disarming": "Disarming",
-  "Motion detected": "Motion detected"
+  "Motion detected": "Motion detected",
+  "Entity": "Entity",
+  "Press": "Press"
 }

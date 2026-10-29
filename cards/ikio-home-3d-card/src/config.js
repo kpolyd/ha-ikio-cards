@@ -12,7 +12,7 @@ export function normalizeConfig(config) {
       throw Error("Home 3D configuration inputs must be file URLs");
     if (next[name]) next[name] = next[name].trim();
   }
-  next.appearance = { theme: "ha", ...config.appearance };
+  next.appearance = { theme: "dark", ...config.appearance };
   return next;
 }
 export function configurationUrl(value, base) {

@@ -616,5 +616,7 @@
   "Armed custom": "Προσαρμοσμένος οπλισμός",
   "Pending": "Σε αναμονή",
   "Disarming": "Αφοπλισμός",
-  "Motion detected": "Ανιχνεύθηκε κίνηση"
+  "Motion detected": "Ανιχνεύθηκε κίνηση",
+  "Entity": "Οντότητα",
+  "Press": "Πάτημα"
 }

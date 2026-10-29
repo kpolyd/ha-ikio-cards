@@ -14,7 +14,7 @@ The traffic legend matches Server Monitor. The graph defaults to 132 px high and
 
 All entity bindings are optional and no entity is guessed. Sections: General (name and appearance), Router (availability/local IP/uptime), Internet (status/connected-state override/WAN IP/latency), Devices (count), Network traffic (receive/transmit rates, 5–1440 minutes history, 80–300 px height), Connection (Generic/Ethernet/Fibre/DSL/Cellular), Cellular readings, individual gauge ranges and thresholds, and repeatable Extra readings (sensor/optional name, reorder/remove).
 
-Cellular settings appear only for Cellular and retain saved bindings when another type is selected. Generic is the default; appearance defaults to following Home Assistant. Recognized Internet states include on/off, online/offline, connected/disconnected and up/down, with inverted on/off for problem sensors. A connected-state override compares the exact configured value case-insensitively; other available values mean disconnected. Unknown/unavailable always stay unknown.
+Cellular settings appear only for Cellular and retain saved bindings when another type is selected. Generic is the default; appearance defaults to Ikio dark. Recognized Internet states include on/off, online/offline, connected/disconnected and up/down, with inverted on/off for problem sensors. A connected-state override compares the exact configured value case-insensitively; other available values mean disconnected. Unknown/unavailable always stay unknown.
 
 Gauge defaults are illustrative configurable display conventions, not a guaranteed radio performance assessment:
 

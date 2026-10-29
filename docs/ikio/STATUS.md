@@ -164,3 +164,7 @@ Home 3D appearance correction: standard Ikio dark/light/HA appearance now contro
 ## Compact Lights redesign (29 October 2026)
 
 Implemented the owner-approved compact layout: native entity icons, right-centred supported-colour/state dots, capability-driven brightness lines and one header active count. Three columns, 44px minimum tile height, packed area grouping, themes, existing configuration and native details remain. Area fractions and brightness percentages are omitted; accessible labels retain state/location details. Focused tests cover mixed colour modes, invalid/stale data, icons, live updates and control stability. Compiled browser checks verify dimensions, dot placement, single-line names and mixed capabilities; native HA icon/device outcomes still need live verification.
+
+## Entity card and appearance consistency (29 October 2026)
+
+Implemented the approved single-entity card with native icons, light-only colour/state dots and brightness lines, switch/helper power symbols, sensor/binary readings and press buttons. Native Sections sizing fills the chosen grid size. The collection-wide editor test discovers all card workspaces and checks the standard final Appearance selector, Ikio dark default, every saved selection and metadata preservation. Router, Weather and Home 3D defaults were corrected without changing saved explicit themes. Automated tests use simulated HA states/forms; native selectors and live-device outcomes remain separate verification.

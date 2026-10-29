@@ -14,6 +14,7 @@ test("all renamed cards and editors register with current names and no legacy al
     globalThis[key] = dom.window[key];
   const names = {
     lights: "Lights",
+    entity: "Entity",
     electricity: "Electricity",
     vehicle: "Vehicle",
     alarmo: "Alarmo",
@@ -48,7 +49,7 @@ test("all renamed cards and editors register with current names and no legacy al
     assert.ok(card.shadowRoot.textContent.length, id);
     card.remove();
   }
-  assert.equal(window.customCards.length, 16);
+  assert.equal(window.customCards.length, 17);
   for (const old of [
     "light",
     "energy",

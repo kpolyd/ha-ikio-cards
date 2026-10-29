@@ -99,6 +99,7 @@ const types = [
   "router",
   "weather",
   "home-3d",
+  "entity",
 ].filter((type) => customElements.get(`ikio-${type}-card`));
 const states = {};
 function state(id, value, attributes = {}) {
@@ -254,6 +255,7 @@ for (const [id, value, unit] of [
 state("binary_sensor.host", "on");
 applyDemoPower(states);
 const configs = {
+  entity: {entity: "light.glow", name: "Bedside"},
   lights: {
     name: "Lights",
     group_by_location: true,

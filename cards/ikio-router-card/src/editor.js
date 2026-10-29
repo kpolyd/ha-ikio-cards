@@ -40,7 +40,7 @@ class Editor extends Base {
       (n) => n.tagName === "HA-FORM",
     );
     if (appearance?.schema?.some((f) => f.name === "theme"))
-      appearance.data = { theme: "ha", ...this.config.appearance };
+      appearance.data = { theme: "dark", ...this.config.appearance };
   }
 }
 customElements.define("ikio-router-card-editor", Editor);
