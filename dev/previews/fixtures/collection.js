@@ -117,10 +117,15 @@ function sensor(id, value, unit) {
   return state("sensor." + id, value, { unit_of_measurement: unit });
 }
 state("light.strip", "on", {
-  supported_color_modes: ["brightness"],
-  brightness: 102,
+  supported_color_modes: ["rgb"],
+  color_mode: "rgb",
+  rgb_color: [167, 139, 250],
+  brightness: 166,
 });
-state("light.glow", "on", { supported_color_modes: ["onoff"] });
+state("light.glow", "on", { supported_color_modes: ["color_temp"], color_mode: "color_temp", color_temp_kelvin: 2700, brightness: 204 });
+state("light.demo_dimmer", "on", { supported_color_modes: ["brightness"], color_mode: "brightness", brightness: 102 });
+state("light.demo_bedside", "off", { supported_color_modes: ["color_temp"], color_mode: "color_temp", color_temp_kelvin: 6500, brightness: 64 });
+state("light.demo_balcony", "unavailable");
 state("switch.entrance", "off");
 sensor("demo_containers", 12, "");
 state("sensor.demo_backup", "3 hours ago", { icon: "mdi:backup-restore" });
@@ -250,11 +255,15 @@ state("binary_sensor.host", "on");
 applyDemoPower(states);
 const configs = {
   lights: {
-    name: "Living room lights",
+    name: "Lights",
+    group_by_location: true,
     lights: [
-      { entity: "light.strip", name: "Ceiling strip" },
-      { entity: "light.glow", name: "TV glow" },
-      { entity: "switch.entrance", name: "Entrance" },
+      { entity: "light.strip", name: "RGB strip", location: "Living room" },
+      { entity: "light.glow", name: "White", location: "Living room" },
+      { entity: "light.demo_dimmer", name: "Dimmer", location: "Living room" },
+      { entity: "light.demo_bedside", name: "Bedside", location: "Bedroom" },
+      { entity: "switch.entrance", name: "Switch", location: "Bedroom" },
+      { entity: "light.demo_balcony", name: "Wall light", location: "Balcony" },
     ],
   },
   climate: {

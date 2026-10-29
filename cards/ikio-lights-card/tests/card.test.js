@@ -285,10 +285,7 @@ test("grouped card hides repeated area labels, retains offline status and update
   const button = card.rows[0].toggle;
   button.focus();
   assert.equal(card.shadowRoot.querySelector("h3").textContent, "Kitchen");
-  assert.equal(
-    card.shadowRoot.querySelector(".area-count").textContent,
-    "1/2 on",
-  );
+  assert.equal(card.activeCount.textContent, "1");
   assert.equal(card.rows[0].location.hidden, true);
   assert.equal(card.rows[1].location.hidden, false);
   assert.match(card.rows[1].location.textContent, /unavailable/i);
@@ -301,10 +298,7 @@ test("grouped card hides repeated area labels, retains offline status and update
       "switch.other": { state: "on", attributes: {} },
     },
   };
-  assert.equal(
-    card.shadowRoot.querySelector(".area-count").textContent,
-    "2/2 on",
-  );
+  assert.equal(card.activeCount.textContent, "2");
   assert.equal(card.shadowRoot.querySelector(".area-group"), section);
   assert.equal(card.rows[0].toggle, button);
   assert.equal(card.shadowRoot.activeElement, button);
@@ -328,7 +322,7 @@ test("area registry changes regroup existing controls and preserve native hold b
   assert.equal(card.shadowRoot.querySelector("h3").textContent, "Office");
   assert.equal(card.rows[0].toggle, button);
   assert.equal(card.shadowRoot.activeElement, button);
-  assert.equal(card.shadowRoot.querySelector(".area-count").hidden, true);
+  assert.equal(card.shadowRoot.querySelector(".area-count"), null);
   let detail;
   card.addEventListener("hass-more-info", (e) => {
     detail = e.detail;
@@ -369,5 +363,105 @@ test("reconnecting a grouped card rebuilds working controls without duplicates",
   card.rows[0].toggle.click();
   await Promise.resolve();
   assert.deepEqual(calls, [["light", "turn_on", { entity_id: "light.strip" }]]);
+  card.remove();
+});
+
+test("capability-driven colour and brightness handle mixed lights and invalid reports", () => {
+  const appearance = (mode, attrs = {}, state = "on") =>
+    adapter.lightAppearance({
+      state,
+      attributes: {
+        supported_color_modes: [mode],
+        color_mode: mode,
+        brightness: 128,
+        ...attrs,
+      },
+    });
+  for (const mode of ["rgb", "hs", "xy", "rgbw", "rgbww"])
+    assert.equal(
+      appearance(mode, { rgb_color: [120, 30, 250] }).colour,
+      "rgb(120, 30, 250)",
+    );
+  const warm = appearance("color_temp", {
+    color_temp_kelvin: 2700,
+    rgb_color: [0, 0, 255],
+  });
+  const cool = appearance("color_temp", { color_temp_kelvin: 6500 });
+  assert.notEqual(warm.colour, cool.colour);
+  assert.equal(
+    appearance("color_temp", { color_temp: 1000000 / 2700 }).colour,
+    warm.colour,
+  );
+  assert.equal(
+    appearance("brightness", { rgb_color: [255, 0, 0] }).colour,
+    null,
+  );
+  assert.equal(appearance("onoff").brightness, null);
+  assert.equal(appearance("brightness", { brightness: 0 }).brightness, 0);
+  for (const brightness of [null, "128", NaN, -1, 256])
+    assert.equal(appearance("brightness", { brightness }).brightness, null);
+  for (const rgb_color of [
+    [-1, 0, 0],
+    [0, 256, 0],
+    [1, 2],
+    [1, "2", 3],
+  ])
+    assert.equal(appearance("rgb", { rgb_color }).colour, null);
+  for (const mode of ["rgb", "color_temp", "brightness"])
+    for (const state of ["off", "unknown", "unavailable"])
+      assert.deepEqual(
+        appearance(
+          mode,
+          { rgb_color: [255, 0, 0], color_temp_kelvin: 2700 },
+          state,
+        ),
+        { brightness: null, colour: null },
+      );
+  assert.equal(
+    appearance("color_temp", { color_temp_kelvin: null }).colour,
+    null,
+  );
+});
+
+test("native entity icons, state dots, lines and minimal count update without replacing controls", () => {
+  const state = {
+    ...light(),
+    attributes: {
+      ...light().attributes,
+      supported_color_modes: ["rgb"],
+      color_mode: "rgb",
+      rgb_color: [22, 80, 210],
+      icon: "mdi:led-strip",
+    },
+  };
+  const { card } = fixture(
+    { "light.strip": state },
+    { group_by_location: true, lights: [{ entity: "light.strip" }] },
+  );
+  const ui = card.rows[0];
+  assert.equal(ui.icon.localName, "ha-state-icon");
+  assert.equal(ui.icon.stateObj, state);
+  assert.equal(ui.icon.hass, card.hass);
+  assert.equal(ui.icon.icon, undefined);
+  assert.equal(
+    ui.toggle.style.getPropertyValue("--lamp-colour"),
+    "rgb(22, 80, 210)",
+  );
+  assert.equal(ui.level.hidden, false);
+  assert.equal(card.activeCount.textContent, "1");
+  assert.equal(card.shadowRoot.querySelector(".area-count"), null);
+  card.hass = {
+    ...card.hass,
+    states: { "light.strip": { ...state, state: "off" } },
+  };
+  assert.equal(card.rows[0].toggle, ui.toggle);
+  assert.equal(ui.toggle.style.getPropertyValue("--lamp-colour"), "");
+  assert.equal(ui.level.hidden, true);
+  assert.equal(card.activeCount.textContent, "0");
+  card.setConfig({
+    ...card.config,
+    lights: [{ entity: "light.strip", icon: "mdi:lamp" }],
+  });
+  assert.equal(card.rows[0].icon.icon, "mdi:lamp");
   card.remove();
 });

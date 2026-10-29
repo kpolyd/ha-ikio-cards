@@ -795,3 +795,7 @@ Owner correction: time of day and sun position control only scene illumination, 
 ## 81. Home 3D semantic palette
 
 Owner approved distinct information colours for Follow Home Assistant: temperature mint/forest, humidity blue/slate, power gold/ochre, fridge ice blue/cyan, active devices sky/ocean, warnings amber/bronze and errors soft/brick red. HA darkMode selects the dark or light semantic palette live. HA retains background/control colours; sun affects illumination only. Ikio dark/light retain their semantic colours. No new configuration fields.
+
+## 82. Approved compact Lights redesign
+
+Owner approved the final mock and requested implementation/release: preserve three columns, tile size and packed grouping. Use each entity's native HA icon/overrides. A right-centred dot belongs to the button, filled in current supported RGB/white colour while on, neutral for non-colour lights, hollow when off; unavailable remains distinct. Brightness is only the thin bottom line, with no percentage or warmth text. Names never wrap due to the dot. One bulb icon plus active count replaces all area fractions/on-off totals. Existing configuration remains unchanged, including grouping, entity/name/icon/location settings and dark/light/HA themes.
