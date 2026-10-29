@@ -87,6 +87,6 @@ export function normalizeConfig(config) {
     ...Object.fromEntries(
       Object.entries(defaults).map(([k, v]) => [k, config[k] ?? v]),
     ),
-    appearance: { theme: "ha", ...config.appearance },
+    appearance: { theme: "dark", ...config.appearance },
   };
 }

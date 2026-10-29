@@ -8,10 +8,10 @@ home_model: /local/ikio-home/home-model.json
 entity_inventory: /local/ikio-home/entities.json
 device_bindings: /local/ikio-home/device-bindings.json
 appearance:
-  theme: ha # dark, light, or ha
+  theme: dark # dark, light, or ha
 ```
 
-All three file fields are required and available in the visual editor, alongside Appearance: Ikio dark, Ikio light, or Follow Home Assistant (default). The background, toolbar and badges follow this appearance independently of time of day. Use same-origin URLs served by your Home Assistant host; no API keys or external service are needed. HA dashboard metadata is retained by visual edits. A missing/partial set shows setup guidance, not a default floorplan.
+All three file fields are required and available in the visual editor, alongside Appearance: Ikio dark (default), Ikio light, or Follow Home Assistant. The background, toolbar and badges follow this appearance independently of time of day. Use same-origin URLs served by your Home Assistant host; no API keys or external service are needed. HA dashboard metadata is retained by visual edits. A missing/partial set shows setup guidance, not a default floorplan.
 
 | Input | Data |
 | --- | --- |

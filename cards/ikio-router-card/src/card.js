@@ -48,14 +48,14 @@ export class Card extends ControlCard {
   setConfig(config) {
     super.setConfig({
       ...config,
-      appearance: { theme: "ha", ...config.appearance },
+      appearance: { theme: "dark", ...config.appearance },
     });
   }
   static getStubConfig() {
     return {
       schema_version: 1,
       ...defaults,
-      appearance: { theme: "ha" },
+      appearance: { theme: "dark" },
       extra_readings: [],
     };
   }

@@ -94,7 +94,7 @@ export class Card extends IkioCard {
       entity: Object.keys(hass?.states || {}).find((id) =>
         id.startsWith("weather."),
       ),
-      appearance: { theme: "ha" },
+      appearance: { theme: "dark" },
     };
   }
   static async getConfigElement() {

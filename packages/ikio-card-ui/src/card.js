@@ -96,11 +96,17 @@ export class IkioCard extends HTMLElement {
         this.pending.delete(id);
       }
   }
-  async act(id, domain, service, data, confirm) {
+  async act(id, domain, service, data, confirm, allowUnknown = false) {
     if (
       this.preview ||
       this.pending.has(id) ||
-      !available(this.hass?.states?.[id])
+      (!available(this.hass?.states?.[id]) &&
+        !(
+          allowUnknown &&
+          ["button", "input_button"].includes(domain) &&
+          service === "press" &&
+          this.hass?.states?.[id]?.state === "unknown"
+        ))
     )
       return;
     const generation = this.generation;
