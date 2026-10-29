@@ -142,6 +142,75 @@ try {
           await card.screenshot({ path: resolve(out, `lights-${theme}.png`) });
         }
       }
+    const mixed = await card.evaluate((c) => {
+      c.setConfig({
+        group_by_location: true,
+        appearance: { theme: "dark" },
+        lights: [
+          {
+            entity: "light.test_rgb",
+            name: "A very long ceiling strip name",
+            location: "Room",
+          },
+          { entity: "light.test_white", name: "White", location: "Room" },
+          { entity: "light.test_dimmer", name: "Dimmer", location: "Room" },
+          { entity: "switch.test_power", name: "Switch", location: "Other" },
+        ],
+      });
+      const state = (mode, attrs = {}) => ({
+        state: "on",
+        attributes: {
+          supported_color_modes: [mode],
+          color_mode: mode,
+          brightness: 128,
+          ...attrs,
+        },
+      });
+      c.hass = {
+        ...c.hass,
+        states: {
+          ...c.hass.states,
+          "light.test_rgb": state("rgb", {
+            rgb_color: [120, 40, 210],
+            icon: "mdi:led-strip",
+          }),
+          "light.test_white": state("color_temp", { color_temp_kelvin: 2700 }),
+          "light.test_dimmer": state("brightness"),
+          "switch.test_power": { state: "off", attributes: {} },
+        },
+      };
+      return c.rows.map((ui) => {
+        const dot = ui.dot.getBoundingClientRect(),
+          button = ui.toggle.getBoundingClientRect(),
+          name = getComputedStyle(ui.name);
+        return {
+          height: button.height,
+          centre: Math.abs(
+            dot.y + dot.height / 2 - button.y - button.height / 2,
+          ),
+          right: button.right - dot.right,
+          nameWrap: name.whiteSpace,
+          line: !ui.level.hidden,
+          colour: ui.toggle.style.getPropertyValue("--lamp-colour"),
+          native: ui.icon.localName,
+          icon: ui.icon.stateObj.attributes.icon,
+        };
+      });
+    });
+    assert.deepEqual(
+      mixed.map((r) => r.line),
+      [true, true, true, false],
+    );
+    assert(mixed[0].colour && mixed[1].colour);
+    assert.equal(mixed[2].colour, "");
+    assert.equal(mixed[0].icon, "mdi:led-strip");
+    for (const row of mixed) {
+      assert.equal(row.native, "ha-state-icon");
+      assert.equal(row.height, 44);
+      assert(row.centre < 1);
+      assert(row.right < 10);
+      assert.equal(row.nameWrap, "nowrap");
+    }
     assert.deepEqual(errors, []);
     results.push({ card: "lights", passed: true });
     await page.close();
