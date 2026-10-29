@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.18.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.17.1...v0.18.0) (2026-10-29)
+
+
+### Features
+
+* **lights:** add compact colour and brightness indicators ([560a381](https://github.com/kpolyd/ha-ikio-cards/commit/560a381813453e0a2a85efce45311b0efb8e4476))
+
 ## [0.17.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.17.0...v0.17.1) (2026-10-28)
 
 
