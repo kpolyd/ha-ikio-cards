@@ -818,3 +818,10 @@ Visual editor: low threshold defaults to **25%** (inclusive); **Collapse batteri
 Owner approved the mock and full editor configuration on 30 October 2026, then authorized implementation and release together with Batteries. The standalone Chip card/badge show only a 14 px icon and sensor value in a 28 px visible surface with tight 7 px horizontal padding. **Show name** defaults off; when enabled, the muted name stacks above the value in a 34 px minimum visible surface. Long content wraps. A transparent 44 px touch target surrounds the surface. No dashboard toggle, header or outer card background.
 
 Editor: Sensor; Show name; optional standard custom card name; optional native HA icon picker; standard appearance last with Ikio dark by default. Clearing Icon resumes native entity icons. Preserve sensor formatting, units, unknown/unavailable labels, accessible entity naming even when visually hidden, tap/hold details and badge registration. Old configurations remain valid; turn on Show name to retain a visible label. Scope compact geometry to the standalone card/badge; Server Monitor's shared Extra readings retain their existing presentation. English/Greek follow HA.
+
+
+## 86. Shared chip presentation and Server Monitor IP
+
+Owner requested on 30 October 2026: add the standard thin theme-aware border to chips and apply the compact redesign to Server Monitor's embedded chips too. This supersedes section 85's Server Monitor exception. Use a single shared renderer/style path for standalone cards, badges and embedded readings; 28/34 px visible surfaces and 44 px transparent targets remain. Server Monitor Extra readings expose the same Show name toggle (off by default) and optional icon picker; existing names and entity bindings are preserved.
+
+Server Monitor adds an optional IP address text field in its visual editor. Display the trimmed configured address in small muted text beside the name, wrapping when needed. Omit empty values; do not guess an address or perform network requests. Support IPv4/IPv6 text and preserve title/temperature/uptime actions and other header behavior. Existing configuration and HA layout metadata remain valid.

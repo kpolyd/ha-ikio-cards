@@ -266,6 +266,12 @@ export class Card extends ControlCard {
     result.classList.add("ikio-server-monitor");
     const header = result.querySelector("header"),
       meta = el("div", undefined, "system-header-meta");
+    if (c.ip_address?.trim()) {
+      const name = header.querySelector(".ae-title, h2"),
+        identity = el("div", undefined, "system-server-identity");
+      name.replaceWith(identity);
+      identity.append(name, el("span", c.ip_address.trim(), "system-ip"));
+    }
     if (c.temperature_entity) {
       const temperature = button(
         valueText(this.hass, c.temperature_entity),

@@ -129,7 +129,16 @@ export function defineEditor(
       const labels = Object.fromEntries(all.map((f) => [f.name, f.label]));
       this.shadowRoot.append(
         form(this._hass, this.config, schema, labels, (value) =>
-          this.change({ ...this.config, ...value }),
+          this.change({
+            ...this.config,
+            // HA form data can contain an older snapshot of repeatable lists.
+            // Only apply the fields this form actually owns.
+            ...Object.fromEntries(
+              all
+                .filter((field) => Object.hasOwn(value, field.name))
+                .map((field) => [field.name, value[field.name]]),
+            ),
+          }),
         ),
       );
       for (const list of lists) {

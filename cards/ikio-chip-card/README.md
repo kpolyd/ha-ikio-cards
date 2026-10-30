@@ -1,6 +1,6 @@
 # Ikio Chip
 
-A very compact sensor chip: 14 px icon and value inside a 28 px visible surface with 7 px corners. Turn on **Show name** to place a quiet name above the value in a 34 px surface. Each chip retains a transparent 44 px touch target; long names/values can grow to fit. There is no title or outer card background. Server Monitor keeps its existing Extra readings layout.
+A very compact sensor chip: 14 px icon and value inside a 28 px visible surface with 7 px corners and a subtle theme-aware border. Turn on **Show name** to place a quiet name above the value in a 34 px surface. Each chip retains a transparent 44 px touch target; long names/values can grow to fit. There is no title or outer card background. Server Monitor's Extra readings use the same compact renderer, border and per-reading name/icon settings.
 
 Install the full collection through HACS. Add **Ikio Chip**, select a **Sensor**, set **Show name** (off by default), optionally override its **Card name** and **Icon**, and choose dark, light or Home Assistant appearance at the bottom. Values/units follow the sensor. Leave Icon empty to follow the native entity icon; clearing a custom icon restores that behavior. Tap or hold opens native Home Assistant entity details; no services are called. Missing/unknown/unavailable readings stay explicit. Long text wraps and touch targets remain at least 44 px.
 

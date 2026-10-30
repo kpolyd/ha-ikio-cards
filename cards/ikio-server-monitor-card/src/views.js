@@ -11,6 +11,9 @@ const svgNode = (tag, attrs = {}) => {
 export const systemStyles = `
 .ikio-server-monitor{--system-ring-size:clamp(48px,16cqw,76px)}
 .ikio-server-monitor>header{grid-template-columns:18px minmax(0,1fr) auto}
+.ikio-server-monitor .system-server-identity{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 6px;min-width:0}
+.ikio-server-monitor .system-server-identity>.ae-title,.ikio-server-monitor .system-server-identity>h2{flex:0 1 auto;min-width:0;font-size:16px;font-weight:500;line-height:1.3}
+.ikio-server-monitor .system-ip{color:var(--ae-muted);font-size:11px;font-weight:400;overflow-wrap:anywhere;min-width:0}
 .ikio-server-monitor .system-header-meta{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:0 8px;max-width:190px;font-size:11px;color:var(--ae-muted)}
 .ikio-server-monitor .system-header-meta button{min-height:44px;min-width:44px;background:none;border:0;padding:0;display:flex;align-items:center;gap:4px;color:inherit;font:inherit}
 .ikio-server-monitor .system-header-meta ha-icon{--mdc-icon-size:14px}
@@ -65,7 +68,6 @@ export const systemStyles = `
 .ikio-server-monitor .system-service.multiple-controls .system-service-controls{grid-column:1/-1;justify-content:flex-end}
 @container(min-width:480px){.ikio-server-monitor .system-service-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .ikio-server-monitor .system-extra-readings{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-block:2px 4px}
-.ikio-server-monitor .system-extra-readings .ikio-sensor-chip{padding:4px 8px}
 @container(max-width:310px){.ikio-server-monitor .system-header-meta{max-width:145px;gap:0 6px}.ikio-server-monitor>header>.ae-title,.ikio-server-monitor>header>h2{font-size:15px}}
 `;
 export function ringReading(label, percent, entity, level, hass, digits = 1) {

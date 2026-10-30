@@ -642,5 +642,7 @@
   "All batteries are above {threshold}%.": "Όλες οι μπαταρίες είναι πάνω από {threshold}%.",
   "Normal": "Κανονική",
   "Show name": "Εμφάνιση ονόματος",
-  "Icon must be text": "Το εικονίδιο πρέπει να είναι κείμενο"
+  "Icon must be text": "Το εικονίδιο πρέπει να είναι κείμενο",
+  "IP address (optional)": "Διεύθυνση IP (προαιρετικά)",
+  "IP address must be text": "Η διεύθυνση IP πρέπει να είναι κείμενο"
 }

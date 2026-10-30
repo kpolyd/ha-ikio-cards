@@ -347,6 +347,7 @@ const configs = {
       control_entity: `switch.demo_service_${i}`,
     })),
     name: "Home Assistant server",
+    ip_address: "192.0.2.10",
     network_rx_entity: "sensor.network_rx",
     network_tx_entity: "sensor.network_tx",
     availability_entity: "binary_sensor.host",
