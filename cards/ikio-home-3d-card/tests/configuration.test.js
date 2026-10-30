@@ -235,9 +235,13 @@ test("visual editor exposes the three file fields and preserves HA metadata", as
   editor.hass = { locale: { language: "en" } };
   document.body.append(editor);
   await flush();
-  const form = editor.shadowRoot.querySelector("ha-form");
+  const form = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+    f.schema.some((s) => s.name === "home_model"),
+  );
   assert.deepEqual(
-    form.schema.map((f) => f.name),
+    [...editor.shadowRoot.querySelectorAll("ha-form")]
+      .flatMap((f) => f.schema.map((s) => s.name))
+      .filter((name) => Object.keys(config).includes(name)),
     Object.keys(config),
   );
   let changed;
@@ -281,7 +285,7 @@ test("standard appearance options are independent of solar lighting and preserve
   editor.setConfig(config);
   document.body.append(editor);
   await flush();
-  const appearance = editor.shadowRoot.querySelectorAll("ha-form")[1];
+  const appearance = [...editor.shadowRoot.querySelectorAll("ha-form")].at(-1);
   assert.deepEqual(
     appearance.schema[0].selector.select.options.map((o) => o.value),
     ["dark", "light", "ha"],

@@ -18,3 +18,5 @@ export function validate(config) {
     throw Error("Choose entities using the visual editor.");
   validateConfig(config, fields);
 }
+
+export const editorOptions = { generalFields: [] };

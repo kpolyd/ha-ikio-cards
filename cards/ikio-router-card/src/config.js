@@ -50,7 +50,7 @@ export const sections = [
   },
   {
     label: "Cellular readings",
-    cellular: true,
+    visible: (config) => config.connection_type === "cellular",
     fields: [
       sensor("network_type", "Network type (4G / 5G / LTE)"),
       sensor("signal", "Signal percentage"),
@@ -61,7 +61,7 @@ export const sections = [
   },
   ...["rsrp", "rsrq", "snr"].map((metric) => ({
     label: { rsrp: "RSRP gauge", rsrq: "RSRQ gauge", snr: "SNR gauge" }[metric],
-    cellular: true,
+    visible: (config) => config.connection_type === "cellular",
     fields: [
       number(metric + "_min", "Gauge minimum", -200, 100, 0.1),
       number(metric + "_max", "Gauge maximum", -200, 100, 0.1),
@@ -111,3 +111,18 @@ export function validate(c) {
       throw Error("Critical threshold must not exceed warning threshold");
   }
 }
+
+export const editorOptions = {
+  sections,
+  defaults: () => ({
+    ...defaults,
+    ...Object.fromEntries(
+      Object.entries(gaugeDefaults).flatMap(([metric, values]) =>
+        Object.entries(values).map(([key, value]) => [
+          `${metric}_${key}`,
+          value,
+        ]),
+      ),
+    ),
+  }),
+};

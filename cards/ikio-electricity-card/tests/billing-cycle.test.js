@@ -275,7 +275,9 @@ test("billing cron is editable without losing legacy sensor bindings or HA metad
   editor.hass = { states: {}, config: { time_zone: "UTC" } };
   document.body.append(editor);
   await new Promise((resolve) => setTimeout(resolve, 0));
-  const form = editor.shadowRoot.querySelector("ha-form");
+  const form = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+    f.schema.some((s) => s.name === "billing_cycle_cron"),
+  );
   assert.ok(
     form.schema.some(
       (field) => field.name === "billing_cycle_cron" && field.selector.text,

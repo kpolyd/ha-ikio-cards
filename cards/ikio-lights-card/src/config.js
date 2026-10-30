@@ -36,3 +36,47 @@ export function normalizeConfig(config) {
     appearance,
   };
 }
+
+export const fields = [
+  {
+    name: "group_by_location",
+    label: "Group by location",
+    selector: { boolean: {} },
+    default: false,
+  },
+];
+export const lists = [
+  {
+    name: "lights",
+    label: "Lights",
+    item: "light or switch",
+    fields: [
+      {
+        name: "entity",
+        label: "Light or switch",
+        required: true,
+        selector: { entity: { filter: { domain: ["light", "switch"] } } },
+      },
+      { name: "name", label: "Name (optional)", selector: { text: {} } },
+      { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
+      {
+        name: "location",
+        label: "Location (optional override)",
+        selector: { text: {} },
+      },
+    ],
+  },
+];
+export const editorOptions = {
+  defaults: { group_by_location: false },
+  helper:
+    "Tap to toggle. Hold for native Home Assistant details, including brightness and colour. Location comes from the entity or device area; an optional location label overrides it.",
+};
+export function normalizeEditor(config) {
+  return {
+    ...config,
+    lights: (config.lights || []).map((row) =>
+      typeof row === "string" ? { entity: row } : row,
+    ),
+  };
+}

@@ -88,7 +88,9 @@ test("editor exposes vacuum and appearance while preserving HA metadata", async 
   );
   editor.hass = { states: {}, locale: { language: "el" } };
   assert.equal(
-    editor.shadowRoot.querySelector("ha-form").computeLabel({ name: "entity" }),
+    editor.shadowRoot
+      .querySelector(".field-label")
+      .textContent.replace(" *", ""),
     "Σκούπα",
   );
   editor.remove();

@@ -88,7 +88,7 @@ test("stub renders safely; all configuration fields are available visually and p
   document.body.append(editor);
   await tick();
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
-  const names = forms[0].schema.map((f) => f.name);
+  const names = [...forms].flatMap((form) => form.schema.map((f) => f.name));
   for (const field of fields) assert.ok(names.includes(field.name), field.name);
   assert.ok(names.includes("name"));
   assert.ok(forms.length >= 2, "appearance form");

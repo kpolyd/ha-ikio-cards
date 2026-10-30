@@ -72,3 +72,10 @@ export function migrateConfig(config) {
   delete result.database_entity;
   return result;
 }
+
+export const editorOptions = {
+  sections: [
+    { fields: fields.slice(0, 1) },
+    { label: "Metrics", fields: fields.slice(1) },
+  ],
+};

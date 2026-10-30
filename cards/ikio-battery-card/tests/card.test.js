@@ -179,8 +179,9 @@ test("editor exposes both defaults, native multi-device selection, and preserves
   assert.equal(form.data.low_threshold, 25);
   assert.equal(form.data.collapse_threshold, 80);
   assert.equal(
-    form.schema.find((f) => f.name === "ignored_devices").selector.device
-      .multiple,
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+      f.schema.some((s) => s.name === "ignored_devices"),
+    ).schema[0].selector.device.multiple,
     true,
   );
   let saved;
@@ -188,18 +189,20 @@ test("editor exposes both defaults, native multi-device selection, and preserves
     saved = e.detail.config;
     editor.setConfig(saved);
   });
-  form.dispatchEvent(
-    new CustomEvent("value-changed", {
-      detail: {
-        value: {
-          ...form.data,
-          low_threshold: 30,
-          collapse_threshold: 90,
-          ignored_devices: ["a"],
-        },
-      },
-    }),
-  );
+  for (const [name, value] of Object.entries({
+    low_threshold: 30,
+    collapse_threshold: 90,
+    ignored_devices: ["a"],
+  })) {
+    const control = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+      (f) => f.schema[0].name === name,
+    );
+    control.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: { ...control.data, [name]: value } },
+      }),
+    );
+  }
   assert.equal(saved.low_threshold, 30);
   assert.deepEqual(saved.ignored_devices, ["a"]);
   assert.deepEqual(saved.view_layout, { column: 2 });

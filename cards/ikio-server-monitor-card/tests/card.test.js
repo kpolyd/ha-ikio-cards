@@ -1215,11 +1215,21 @@ test("visual editor exposes IP and chip name/icon settings and preserves saved v
   assert.deepEqual(main.schema.find((s) => s.name === "ip_address").selector, {
     text: {},
   });
-  assert.deepEqual(reading.schema.find((s) => s.name === "icon").selector, {
-    icon: {},
-  });
+  assert.deepEqual(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+      f.schema.some((s) => s.name === "icon"),
+    ).schema[0].selector,
+    {
+      icon: {},
+    },
+  );
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  [...editor.shadowRoot.querySelectorAll("ha-form")]
+    .find((f) => f.schema.some((s) => s.name === "icon"))
+    .dispatchEvent(
+      new CustomEvent("value-changed", { detail: { value: { icon: "" } } }),
+    );
   reading.dispatchEvent(
     new CustomEvent("value-changed", {
       detail: { value: { ...reading.data, show_name: false, icon: "" } },
