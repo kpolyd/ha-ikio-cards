@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.21.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.21.0...v0.21.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **cards:** support people, live server IP and visible chip names ([8d6b7b8](https://github.com/kpolyd/ha-ikio-cards/commit/8d6b7b8501839c8c4791a506914acc7b8dbe0021))
+
 ## [0.21.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.20.0...v0.21.0) (2026-10-30)
 
 
