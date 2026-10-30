@@ -1,5 +1,13 @@
 # Ikio changelog
 
+## [0.21.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.20.0...v0.21.0) (2026-10-30)
+
+
+### Features
+
+* **editor:** standardize declarative configuration across all cards ([7ca2b62](https://github.com/kpolyd/ha-ikio-cards/commit/7ca2b62163b81efeca8db834b86a10ea34ed8706))
+* **system:** unify bordered chips and add server IP ([ae5ad9c](https://github.com/kpolyd/ha-ikio-cards/commit/ae5ad9c75705d8d6527572e3c0c167aedc6b6970))
+
 ## [0.20.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.19.0...v0.20.0) (2026-10-30)
 
 
