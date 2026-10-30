@@ -1,5 +1,13 @@
 # Ikio changelog
 
+## [0.20.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.19.0...v0.20.0) (2026-10-30)
+
+
+### Features
+
+* **battery:** add automatic battery card and replacement summary ([5f0969c](https://github.com/kpolyd/ha-ikio-cards/commit/5f0969ca2b0d7b04fc7afdd70aca84920e001af8))
+* **chip:** add compact surface with optional name and icon ([e209e85](https://github.com/kpolyd/ha-ikio-cards/commit/e209e850e7b46aa15d1834a4cb47df5bba0aafc3))
+
 ## [0.19.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.18.0...v0.19.0) (2026-10-29)
 
 
