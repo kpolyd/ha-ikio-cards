@@ -91,7 +91,7 @@ test("visual editor supplies sensor/name/theme and preserves unrelated dashboard
   const stub = document.createElement("ikio-chip-card");
   stub.setConfig(Class.getStubConfig());
   document.body.append(stub);
-  assert.match(stub.shadowRoot.textContent, /Choose a sensor/);
+  assert.match(stub.shadowRoot.textContent, /Choose an entity/);
   stub.remove();
   const editor = await Class.getConfigElement();
   const config = {
@@ -195,11 +195,11 @@ test("chip registers in the badge picker and reuses card configuration, styling 
   assert.equal(badge.holds.size, 0);
 });
 
-test("compact default hides only the visible name; editor settings restore stacked names and native icon fallback", async () => {
+test("compact default shows the name; editor settings restore stacked names and native icon fallback", async () => {
   const c = fixture();
   let chip = c.content.querySelector(".ikio-sensor-chip");
-  assert.equal(c.config.show_name, false);
-  assert.equal(chip.querySelector(".ikio-chip-name").hidden, true);
+  assert.equal(c.config.show_name, true);
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, false);
   assert.match(chip.getAttribute("aria-label"), /Database size: 871.44 MB/);
   assert(chip.classList.contains("ikio-chip-compact"));
   c.setConfig({
@@ -246,7 +246,7 @@ test("show-name and icon settings are shared by badges and survive editor feedba
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
   const form = editor.shadowRoot.querySelector("ha-form");
-  assert.equal(form.data.show_name, false);
+  assert.equal(form.data.show_name, true);
   assert.deepEqual(
     [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
       f.schema.some((s) => s.name === "icon"),
@@ -329,7 +329,7 @@ test("Server Monitor uses the same compact shared renderer and name setting", as
     chip = sensorChip(c, { entity: "sensor.demo" });
   assert.equal(chip.classList.contains("ikio-chip-compact"), true);
   assert.ok(chip.querySelector(".ikio-chip-surface"));
-  assert.equal(chip.querySelector(".ikio-chip-name").hidden, true);
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, false);
   const named = sensorChip(c, { entity: "sensor.demo", show_name: true });
   assert.equal(named.querySelector(".ikio-chip-name").hidden, false);
   assert.equal(
@@ -337,4 +337,46 @@ test("Server Monitor uses the same compact shared renderer and name setting", as
     "Database size",
   );
   c.remove();
+});
+
+test("people work in the chip card and badge with native state, icon and details", async () => {
+  for (const type of ["ikio-chip-card", "ikio-chip-badge"]) {
+    const card = document.createElement(type);
+    card.setConfig({ entity: "person.demo", view_layout: { column: 2 } });
+    const state = {
+      entity_id: "person.demo",
+      state: "home",
+      attributes: { friendly_name: "Demo person", icon: "mdi:account" },
+    };
+    card.hass = { states: { "person.demo": state } };
+    document.body.append(card);
+    assert.equal(card.content.querySelector(".ikio-chip-name").hidden, false);
+    assert.match(
+      card.content.querySelector(".ikio-chip-value").textContent,
+      /home/i,
+    );
+    assert.equal(card.content.querySelector("ha-state-icon").stateObj, state);
+    let opened;
+    card.addEventListener(
+      "hass-more-info",
+      (e) => (opened = e.detail.entityId),
+    );
+    card.content.querySelector("button").click();
+    assert.equal(opened, "person.demo");
+    card.hass = { states: { "person.demo": { ...state, state: "not_home" } } };
+    assert.match(
+      card.content.querySelector(".ikio-chip-value").textContent,
+      /away|not.home/i,
+    );
+    const editor = await card.constructor.getConfigElement();
+    editor.setConfig(card.config);
+    document.body.append(editor);
+    await new Promise((r) => setTimeout(r, 0));
+    const selector = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+      (f) => f.schema[0].name === "entity",
+    ).schema[0].selector;
+    assert(selector.entity.filter.domain.includes("person"));
+    editor.remove();
+    card.remove();
+  }
 });

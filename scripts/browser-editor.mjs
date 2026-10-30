@@ -80,7 +80,7 @@ export async function checkEditor(browser, out) {
       const editor = await Card.getConfigElement();
       editor.setConfig({
         name: "Simulated server",
-        ip_address: "192.0.2.10",
+        ip_address_entity: "sensor.server_ip",
         extra_readings: [
           { entity: "sensor.database", name: "Database", show_name: true },
         ],

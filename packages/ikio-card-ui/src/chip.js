@@ -1,4 +1,4 @@
-import { el, button, valueText } from "./controls.js";
+import { el, button, valueText, stateText } from "./controls.js";
 import { details, entityName } from "./card.js";
 
 // One renderer and geometry for standalone cards, badges and embedded readings.
@@ -17,13 +17,15 @@ export function sensorChip(card, config, key = config.entity) {
     config.name?.trim() ||
     entityName(card.hass, card.state(config.entity)) ||
     config.entity;
-  const value = valueText(card.hass, config.entity);
+  const value = config.entity?.startsWith("person.")
+    ? stateText(card.hass, config.entity)
+    : valueText(card.hass, config.entity);
   const chip = button("", () => details(card, config.entity), {
     entity: config.entity,
     key,
   });
   chip.classList.add("ikio-sensor-chip", "ikio-chip-compact");
-  chip.classList.toggle("with-name", config.show_name === true);
+  chip.classList.toggle("with-name", config.show_name !== false);
   chip.setAttribute("aria-label", `${name}: ${value}`);
   const icon = el("ha-state-icon");
   icon.dataset.chipEntity = config.entity;
@@ -31,7 +33,7 @@ export function sensorChip(card, config, key = config.entity) {
   icon.setAttribute("aria-hidden", "true");
   const text = el("span", undefined, "ikio-chip-text"),
     nameNode = el("span", name, "ikio-chip-name");
-  nameNode.hidden = config.show_name !== true;
+  nameNode.hidden = config.show_name === false;
   text.append(nameNode, el("span", value, "ikio-chip-value"));
   const surface = el("span", undefined, "ikio-chip-surface");
   surface.append(icon, text);

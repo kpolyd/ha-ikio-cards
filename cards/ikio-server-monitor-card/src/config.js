@@ -1,5 +1,5 @@
 import {
-  bool,
+  showNameField,
   entity,
   text,
   validateConfig,
@@ -20,7 +20,7 @@ const metrics = [
   ["network_tx", "Network transmit rate", "sensor"],
 ];
 export const fields = [
-  text("ip_address", "IP address (optional)"),
+  entity("ip_address_entity", "IP address sensor (optional)", "sensor"),
   ...metrics.map(([k, label, domain]) => entity(k + "_entity", label, domain)),
 ];
 export const lists = [
@@ -31,7 +31,7 @@ export const lists = [
     fields: [
       entity("entity", "Sensor", "sensor", true),
       text("name", "Name (optional)"),
-      bool("show_name", "Show name"),
+      showNameField,
       { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
     ],
   },
@@ -69,6 +69,7 @@ export function migrateConfig(config) {
     result.extra_readings = [
       { name: "Database", entity: result.database_entity },
     ];
+  if (result.ip_address_entity) delete result.ip_address;
   delete result.database_entity;
   return result;
 }

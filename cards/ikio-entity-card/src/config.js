@@ -4,6 +4,7 @@ export const domains = [
   "switch",
   "input_boolean",
   "sensor",
+  "person",
   "binary_sensor",
   "button",
   "input_button",

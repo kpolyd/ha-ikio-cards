@@ -1,7 +1,11 @@
-import { bool, entity, validateConfig } from "@ikio/card-ui/schema-editor";
+import {
+  showNameField,
+  entity,
+  validateConfig,
+} from "@ikio/card-ui/schema-editor";
 export const fields = [
-  entity("entity", "Sensor", "sensor", true),
-  bool("show_name", "Show name"),
+  entity("entity", "Entity", ["sensor", "person"], true),
+  showNameField,
   { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
 ];
 export function validate(config) {
@@ -19,7 +23,7 @@ export function normalizeConfig(config) {
   return {
     ...structuredClone(config),
     schema_version: 1,
-    show_name: config.show_name ?? false,
+    show_name: config.show_name ?? true,
     appearance: { theme: "dark", ...config.appearance },
   };
 }

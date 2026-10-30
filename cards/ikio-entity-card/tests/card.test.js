@@ -191,3 +191,31 @@ test("configuration rejects unsupported types and the editor preserves metadata"
   editor.remove();
   c.remove();
 });
+
+test("people display HA states and open details without invoking a service", () => {
+  const { c, calls } = fixture("person.demo", "home", {
+    friendly_name: "Demo person",
+    icon: "mdi:account",
+  });
+  assert.match(c.value.textContent, /home/i);
+  assert.equal(c.dot.hidden, true);
+  assert.equal(c.actionIcon.hidden, true);
+  assert.equal(c.icon.stateObj, c.hass.states["person.demo"]);
+  let opened;
+  c.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+  c.control.click();
+  assert.equal(opened, "person.demo");
+  assert.deepEqual(calls, []);
+  c.hass = {
+    ...c.hass,
+    states: {
+      "person.demo": {
+        entity_id: "person.demo",
+        state: "not_home",
+        attributes: { friendly_name: "Demo person" },
+      },
+    },
+  };
+  assert.match(c.value.textContent, /away|not.home/i);
+  c.remove();
+});

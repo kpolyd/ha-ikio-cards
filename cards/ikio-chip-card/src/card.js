@@ -23,7 +23,7 @@ export class Card extends ControlCard {
     );
   }
   static getStubConfig() {
-    return { schema_version: 1, show_name: false };
+    return { schema_version: 1, show_name: true };
   }
   static async getConfigElement() {
     await import("./editor.js");
@@ -40,7 +40,7 @@ export class Card extends ControlCard {
   }
   render() {
     if (!this.config.entity)
-      return note(t(this.hass, "Choose a sensor in the visual editor."));
+      return note(t(this.hass, "Choose an entity in the visual editor."));
     const content = el("div", undefined, "chip-only");
     content.append(sensorChip(this, this.config));
     return content;

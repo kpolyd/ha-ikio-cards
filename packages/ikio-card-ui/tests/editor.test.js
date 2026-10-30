@@ -158,7 +158,7 @@ test("the shared layout, mandatory markers and list disclosures preserve edits a
   assert.equal(entity.getAttribute("aria-required"), "true");
   assert.equal(entity.getAttribute("aria-labelledby"), label.id);
   assert.equal(
-    field("ip_address").parentElement.querySelector(".required"),
+    field("ip_address_entity").parentElement.querySelector(".required"),
     null,
   );
   let saved;
@@ -238,4 +238,37 @@ test("Router declarative sections react to connection type without losing hidden
   assert.equal(editor.config.rsrp_entity, "sensor.signal");
   assert.deepEqual(editor.config.view_layout, { column: 2 });
   editor.remove();
+});
+
+test("embedded chip editors default names on while retaining an explicit off setting", async () => {
+  await import("../../../cards/ikio-router-card/src/editor.js");
+  for (const type of ["server-monitor", "router"]) {
+    const editor = document.createElement(`ikio-${type}-card-editor`);
+    editor.setConfig({
+      extra_readings: [{ entity: "sensor.demo" }],
+      view_layout: { column: 2 },
+    });
+    document.body.append(editor);
+    await new Promise((r) => setTimeout(r, 0));
+    const field = () =>
+      [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+        (f) => f.schema[0].name === "show_name",
+      );
+    assert.equal(field().data.show_name, true, type);
+    let saved;
+    editor.addEventListener("config-changed", (e) => {
+      saved = e.detail.config;
+      editor.setConfig(saved);
+    });
+    field().dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: { ...field().data, show_name: false } },
+      }),
+    );
+    assert.equal(saved.extra_readings[0].show_name, false);
+    assert.deepEqual(saved.view_layout, { column: 2 });
+    editor.setConfig({ ...saved, name: "Renamed" });
+    assert.equal(field().data.show_name, false, type);
+    editor.remove();
+  }
 });

@@ -105,7 +105,8 @@ const types = [
   "entity",
   "battery",
 ].filter((type) => customElements.get(`ikio-${type}-card`));
-const states = {};
+const states = {
+  "sensor.server_ip": { entity_id: "sensor.server_ip", state: "192.0.2.10", attributes: {friendly_name: "Server IP"} },};
 function state(id, value, attributes = {}) {
   return (states[id] = {
     entity_id: id,
@@ -347,7 +348,7 @@ const configs = {
       control_entity: `switch.demo_service_${i}`,
     })),
     name: "Home Assistant server",
-    ip_address: "192.0.2.10",
+    ip_address_entity: "sensor.server_ip",
     network_rx_entity: "sensor.network_rx",
     network_tx_entity: "sensor.network_tx",
     availability_entity: "binary_sensor.host",

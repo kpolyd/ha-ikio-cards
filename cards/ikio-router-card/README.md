@@ -27,3 +27,5 @@ Gauge defaults are illustrative configurable display conventions, not a guarante
 Bounds clamp the arc only; the actual measurement stays visible. Radio sensors accept dB and dBm (case-insensitive, surrounding whitespace ignored). Some integrations report RSRQ/SNR with dBm labels; keep their finite readings and reported units visible without pretending to convert logarithmic quantities. Unitless sensors use the configured metric’s conventional unit. Radio value labels follow Home Assistant’s native sensor formatting too. Thresholds use strictly below comparisons. Signal percentage must be within 0–100.
 
 Validation uses simulated DOM/browser fixtures and does not claim native Home Assistant or live-router verification. No device actions or service calls are provided.
+
+Extra reading chips show names by default. Turn off Show name on an individual reading to hide its label.

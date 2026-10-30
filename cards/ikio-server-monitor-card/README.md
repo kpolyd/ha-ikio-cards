@@ -47,7 +47,7 @@ Add, remove and reorder rows in the editor.
 - **Service power switch** (control_entity)
 - **Existing restart action** (restart_action)
 
-An optional **IP address** text field appears faintly beside the server name, wrapping below it when space is limited. Leave it blank to omit it; it is a configured address, not an inferred network reading. IPv4 and IPv6 text are supported.
+An optional **IP address sensor** selector supplies the current address shown faintly beside the server name, wrapping below it when space is limited. IPv4 and IPv6 values are displayed exactly as reported.
 
 ## Shared behaviour
 
@@ -81,3 +81,5 @@ Expanded services use two compact tiles per row on mobile and three on cards wit
 Add sensor/name rows with optional **Show name** and **Icon** settings in the visual editor's **Extra readings** list. Sensor is required; the name is optional and defaults to the entity name. Chips appear between the header and resource rings, in configured order, using the same compact renderer as the standalone Chip card/badge: 28 px visible height without names (default), 34 px with stacked names, a thin theme-aware border and 7 px corners. Each reading has an optional native icon override. Transparent touch targets remain 44 px. They wrap without adding a heading and open native details on tap/hold. The renderer is shared with the standalone Ikio Chip card.
 
 Existing database_entity bindings migrate into a Database extra reading when the new list is absent. New-list configurations take precedence, including an explicitly empty list. The editor exposes and saves the migrated entry; removing it does not restore the old DB binding. Database readings no longer appear below services.
+
+Select an optional IP address sensor to show its current IPv4 or IPv6 value beside the server name. Values update with Home Assistant; unavailable or missing sensors remain explicit. Legacy manual IP text remains visible until a sensor is selected. Extra reading names are shown by default; explicit `show_name: false` still hides them.

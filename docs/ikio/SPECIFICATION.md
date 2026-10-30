@@ -833,3 +833,11 @@ The owner approved the common configuration mock and requested implementation an
 Required fields display a red asterisk beside their label, with a shared legend and an inline required-field message. `required: true` drives both the marker and native HA required validity. Blank optional fields remain optional. Native Home Assistant entity, icon, device and other selectors remain in use. Vacuum retains entity-derived naming and does not add a name override.
 
 Secondary settings and repeatable lists use consistent labelled disclosures with counts, editable row summaries, add/move/remove actions and 44 px targets. Newly added rows expand and receive keyboard focus. Router cellular groups remain conditional without deleting hidden bindings; Server Monitor groups its optional metrics. Appearance remains the last dedicated form with Ikio dark (default), Ikio light and Home Assistant choices. Normal field edits and echoed configurations preserve focus and current list contents.
+
+## 88. IP sensor, people and chip name defaults
+
+On 30 October 2026 the owner requested an IP sensor selector instead of manual text, person support in Entity and Chip cards, and Show name enabled by default wherever shared chips appear. Implementation and release are authorized.
+
+Server Monitor exposes optional `ip_address_entity` (sensor). The header shows its current raw IPv4/IPv6 state and updates with HA; unknown/unavailable/missing sensors remain explicit. Legacy `ip_address` text is preserved until an IP sensor is selected, then removed so clearing the sensor does not resurrect stale text. IP does not establish server availability.
+
+Entity and Chip selectors accept `person` entities. People show HA-formatted states and native icons, open native details and issue no services. Chip badges inherit this support. Shared chips show names unless `show_name: false` is explicit, superseding earlier off defaults. The common Show name field defaults to true for standalone chips and Server Monitor/Router extra readings. Existing explicit false values remain false. Compact surfaces, borders and native details are preserved.

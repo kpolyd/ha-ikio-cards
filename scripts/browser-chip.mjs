@@ -114,7 +114,7 @@ export async function checkChip(browser, out) {
         })),
       );
     assert(shared.length > 0);
-    assert(shared.every((chip) => chip.compact && chip.nameHidden));
+    assert(shared.every((chip) => chip.compact && !chip.nameHidden));
     await card.evaluate((c) => {
       const badge = document.createElement("ikio-chip-badge");
       badge.id = "chip-test-badge";
@@ -192,13 +192,23 @@ export async function checkChip(browser, out) {
             path: resolve(out, `server-ip-chips-${theme}.png`),
           });
       }
-    await server.evaluate((c) =>
+    await server.evaluate((c) => {
       c.setConfig({
         ...c.config,
         name: "Διακομιστής με μεγάλο όνομα",
-        ip_address: "2001:db8:abcd:1234:5678:90ab:cdef:1234",
-      }),
-    );
+        ip_address_entity: "sensor.server_ip",
+      });
+      c.hass = {
+        ...c.hass,
+        states: {
+          ...c.hass.states,
+          "sensor.server_ip": {
+            state: "2001:db8:abcd:1234:5678:90ab:cdef:1234",
+            attributes: {},
+          },
+        },
+      };
+    });
     await page.evaluate(
       () =>
         (document.querySelector("main").style.gridTemplateColumns = "280px"),
@@ -213,6 +223,30 @@ export async function checkChip(browser, out) {
     await server.screenshot({
       path: resolve(out, "server-ipv6-long-name.png"),
     });
+    await card.evaluate((c) => {
+      c.setConfig({ entity: "person.demo" });
+      window.ikioPreview.states["person.demo"] = {
+        entity_id: "person.demo",
+        state: "home",
+        attributes: { friendly_name: "Demo person", icon: "mdi:account" },
+      };
+      c.hass = { ...c.hass, states: { ...window.ikioPreview.states } };
+    });
+    assert.equal(
+      await card.locator(".ikio-chip-name").evaluate((n) => n.hidden),
+      false,
+    );
+    await card.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() =>
+      /home/i.test(
+        document
+          .querySelector("ikio-chip-card")
+          .content.querySelector(".ikio-chip-value").textContent,
+      ),
+    );
+    assert.match(await card.locator(".ikio-chip-value").textContent(), /home/i);
+    await card.locator("button").click();
+    assert.match(await page.locator("#log").textContent(), /person.demo/);
     assert.deepEqual(errors, []);
     return { card: "chip", passed: true };
   } finally {
