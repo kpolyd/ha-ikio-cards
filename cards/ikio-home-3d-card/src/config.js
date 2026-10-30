@@ -33,3 +33,8 @@ export function configurationUrl(value, base) {
   }
   return url.href;
 }
+
+export const editorOptions = {
+  helper:
+    "Provide all three JSON configuration file URLs. Home geometry and entity mappings remain in these files.",
+};

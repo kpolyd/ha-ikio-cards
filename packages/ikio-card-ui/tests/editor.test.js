@@ -72,7 +72,9 @@ for (const card of cards)
       editor.setConfig(saved);
     });
     const forms = editor.shadowRoot.querySelectorAll("ha-form");
-    const form = forms[card === "electricity" || card === "lights" ? 1 : 0];
+    const form = [...forms].find(
+      (f) => f.schema[0].name === (card === "vacuum" ? "entity" : "name"),
+    );
     const input = form.input;
     input.focus();
     const entered = card === "vacuum" ? "vacuum.office" : "Office lamp";
@@ -87,16 +89,7 @@ for (const card of cards)
       assert.equal(form.shadowRoot.activeElement, input);
       assert.equal(form.isConnected, true);
     }
-    assert.equal(
-      card === "electricity"
-        ? saved.circuits[0].name
-        : card === "lights"
-          ? saved.lights[0].name
-          : card === "vacuum"
-            ? saved.entity
-            : saved.name,
-      entered,
-    );
+    assert.equal(card === "vacuum" ? saved.entity : saved.name, entered);
     assert.deepEqual(saved.visibility, config.visibility);
     // A real outside edit must still replace stale values.
     const key = card === "vacuum" ? "entity" : "name";
@@ -119,7 +112,7 @@ test("editing a main field does not restore stale repeatable-list values", async
   await new Promise((r) => setTimeout(r, 0));
   const forms = [...editor.shadowRoot.querySelectorAll("ha-form")],
     main = forms[0],
-    row = forms.find((f) => f.schema.some((s) => s.name === "start_script"));
+    row = forms.find((f) => f.schema.some((s) => s.name === "label"));
   assert(row);
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
@@ -137,5 +130,112 @@ test("editing a main field does not restore stale repeatable-list values", async
   assert.equal(saved.name, "Renamed");
   assert.equal(saved.timed_runs[0].label, "New");
   assert.deepEqual(saved.view_layout, { column: 2 });
+  editor.remove();
+});
+
+test("the shared layout, mandatory markers and list disclosures preserve edits and metadata", async () => {
+  const editor = document.createElement("ikio-server-monitor-card-editor");
+  editor.setConfig({
+    extra_readings: [{ entity: "sensor.old", name: "Original", opaque: 42 }],
+    view_layout: { column: 2 },
+  });
+  editor.hass = { states: {}, locale: { language: "en" } };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(
+    [...editor.shadowRoot.children]
+      .filter((n) => n.tagName === "SECTION")
+      .map((s) => s.querySelector("h3").textContent),
+    ["General", "Card settings", "Appearance"],
+  );
+  const field = (name) =>
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+      (f) => f.schema[0].name === name,
+    );
+  const entity = field("entity"),
+    label = entity.parentElement.querySelector(".field-label");
+  assert.match(label.textContent, /Sensor \*/);
+  assert.equal(entity.getAttribute("aria-required"), "true");
+  assert.equal(entity.getAttribute("aria-labelledby"), label.id);
+  assert.equal(
+    field("ip_address").parentElement.querySelector(".required"),
+    null,
+  );
+  let saved;
+  editor.addEventListener("config-changed", (e) => {
+    saved = e.detail.config;
+    editor.setConfig(saved);
+  });
+  entity.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...entity.data, entity: "" } },
+    }),
+  );
+  assert.equal(
+    entity.parentElement.querySelector(".field-error").hidden,
+    false,
+  );
+  entity.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...entity.data, entity: "sensor.new" } },
+    }),
+  );
+  assert.equal(entity.parentElement.querySelector(".field-error").hidden, true);
+  const list = editor.shadowRoot.querySelector(
+    '[data-key="list:extra_readings"]',
+  );
+  assert.equal(list.open, false);
+  list.open = true;
+  [...list.children].find((n) => n.tagName === "BUTTON").click();
+  assert.equal(saved.extra_readings.length, 2);
+  const added = editor.shadowRoot.querySelector(
+    '[data-key="list:extra_readings:1"]',
+  );
+  assert.equal(added.open, true);
+  assert.equal(editor.shadowRoot.activeElement, added.querySelector("summary"));
+  assert.equal(saved.extra_readings[0].entity, "sensor.new");
+  assert.equal(saved.extra_readings[0].opaque, 42);
+  assert.deepEqual(saved.view_layout, { column: 2 });
+  editor.remove();
+});
+
+test("Router declarative sections react to connection type without losing hidden readings", async () => {
+  await import("../../../cards/ikio-router-card/src/editor.js");
+  const editor = document.createElement("ikio-router-card-editor");
+  editor.setConfig({
+    connection_type: "generic",
+    rsrp_entity: "sensor.signal",
+    view_layout: { column: 2 },
+  });
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const control = () =>
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+      (f) => f.schema[0].name === "connection_type",
+    );
+  assert.equal(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].some(
+      (f) => f.schema[0].name === "rsrp_entity",
+    ),
+    false,
+  );
+  control().dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { connection_type: "cellular" } },
+    }),
+  );
+  assert.equal(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].some(
+      (f) => f.schema[0].name === "rsrp_entity",
+    ),
+    true,
+  );
+  control().dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { connection_type: "ethernet" } },
+    }),
+  );
+  assert.equal(editor.config.rsrp_entity, "sensor.signal");
+  assert.deepEqual(editor.config.view_layout, { column: 2 });
   editor.remove();
 });

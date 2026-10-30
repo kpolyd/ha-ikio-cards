@@ -35,6 +35,13 @@ test("every card ends its editor with the standard theme selector and defaults t
       editor.hass = { states: {}, locale: { language: "en" } };
       document.body.append(editor);
       await new Promise((r) => setTimeout(r, 0));
+      assert.deepEqual(
+        [...editor.shadowRoot.children]
+          .filter((n) => n.tagName === "SECTION")
+          .map((n) => n.querySelector("h3").textContent),
+        ["General", "Card settings", "Appearance"],
+        `${id}: shared section order`,
+      );
       const getAppearance = () => {
         const forms = [...editor.shadowRoot.querySelectorAll("ha-form")];
         const appearance = forms.filter((f) =>

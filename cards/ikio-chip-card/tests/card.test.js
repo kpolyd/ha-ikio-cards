@@ -105,7 +105,9 @@ test("visual editor supplies sensor/name/theme and preserves unrelated dashboard
   await new Promise((r) => setTimeout(r, 0));
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
   assert.ok(forms.length >= 2);
-  assert.ok(forms[0].schema.some((f) => f.name === "entity"));
+  assert.ok(
+    [...forms].some((form) => form.schema.some((f) => f.name === "entity")),
+  );
   assert.ok(forms[0].schema.some((f) => f.name === "name"));
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
@@ -245,29 +247,41 @@ test("show-name and icon settings are shared by badges and survive editor feedba
   await new Promise((r) => setTimeout(r, 0));
   const form = editor.shadowRoot.querySelector("ha-form");
   assert.equal(form.data.show_name, false);
-  assert.deepEqual(form.schema.find((f) => f.name === "icon").selector, {
-    icon: {},
-  });
-  assert.deepEqual(form.schema.find((f) => f.name === "show_name").selector, {
-    boolean: {},
-  });
+  assert.deepEqual(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+      f.schema.some((s) => s.name === "icon"),
+    ).schema[0].selector,
+    {
+      icon: {},
+    },
+  );
+  assert.deepEqual(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+      f.schema.some((s) => s.name === "show_name"),
+    ).schema[0].selector,
+    {
+      boolean: {},
+    },
+  );
   let saved;
   editor.addEventListener("config-changed", (e) => {
     saved = e.detail.config;
     editor.setConfig(saved);
   });
-  form.dispatchEvent(
-    new CustomEvent("value-changed", {
-      detail: {
-        value: {
-          ...form.data,
-          show_name: true,
-          icon: "mdi:thermometer",
-          name: "Room",
-        },
-      },
-    }),
-  );
+  for (const [name, value] of Object.entries({
+    show_name: true,
+    icon: "mdi:thermometer",
+    name: "Room",
+  })) {
+    const control = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+      (f) => f.schema[0].name === name,
+    );
+    control.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: { ...control.data, [name]: value } },
+      }),
+    );
+  }
   assert.equal(editor.shadowRoot.querySelector("ha-form"), form);
   assert.deepEqual(saved.view_layout, { column: 2 });
   const badge = document.createElement("ikio-chip-badge");

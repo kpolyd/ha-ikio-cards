@@ -116,7 +116,9 @@ test("editor labels and options follow HA without translating configuration valu
   await new Promise((r) => setTimeout(r, 0));
   let form = editor.shadowRoot.querySelector("ha-form");
   assert.equal(
-    form.computeLabel({ name: "climate_entity" }),
+    [...editor.shadowRoot.querySelectorAll(".field-label")]
+      .find((label) => label.textContent.includes("Οντότητα κλιματισμού"))
+      ?.textContent.replace(" *", ""),
     "Οντότητα κλιματισμού",
   );
   const appearance = [...editor.shadowRoot.querySelectorAll("ha-form")].at(-1);
@@ -129,7 +131,12 @@ test("editor labels and options follow HA without translating configuration valu
   assert.deepEqual(form.data.grid_options, { columns: 6 });
   editor.hass = { locale: { language: "en" }, states: {} };
   form = editor.shadowRoot.querySelector("ha-form");
-  assert.equal(form.computeLabel({ name: "climate_entity" }), "Climate entity");
+  assert.equal(
+    [...editor.shadowRoot.querySelectorAll(".field-label")]
+      .find((label) => label.textContent.includes("Climate entity"))
+      ?.textContent.replace(" *", ""),
+    "Climate entity",
+  );
   editor.remove();
 });
 test("persistent Lights and Chip badge respond to language changes while preserving custom names", () => {

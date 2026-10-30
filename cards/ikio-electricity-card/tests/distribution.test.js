@@ -26,11 +26,13 @@ test("distribution switches and limits are available in the visual editor withou
   editor.hass = hass;
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
-  const form = editor.shadowRoot.querySelector("ha-form");
+  const form = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+    f.schema.some((s) => s.name === "distribution_max_devices"),
+  );
   assert.ok(
-    form.schema.some(
-      (f) => f.name === "show_power_distribution" && f.selector.boolean,
-    ),
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+      f.schema.some((s) => s.name === "show_power_distribution"),
+    ).schema[0].selector.boolean,
   );
   assert.ok(form.schema.some((f) => f.name === "distribution_max_devices"));
   let saved;

@@ -1,3 +1,4 @@
+import { checkEditor } from "./browser-editor.mjs";
 import { checkReview } from "./browser-review.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
@@ -22,6 +23,7 @@ if (
   selected.some(
     (name) =>
       ![
+        "editor",
         "lights",
         "weather",
         "home-3d",
@@ -47,6 +49,7 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader"],
 });
 try {
+  if (shouldRun("editor")) results.push(await checkEditor(browser, out));
   if (shouldRun("lights")) {
     const page = await browser.newPage({
       viewport: { width: 740, height: 1000 },

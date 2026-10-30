@@ -90,3 +90,5 @@ export function normalizeConfig(config) {
     appearance: { theme: "dark", ...config.appearance },
   };
 }
+
+export const editorOptions = { sections };

@@ -644,5 +644,12 @@
   "Show name": "Εμφάνιση ονόματος",
   "Icon must be text": "Το εικονίδιο πρέπει να είναι κείμενο",
   "IP address (optional)": "Διεύθυνση IP (προαιρετικά)",
-  "IP address must be text": "Η διεύθυνση IP πρέπει να είναι κείμενο"
+  "IP address must be text": "Η διεύθυνση IP πρέπει να είναι κείμενο",
+  "Card settings": "Ρυθμίσεις κάρτας",
+  "Required field": "Υποχρεωτικό πεδίο",
+  "This field is required.": "Αυτό το πεδίο είναι υποχρεωτικό.",
+  "The name follows the selected entity.": "Το όνομα ακολουθεί την επιλεγμένη οντότητα.",
+  "Item {number}": "Στοιχείο {number}",
+  "light or switch": "φως ή διακόπτη",
+  "Metrics": "Μετρήσεις"
 }

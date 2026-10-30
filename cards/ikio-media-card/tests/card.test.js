@@ -126,12 +126,12 @@ test("editor removes the More controls list while retaining media settings, name
   document.body.append(editor);
   await tick();
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
-  assert.equal(forms.length, 2);
+  assert.ok(forms.length >= 2);
   assert.deepEqual(lists, []);
-  const names = forms[0].schema.map((f) => f.name);
+  const names = [...forms].flatMap((form) => form.schema.map((f) => f.name));
   for (const field of fields) assert.ok(names.includes(field.name));
   assert.ok(names.includes("name"));
-  assert.equal(editor.shadowRoot.querySelector("section"), null);
+  assert.equal(editor.shadowRoot.querySelectorAll("section").length, 3);
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
   forms[0].dispatchEvent(

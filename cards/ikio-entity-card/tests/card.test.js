@@ -178,7 +178,9 @@ test("configuration rejects unsupported types and the editor preserves metadata"
   await new Promise((r) => setTimeout(r, 0));
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
-  const f = editor.shadowRoot.querySelector("ha-form");
+  const f = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+    f.schema.some((s) => s.name === "entity"),
+  );
   f.dispatchEvent(
     new CustomEvent("value-changed", {
       detail: { value: { ...f.data, entity: "sensor.demo", name: "New" } },

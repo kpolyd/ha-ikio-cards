@@ -39,18 +39,33 @@ test("native form edits preserve full config and unknown HA-owned keys", async (
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
-  forms[1].dispatchEvent(
-    new CustomEvent("value-changed", {
-      detail: {
-        value: {
-          entity: "light.strip",
-          name: "New name",
-          location: "Balcony",
-          control_mode: "power-only",
+  [...editor.shadowRoot.querySelectorAll("ha-form")]
+    .find((f) => f.schema.some((s) => s.name === "entity"))
+    .dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: {
+          value: {
+            entity: "light.strip",
+            name: "New name",
+            location: "Balcony",
+            control_mode: "power-only",
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
+  for (const [name, value] of Object.entries({
+    name: "New name",
+    location: "Balcony",
+  })) {
+    const control = [
+      ...editor.shadowRoot.querySelectorAll("details ha-form"),
+    ].find((f) => f.schema[0].name === name);
+    control.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: { ...control.data, [name]: value } },
+      }),
+    );
+  }
   assert.equal(saved.lights[0].name, "New name");
   assert.equal(saved.lights[0].location, "Balcony");
   assert.equal(saved.lights[0].extra, "retained");
@@ -87,7 +102,9 @@ test("grouping is a native boolean selector and preserves names, rows and HA met
   });
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
-  const form = editor.shadowRoot.querySelector("ha-form");
+  const form = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+    f.schema.some((s) => s.name === "group_by_location"),
+  );
   assert.deepEqual(
     form.schema.find((field) => field.name === "group_by_location").selector,
     { boolean: {} },
@@ -106,6 +123,11 @@ test("grouping is a native boolean selector and preserves names, rows and HA met
   assert.equal(saved.group_by_location, true);
   assert.equal(saved.lights[0].name, "Strip");
   assert.deepEqual(saved.grid_options, { columns: 6 });
-  assert.equal(editor.shadowRoot.querySelector("ha-form"), form);
+  assert.equal(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
+      f.schema.some((s) => s.name === "group_by_location"),
+    ),
+    form,
+  );
   editor.remove();
 });
