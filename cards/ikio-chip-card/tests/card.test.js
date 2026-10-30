@@ -309,13 +309,15 @@ test("malformed chip settings are rejected, hold emits once, and remapping detai
   c.remove();
 });
 
-test("Server Monitor's shared renderer retains its original name and surface layout", async () => {
+test("Server Monitor uses the same compact shared renderer and name setting", async () => {
   const { sensorChip } = await import("@ikio/card-ui");
   const c = fixture(),
     chip = sensorChip(c, { entity: "sensor.demo" });
-  assert.equal(chip.classList.contains("ikio-chip-compact"), false);
-  assert.equal(chip.querySelector(".ikio-chip-surface"), null);
-  assert.equal(chip.querySelector(".ikio-chip-name").hidden, false);
+  assert.equal(chip.classList.contains("ikio-chip-compact"), true);
+  assert.ok(chip.querySelector(".ikio-chip-surface"));
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, true);
+  const named = sensorChip(c, { entity: "sensor.demo", show_name: true });
+  assert.equal(named.querySelector(".ikio-chip-name").hidden, false);
   assert.equal(
     chip.querySelector(".ikio-chip-name").textContent,
     "Database size",

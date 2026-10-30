@@ -1,4 +1,9 @@
-import { entity, text, validateConfig } from "@ikio/card-ui/schema-editor";
+import {
+  bool,
+  entity,
+  text,
+  validateConfig,
+} from "@ikio/card-ui/schema-editor";
 const metrics = [
   ["uptime", "Uptime", "sensor"],
   ["cpu", "CPU utilization", "sensor"],
@@ -15,6 +20,7 @@ const metrics = [
   ["network_tx", "Network transmit rate", "sensor"],
 ];
 export const fields = [
+  text("ip_address", "IP address (optional)"),
   ...metrics.map(([k, label, domain]) => entity(k + "_entity", label, domain)),
 ];
 export const lists = [
@@ -25,6 +31,8 @@ export const lists = [
     fields: [
       entity("entity", "Sensor", "sensor", true),
       text("name", "Name (optional)"),
+      bool("show_name", "Show name"),
+      { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
     ],
   },
   {
@@ -41,7 +49,17 @@ export const lists = [
     ],
   },
 ];
-export const validate = (c) => validateConfig(c, fields, lists);
+export function validate(c) {
+  validateConfig(c, fields, lists);
+  if (c.ip_address !== undefined && typeof c.ip_address !== "string")
+    throw Error("IP address must be text");
+  for (const row of c.extra_readings || []) {
+    if (row.show_name !== undefined && typeof row.show_name !== "boolean")
+      throw Error("Show name must be a toggle");
+    if (row.icon !== undefined && typeof row.icon !== "string")
+      throw Error("Icon must be text");
+  }
+}
 
 // Preserve legacy DB bindings without duplicating them or resurrecting a removed chip.
 export function migrateConfig(config) {

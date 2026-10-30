@@ -42,9 +42,7 @@ export class Card extends ControlCard {
     if (!this.config.entity)
       return note(t(this.hass, "Choose a sensor in the visual editor."));
     const content = el("div", undefined, "chip-only");
-    content.append(
-      sensorChip(this, this.config, this.config.entity, { compact: true }),
-    );
+    content.append(sensorChip(this, this.config));
     return content;
   }
 }

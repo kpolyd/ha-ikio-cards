@@ -1113,3 +1113,128 @@ test("mixed history rate units normalize without changing geometry or bridging i
   );
   assert.equal(JSON.stringify(history), snapshot);
 });
+
+test("configured server IP sits beside the name, omits blanks and preserves native title details", () => {
+  const card = systemFixture(
+    {
+      name: "Server",
+      ip_address: " 192.0.2.10 ",
+      availability_entity: "binary_sensor.server",
+    },
+    { "binary_sensor.server": { state: "on", attributes: {} } },
+  );
+  const identity = card.content.querySelector(".system-server-identity");
+  assert.equal(identity.querySelector(".system-ip").textContent, "192.0.2.10");
+  assert.equal(identity.querySelector(".ae-title").textContent, "Server");
+  let entity;
+  card.addEventListener("hass-more-info", (e) => (entity = e.detail.entityId));
+  identity.querySelector(".ae-title").click();
+  assert.equal(entity, "binary_sensor.server");
+  card.setConfig({ ...card.config, ip_address: "2001:db8::10" });
+  assert.equal(
+    card.content.querySelector(".system-ip").textContent,
+    "2001:db8::10",
+  );
+  card.setConfig({ ...card.config, ip_address: "   " });
+  assert.equal(card.content.querySelector(".system-ip"), null);
+  assert.equal(card.content.querySelector(".system-server-identity"), null);
+  assert.throws(() => card.setConfig({ ip_address: 123 }));
+  card.remove();
+});
+
+test("embedded chip name and icon settings use the shared compact renderer and clear overrides", () => {
+  const card = systemFixture(
+    {
+      extra_readings: [
+        {
+          entity: "sensor.db",
+          name: "DB",
+          show_name: true,
+          icon: "mdi:harddisk",
+        },
+        { entity: "sensor.count" },
+      ],
+    },
+    {
+      "sensor.db": {
+        state: "42",
+        attributes: { icon: "mdi:database", unit_of_measurement: "MB" },
+      },
+      "sensor.count": {
+        state: "12",
+        attributes: { friendly_name: "Containers" },
+      },
+    },
+  );
+  const chips = card.content.querySelectorAll(".ikio-sensor-chip");
+  for (const chip of chips) {
+    assert(chip.classList.contains("ikio-chip-compact"));
+    assert(chip.querySelector(".ikio-chip-surface"));
+  }
+  assert.equal(chips[0].querySelector(".ikio-chip-name").hidden, false);
+  assert.equal(chips[1].querySelector(".ikio-chip-name").hidden, true);
+  assert.equal(chips[0].querySelector("ha-state-icon").icon, "mdi:harddisk");
+  card.setConfig({
+    ...card.config,
+    extra_readings: [{ entity: "sensor.db", show_name: false, icon: "" }],
+  });
+  const chip = card.content.querySelector(".ikio-sensor-chip");
+  assert.equal(chip.querySelector("ha-state-icon").icon, undefined);
+  assert.equal(
+    chip.querySelector("ha-state-icon").stateObj.attributes.icon,
+    "mdi:database",
+  );
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, true);
+  assert.throws(() =>
+    card.setConfig({
+      extra_readings: [{ entity: "sensor.db", show_name: "yes" }],
+    }),
+  );
+  card.remove();
+});
+
+test("visual editor exposes IP and chip name/icon settings and preserves saved values", async () => {
+  const editor = await customElements
+    .get("ikio-server-monitor-card")
+    .getConfigElement();
+  editor.setConfig({
+    ip_address: "192.0.2.10",
+    extra_readings: [
+      { entity: "sensor.db", show_name: true, icon: "mdi:harddisk" },
+    ],
+    view_layout: { column: 2 },
+  });
+  editor.hass = { states: {} };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const forms = [...editor.shadowRoot.querySelectorAll("ha-form")];
+  const main = forms.find((f) => f.schema.some((s) => s.name === "ip_address"));
+  const reading = forms.find((f) =>
+    f.schema.some((s) => s.name === "show_name"),
+  );
+  assert.deepEqual(main.schema.find((s) => s.name === "ip_address").selector, {
+    text: {},
+  });
+  assert.deepEqual(reading.schema.find((s) => s.name === "icon").selector, {
+    icon: {},
+  });
+  let saved;
+  editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  reading.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...reading.data, show_name: false, icon: "" } },
+    }),
+  );
+  assert.equal(saved.ip_address, "192.0.2.10");
+  assert.equal(saved.extra_readings[0].show_name, false);
+  assert.equal(saved.extra_readings[0].icon, "");
+  assert.deepEqual(saved.view_layout, { column: 2 });
+  main.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...main.data, ip_address: "2001:db8::10" } },
+    }),
+  );
+  assert.equal(saved.ip_address, "2001:db8::10");
+  assert.equal(saved.extra_readings[0].show_name, false);
+  editor.remove();
+});

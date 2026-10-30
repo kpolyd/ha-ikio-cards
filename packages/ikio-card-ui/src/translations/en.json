@@ -642,5 +642,7 @@
   "All batteries are above {threshold}%.": "All batteries are above {threshold}%.",
   "Normal": "Normal",
   "Show name": "Show name",
-  "Icon must be text": "Icon must be text"
+  "Icon must be text": "Icon must be text",
+  "IP address (optional)": "IP address (optional)",
+  "IP address must be text": "IP address must be text"
 }

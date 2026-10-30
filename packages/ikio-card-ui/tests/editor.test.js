@@ -106,3 +106,36 @@ for (const card of cards)
     assert.notEqual(editor.shadowRoot.querySelector("ha-form"), forms[0]);
     editor.remove();
   });
+
+test("editing a main field does not restore stale repeatable-list values", async () => {
+  const editor = document.createElement("ikio-appliances-card-editor");
+  editor.setConfig({
+    name: "Appliance",
+    timed_runs: [{ label: "Old", start_script: "script.example" }],
+    view_layout: { column: 2 },
+  });
+  editor.hass = { states: {} };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const forms = [...editor.shadowRoot.querySelectorAll("ha-form")],
+    main = forms[0],
+    row = forms.find((f) => f.schema.some((s) => s.name === "start_script"));
+  assert(row);
+  let saved;
+  editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  row.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...row.data, label: "New" } },
+    }),
+  );
+  assert.equal(saved.timed_runs[0].label, "New");
+  main.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { ...main.data, name: "Renamed" } },
+    }),
+  );
+  assert.equal(saved.name, "Renamed");
+  assert.equal(saved.timed_runs[0].label, "New");
+  assert.deepEqual(saved.view_layout, { column: 2 });
+  editor.remove();
+});

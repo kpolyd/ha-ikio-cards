@@ -1,27 +1,18 @@
 import { el, button, valueText } from "./controls.js";
 import { details, entityName } from "./card.js";
 
-// Opt-in styles: other card layouts do not inherit chip geometry.
+// One renderer and geometry for standalone cards, badges and embedded readings.
 export const chipStyles = `
-.ikio-sensor-chip.ae-button{display:inline-flex;align-items:center;gap:7px;min-height:44px;min-width:44px;max-width:100%;padding:5px 10px;border:0;border-radius:8px;background:var(--ae-well);color:var(--ae-text);text-align:left;font:inherit}
-.ikio-sensor-chip ha-state-icon{--mdc-icon-size:17px;flex:none;color:var(--ae-accent)}
+.ikio-sensor-chip.ae-button{display:inline-flex;align-items:center;gap:0;min-height:44px;min-width:44px;max-width:100%;padding:0;border:0;border-radius:7px;background:transparent;color:var(--ae-text);text-align:left;font:inherit}
+.ikio-chip-surface{display:inline-flex;align-items:center;gap:5px;min-height:28px;max-width:100%;padding:4px 7px;border:1px solid var(--ae-border);border-radius:7px;background:var(--ae-well)}
+.ikio-sensor-chip.with-name .ikio-chip-surface{min-height:34px;padding:3px 7px}
+.ikio-sensor-chip ha-state-icon{--mdc-icon-size:14px;flex:none;color:var(--ae-accent)}
 .ikio-chip-text{display:grid;gap:0;min-width:0}
-.ikio-chip-name{font-size:11px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
-.ikio-chip-value{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.ikio-sensor-chip.ikio-chip-compact{padding:0;gap:0;background:transparent;border-radius:7px}
-.ikio-chip-compact .ikio-chip-surface{display:inline-flex;align-items:center;gap:5px;min-height:28px;max-width:100%;padding:4px 7px;border-radius:7px;background:var(--ae-well)}
-.ikio-chip-compact.with-name .ikio-chip-surface{min-height:34px;padding:3px 7px}
-.ikio-chip-compact ha-state-icon{--mdc-icon-size:14px}
-.ikio-chip-compact .ikio-chip-name{font-size:11px;line-height:12px}
-.ikio-chip-compact .ikio-chip-value{font-size:12px;line-height:14px}
-.ikio-chip-compact .ikio-chip-name[hidden]{display:none}
+.ikio-chip-name{font-size:11px;line-height:12px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
+.ikio-chip-value{font-size:12px;line-height:14px;font-weight:500;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ikio-chip-name[hidden]{display:none}
 `;
-export function sensorChip(
-  card,
-  config,
-  key = config.entity,
-  { compact = false } = {},
-) {
+export function sensorChip(card, config, key = config.entity) {
   const name =
     config.name?.trim() ||
     entityName(card.hass, card.state(config.entity)) ||
@@ -31,25 +22,20 @@ export function sensorChip(
     entity: config.entity,
     key,
   });
-  chip.classList.add("ikio-sensor-chip");
+  chip.classList.add("ikio-sensor-chip", "ikio-chip-compact");
+  chip.classList.toggle("with-name", config.show_name === true);
   chip.setAttribute("aria-label", `${name}: ${value}`);
   const icon = el("ha-state-icon");
   icon.dataset.chipEntity = config.entity;
   if (config.icon?.trim()) icon.dataset.chipIcon = config.icon.trim();
   icon.setAttribute("aria-hidden", "true");
-  const text = el("span", undefined, "ikio-chip-text");
-  text.append(
-    el("span", name, "ikio-chip-name"),
-    el("span", value, "ikio-chip-value"),
-  );
-  if (compact) {
-    chip.classList.add("ikio-chip-compact");
-    chip.classList.toggle("with-name", config.show_name === true);
-    text.querySelector(".ikio-chip-name").hidden = config.show_name !== true;
-    const surface = el("span", undefined, "ikio-chip-surface");
-    surface.append(icon, text);
-    chip.replaceChildren(surface);
-  } else chip.replaceChildren(icon, text);
+  const text = el("span", undefined, "ikio-chip-text"),
+    nameNode = el("span", name, "ikio-chip-name");
+  nameNode.hidden = config.show_name !== true;
+  text.append(nameNode, el("span", value, "ikio-chip-value"));
+  const surface = el("span", undefined, "ikio-chip-surface");
+  surface.append(icon, text);
+  chip.replaceChildren(surface);
   return chip;
 }
 export function updateChipIcons(card) {
