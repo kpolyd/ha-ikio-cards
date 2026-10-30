@@ -618,5 +618,27 @@
   "Disarming": "Disarming",
   "Motion detected": "Motion detected",
   "Entity": "Entity",
-  "Press": "Press"
+  "Press": "Press",
+  "Batteries": "Batteries",
+  "Low battery threshold (%)": "Low battery threshold (%)",
+  "Collapse batteries above (%)": "Collapse batteries above (%)",
+  "Ignored devices": "Ignored devices",
+  "Ignored devices must be a list of device IDs": "Ignored devices must be a list of device IDs",
+  "{count} low": {
+    "one": "{count} low",
+    "other": "{count} low"
+  },
+  "Replace": "Replace",
+  "{count} battery types unknown": {
+    "one": "{count} battery type unknown",
+    "other": "{count} battery types unknown"
+  },
+  "Show all {count} devices": {
+    "one": "Show all {count} device",
+    "other": "Show all {count} devices"
+  },
+  "Show fewer": "Show fewer",
+  "No battery devices found.": "No battery devices found.",
+  "All batteries are above {threshold}%.": "All batteries are above {threshold}%.",
+  "Normal": "Normal"
 }

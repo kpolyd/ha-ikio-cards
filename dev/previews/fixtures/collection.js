@@ -1,3 +1,4 @@
+import { addBatteryFixtures } from "./battery.js";
 import home3dModel from "../../../cards/ikio-home-3d-card/examples/home-model.json";
 import home3dEntities from "../../../cards/ikio-home-3d-card/examples/entities.json";
 import home3dBindings from "../../../cards/ikio-home-3d-card/examples/device-bindings.json";
@@ -100,6 +101,7 @@ const types = [
   "weather",
   "home-3d",
   "entity",
+  "battery",
 ].filter((type) => customElements.get(`ikio-${type}-card`));
 const states = {};
 function state(id, value, attributes = {}) {
@@ -255,6 +257,7 @@ for (const [id, value, unit] of [
 state("binary_sensor.host", "on");
 applyDemoPower(states);
 const configs = {
+  battery: {},
   entity: {entity: "light.glow", name: "Bedside"},
   lights: {
     name: "Lights",
@@ -595,6 +598,7 @@ const hass = {
     setTimeout(update, 150);
   },
 };
+addBatteryFixtures(hass);
 // Provide simulated HA tokens for the Vacuum Follow Home Assistant preview.
 function applyVacuumTheme(card, theme) {
   if (card.localName !== "ikio-vacuum-card") return;

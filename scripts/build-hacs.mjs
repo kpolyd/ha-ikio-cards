@@ -10,7 +10,7 @@ const { version } = JSON.parse(await readFile("ikio/package.json", "utf8"));
 const cards = (await readdir("cards"))
   .filter((name) => name.startsWith("ikio-"))
   .sort();
-if (cards.length !== 17) throw Error("Expected all seventeen Ikio cards");
+if (cards.length !== 18) throw Error("Expected all eighteen Ikio cards");
 // Bundle dynamic editor imports into this file too: HACS downloads one asset.
 // The editors still initialize only when getConfigElement() is called.
 const result = await build({
@@ -55,7 +55,7 @@ await copyFile(
   "dist/licenses/Three-LICENSE.txt",
 );
 console.log(
-  `Ikio ${version}: seventeen cards and editors in dist/ha-ikio-cards.js`,
+  `Ikio ${version}: eighteen cards and editors in dist/ha-ikio-cards.js`,
 );
 
 // HACS reads this tracked file from the selected release tag through raw GitHub.
