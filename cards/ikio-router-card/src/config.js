@@ -1,5 +1,6 @@
 import {
   entity,
+  showNameField,
   text,
   choice,
   number,
@@ -79,6 +80,7 @@ export const lists = [
     fields: [
       entity("entity", "Sensor", "sensor", true),
       text("name", "Name (optional)"),
+      showNameField,
     ],
   },
 ];
@@ -94,6 +96,9 @@ export const gaugeDefaults = {
 };
 export function validate(c) {
   validateConfig(c, fields, lists);
+  for (const row of c.extra_readings || [])
+    if (row.show_name !== undefined && typeof row.show_name !== "boolean")
+      throw Error("Show name must be a toggle");
   if (
     c.connection_type &&
     !["generic", "ethernet", "fibre", "dsl", "cellular"].includes(

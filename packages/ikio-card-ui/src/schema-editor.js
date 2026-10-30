@@ -25,6 +25,10 @@ export const bool = (name, label) => ({
   label,
   selector: { boolean: {} },
 });
+export const showNameField = {
+  ...bool("show_name", "Show name"),
+  default: true,
+};
 export const choice = (name, label, options, multiple = false) => ({
   name,
   label,

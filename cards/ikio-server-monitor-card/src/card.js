@@ -24,6 +24,7 @@ import {
   el,
   stateText,
   details,
+  available,
 } from "@ikio/card-ui";
 import { validate, migrateConfig } from "./config.js";
 import { graphPalette, fetchHistory } from "@ikio/graph";
@@ -266,11 +267,17 @@ export class Card extends ControlCard {
     result.classList.add("ikio-server-monitor");
     const header = result.querySelector("header"),
       meta = el("div", undefined, "system-header-meta");
-    if (c.ip_address?.trim()) {
+    const ipState = this.state(c.ip_address_entity);
+    const ip = c.ip_address_entity
+      ? available(ipState)
+        ? String(ipState.state).trim()
+        : stateText(this.hass, c.ip_address_entity)
+      : c.ip_address?.trim();
+    if (ip) {
       const name = header.querySelector(".ae-title, h2"),
         identity = el("div", undefined, "system-server-identity");
       name.replaceWith(identity);
-      identity.append(name, el("span", c.ip_address.trim(), "system-ip"));
+      identity.append(name, el("span", ip, "system-ip"));
     }
     if (c.temperature_entity) {
       const temperature = button(

@@ -651,5 +651,7 @@
   "The name follows the selected entity.": "Το όνομα ακολουθεί την επιλεγμένη οντότητα.",
   "Item {number}": "Στοιχείο {number}",
   "light or switch": "φως ή διακόπτη",
-  "Metrics": "Μετρήσεις"
+  "Metrics": "Μετρήσεις",
+  "IP address sensor (optional)": "Αισθητήρας διεύθυνσης IP (προαιρετικό)",
+  "Choose an entity in the visual editor.": "Επιλέξτε μια οντότητα στον οπτικό επεξεργαστή."
 }

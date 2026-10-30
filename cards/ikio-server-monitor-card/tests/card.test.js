@@ -1172,7 +1172,7 @@ test("embedded chip name and icon settings use the shared compact renderer and c
     assert(chip.querySelector(".ikio-chip-surface"));
   }
   assert.equal(chips[0].querySelector(".ikio-chip-name").hidden, false);
-  assert.equal(chips[1].querySelector(".ikio-chip-name").hidden, true);
+  assert.equal(chips[1].querySelector(".ikio-chip-name").hidden, false);
   assert.equal(chips[0].querySelector("ha-state-icon").icon, "mdi:harddisk");
   card.setConfig({
     ...card.config,
@@ -1198,7 +1198,7 @@ test("visual editor exposes IP and chip name/icon settings and preserves saved v
     .get("ikio-server-monitor-card")
     .getConfigElement();
   editor.setConfig({
-    ip_address: "192.0.2.10",
+    ip_address_entity: "sensor.server_ip",
     extra_readings: [
       { entity: "sensor.db", show_name: true, icon: "mdi:harddisk" },
     ],
@@ -1208,13 +1208,18 @@ test("visual editor exposes IP and chip name/icon settings and preserves saved v
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
   const forms = [...editor.shadowRoot.querySelectorAll("ha-form")];
-  const main = forms.find((f) => f.schema.some((s) => s.name === "ip_address"));
+  const main = forms.find((f) =>
+    f.schema.some((s) => s.name === "ip_address_entity"),
+  );
   const reading = forms.find((f) =>
     f.schema.some((s) => s.name === "show_name"),
   );
-  assert.deepEqual(main.schema.find((s) => s.name === "ip_address").selector, {
-    text: {},
-  });
+  assert.deepEqual(
+    main.schema.find((s) => s.name === "ip_address_entity").selector,
+    {
+      entity: { filter: { domain: ["sensor"] } },
+    },
+  );
   assert.deepEqual(
     [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
       f.schema.some((s) => s.name === "icon"),
@@ -1235,16 +1240,47 @@ test("visual editor exposes IP and chip name/icon settings and preserves saved v
       detail: { value: { ...reading.data, show_name: false, icon: "" } },
     }),
   );
-  assert.equal(saved.ip_address, "192.0.2.10");
+  assert.equal(saved.ip_address_entity, "sensor.server_ip");
   assert.equal(saved.extra_readings[0].show_name, false);
   assert.equal(saved.extra_readings[0].icon, "");
   assert.deepEqual(saved.view_layout, { column: 2 });
   main.dispatchEvent(
     new CustomEvent("value-changed", {
-      detail: { value: { ...main.data, ip_address: "2001:db8::10" } },
+      detail: { value: { ...main.data, ip_address_entity: "sensor.other_ip" } },
     }),
   );
-  assert.equal(saved.ip_address, "2001:db8::10");
+  assert.equal(saved.ip_address_entity, "sensor.other_ip");
   assert.equal(saved.extra_readings[0].show_name, false);
   editor.remove();
+});
+
+test("IP sensor values update exactly, take precedence over legacy text and handle missing data", () => {
+  const card = systemFixture(
+    {
+      ip_address_entity: "sensor.server_ip",
+      ip_address: "192.0.2.99",
+      view_layout: { column: 2 },
+    },
+    { "sensor.server_ip": { state: "192.0.2.10", attributes: {} } },
+  );
+  const ip = () => card.content.querySelector(".system-ip")?.textContent;
+  assert.equal(ip(), "192.0.2.10");
+  assert.equal(card.config.ip_address, undefined);
+  card.hass = {
+    ...card.hass,
+    states: { "sensor.server_ip": { state: "2001:db8::10", attributes: {} } },
+  };
+  assert.equal(ip(), "2001:db8::10");
+  card.hass = {
+    ...card.hass,
+    states: { "sensor.server_ip": { state: "unavailable", attributes: {} } },
+  };
+  assert.match(ip(), /unavailable/i);
+  card.hass = { ...card.hass, states: {} };
+  assert.match(ip(), /Entity not found/);
+  card.setConfig({ ...card.config, ip_address_entity: "" });
+  assert.equal(ip(), undefined);
+  assert.deepEqual(card.config.view_layout, { column: 2 });
+  assert.throws(() => card.setConfig({ ip_address_entity: "switch.wrong" }));
+  card.remove();
 });

@@ -651,5 +651,7 @@
   "The name follows the selected entity.": "The name follows the selected entity.",
   "Item {number}": "Item {number}",
   "light or switch": "light or switch",
-  "Metrics": "Metrics"
+  "Metrics": "Metrics",
+  "IP address sensor (optional)": "IP address sensor (optional)",
+  "Choose an entity in the visual editor.": "Choose an entity in the visual editor."
 }
