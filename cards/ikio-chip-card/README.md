@@ -1,13 +1,15 @@
 # Ikio Chip
 
-A standalone sensor chip with its native icon on the left, a small muted name above its value, a faint background and 8 px corners. The same component is used by Server Monitor's Extra readings.
+A very compact sensor chip: 14 px icon and value inside a 28 px visible surface with 7 px corners. Turn on **Show name** to place a quiet name above the value in a 34 px surface. Each chip retains a transparent 44 px touch target; long names/values can grow to fit. There is no title or outer card background. Server Monitor keeps its existing Extra readings layout.
 
-Install the full collection through HACS. Add **Ikio Chip**, select a **Sensor**, optionally override its **Card name**, and choose dark, light or Home Assistant appearance. Values/units and icons follow the sensor. Tap or hold opens native Home Assistant entity details; no services are called. Missing/unknown/unavailable readings stay explicit. Long text wraps and touch targets remain at least 44 px.
+Install the full collection through HACS. Add **Ikio Chip**, select a **Sensor**, set **Show name** (off by default), optionally override its **Card name** and **Icon**, and choose dark, light or Home Assistant appearance at the bottom. Values/units follow the sensor. Leave Icon empty to follow the native entity icon; clearing a custom icon restores that behavior. Tap or hold opens native Home Assistant entity details; no services are called. Missing/unknown/unavailable readings stay explicit. Long text wraps and touch targets remain at least 44 px.
 
 ```yaml
 type: custom:ikio-chip-card
 entity: sensor.example_database_size
 name: Database
+show_name: true
+icon: mdi:database
 appearance:
   theme: dark
 ```
@@ -16,7 +18,7 @@ Collection version: see [the shared version](../../ikio/package.json). Automated
 
 ## Dashboard badges
 
-The same chip is available as **Ikio Chip** in Home Assistant's badge picker. Edit a dashboard view, add a badge, select Ikio Chip, then choose a sensor, optional name and appearance. It uses the existing Ikio resource, so no additional installation is needed. The badge and card share their visual editor, rendering and native details on tap/hold.
+The same chip is available as **Ikio Chip** in Home Assistant's badge picker. Edit a dashboard view, add a badge, select Ikio Chip, then choose a sensor, name visibility, optional name/icon overrides and appearance. It uses the existing Ikio resource, so no additional installation is needed. The badge and card share their visual editor, rendering and native details on tap/hold.
 
 ```yaml
 badges:

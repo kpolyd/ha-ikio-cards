@@ -8,8 +8,20 @@ export const chipStyles = `
 .ikio-chip-text{display:grid;gap:0;min-width:0}
 .ikio-chip-name{font-size:11px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
 .ikio-chip-value{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ikio-sensor-chip.ikio-chip-compact{padding:0;gap:0;background:transparent;border-radius:7px}
+.ikio-chip-compact .ikio-chip-surface{display:inline-flex;align-items:center;gap:5px;min-height:28px;max-width:100%;padding:4px 7px;border-radius:7px;background:var(--ae-well)}
+.ikio-chip-compact.with-name .ikio-chip-surface{min-height:34px;padding:3px 7px}
+.ikio-chip-compact ha-state-icon{--mdc-icon-size:14px}
+.ikio-chip-compact .ikio-chip-name{font-size:11px;line-height:12px}
+.ikio-chip-compact .ikio-chip-value{font-size:12px;line-height:14px}
+.ikio-chip-compact .ikio-chip-name[hidden]{display:none}
 `;
-export function sensorChip(card, config, key = config.entity) {
+export function sensorChip(
+  card,
+  config,
+  key = config.entity,
+  { compact = false } = {},
+) {
   const name =
     config.name?.trim() ||
     entityName(card.hass, card.state(config.entity)) ||
@@ -23,13 +35,21 @@ export function sensorChip(card, config, key = config.entity) {
   chip.setAttribute("aria-label", `${name}: ${value}`);
   const icon = el("ha-state-icon");
   icon.dataset.chipEntity = config.entity;
+  if (config.icon?.trim()) icon.dataset.chipIcon = config.icon.trim();
   icon.setAttribute("aria-hidden", "true");
   const text = el("span", undefined, "ikio-chip-text");
   text.append(
     el("span", name, "ikio-chip-name"),
     el("span", value, "ikio-chip-value"),
   );
-  chip.replaceChildren(icon, text);
+  if (compact) {
+    chip.classList.add("ikio-chip-compact");
+    chip.classList.toggle("with-name", config.show_name === true);
+    text.querySelector(".ikio-chip-name").hidden = config.show_name !== true;
+    const surface = el("span", undefined, "ikio-chip-surface");
+    surface.append(icon, text);
+    chip.replaceChildren(surface);
+  } else chip.replaceChildren(icon, text);
   return chip;
 }
 export function updateChipIcons(card) {
@@ -38,5 +58,6 @@ export function updateChipIcons(card) {
   )) {
     icon.hass = card.hass;
     icon.stateObj = card.state(icon.dataset.chipEntity);
+    icon.icon = icon.dataset.chipIcon || undefined;
   }
 }

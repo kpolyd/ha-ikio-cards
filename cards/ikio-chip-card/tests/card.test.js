@@ -192,3 +192,133 @@ test("chip registers in the badge picker and reuses card configuration, styling 
   badge.remove();
   assert.equal(badge.holds.size, 0);
 });
+
+test("compact default hides only the visible name; editor settings restore stacked names and native icon fallback", async () => {
+  const c = fixture();
+  let chip = c.content.querySelector(".ikio-sensor-chip");
+  assert.equal(c.config.show_name, false);
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, true);
+  assert.match(chip.getAttribute("aria-label"), /Database size: 871.44 MB/);
+  assert(chip.classList.contains("ikio-chip-compact"));
+  c.setConfig({
+    entity: "sensor.demo",
+    show_name: true,
+    name: "DB",
+    icon: "mdi:harddisk",
+  });
+  chip = c.content.querySelector(".ikio-sensor-chip");
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, false);
+  assert(chip.classList.contains("with-name"));
+  assert.equal(chip.querySelector("ha-state-icon").icon, "mdi:harddisk");
+  c.hass = {
+    ...c.hass,
+    states: {
+      "sensor.demo": {
+        ...c.hass.states["sensor.demo"],
+        state: "0",
+        attributes: {
+          friendly_name: "New sensor name",
+          icon: "mdi:database-check",
+          unit_of_measurement: "MB",
+        },
+      },
+    },
+  };
+  assert.equal(chip.querySelector("ha-state-icon").icon, "mdi:harddisk");
+  c.setConfig({ entity: "sensor.demo", show_name: false, icon: "" });
+  assert.equal(chip.querySelector("ha-state-icon").icon, undefined);
+  assert.equal(
+    chip.querySelector("ha-state-icon").stateObj.attributes.icon,
+    "mdi:database-check",
+  );
+  assert.equal(chip.querySelector(".ikio-chip-value").textContent, "0 MB");
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, true);
+  c.remove();
+});
+
+test("show-name and icon settings are shared by badges and survive editor feedback and metadata", async () => {
+  const Class = customElements.get("ikio-chip-card"),
+    editor = await Class.getConfigElement();
+  editor.setConfig({ entity: "sensor.demo", view_layout: { column: 2 } });
+  editor.hass = { states: {}, locale: { language: "en" } };
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const form = editor.shadowRoot.querySelector("ha-form");
+  assert.equal(form.data.show_name, false);
+  assert.deepEqual(form.schema.find((f) => f.name === "icon").selector, {
+    icon: {},
+  });
+  assert.deepEqual(form.schema.find((f) => f.name === "show_name").selector, {
+    boolean: {},
+  });
+  let saved;
+  editor.addEventListener("config-changed", (e) => {
+    saved = e.detail.config;
+    editor.setConfig(saved);
+  });
+  form.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: {
+        value: {
+          ...form.data,
+          show_name: true,
+          icon: "mdi:thermometer",
+          name: "Room",
+        },
+      },
+    }),
+  );
+  assert.equal(editor.shadowRoot.querySelector("ha-form"), form);
+  assert.deepEqual(saved.view_layout, { column: 2 });
+  const badge = document.createElement("ikio-chip-badge");
+  badge.setConfig(saved);
+  badge.hass = {
+    states: {
+      "sensor.demo": {
+        state: "21.5",
+        attributes: { unit_of_measurement: "°C" },
+      },
+    },
+  };
+  document.body.append(badge);
+  assert.equal(badge.content.querySelector(".ikio-chip-name").hidden, false);
+  assert.equal(
+    badge.content.querySelector("ha-state-icon").icon,
+    "mdi:thermometer",
+  );
+  editor.remove();
+  badge.remove();
+});
+
+test("malformed chip settings are rejected, hold emits once, and remapping details follows the current sensor", async () => {
+  const c = fixture(),
+    events = [];
+  assert.throws(() =>
+    c.setConfig({ entity: "sensor.demo", show_name: "false" }),
+  );
+  assert.throws(() => c.setConfig({ entity: "sensor.demo", icon: {} }));
+  c.addEventListener("hass-more-info", (e) => events.push(e.detail.entityId));
+  const chip = c.content.querySelector("button");
+  chip.dispatchEvent(new dom.window.MouseEvent("pointerdown"));
+  await new Promise((r) => setTimeout(r, 570));
+  chip.click();
+  assert.deepEqual(events, ["sensor.demo"]);
+  c.setConfig({ entity: "sensor.other", show_name: true });
+  c.content.querySelector("button").click();
+  assert.deepEqual(events, ["sensor.demo", "sensor.other"]);
+  c.remove();
+});
+
+test("Server Monitor's shared renderer retains its original name and surface layout", async () => {
+  const { sensorChip } = await import("@ikio/card-ui");
+  const c = fixture(),
+    chip = sensorChip(c, { entity: "sensor.demo" });
+  assert.equal(chip.classList.contains("ikio-chip-compact"), false);
+  assert.equal(chip.querySelector(".ikio-chip-surface"), null);
+  assert.equal(chip.querySelector(".ikio-chip-name").hidden, false);
+  assert.equal(
+    chip.querySelector(".ikio-chip-name").textContent,
+    "Database size",
+  );
+  c.remove();
+});

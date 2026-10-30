@@ -5,6 +5,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { checkVacuum } from "./browser-vacuum.mjs";
+import { checkChip } from "./browser-chip.mjs";
 import { checkBattery } from "./browser-battery.mjs";
 import { checkEntity } from "./browser-entity.mjs";
 import { checkHome3D } from "./browser-home-3d.mjs";
@@ -26,6 +27,7 @@ if (
         "home-3d",
         "entity",
         "battery",
+        "chip",
         "media",
         "climate",
         "dehumidifier",
@@ -37,7 +39,7 @@ if (
   )
 )
   throw Error(
-    "Choose battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
+    "Choose chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({
@@ -219,6 +221,7 @@ try {
     results.push({ card: "lights", passed: true });
     await page.close();
   }
+  if (shouldRun("chip")) results.push(await checkChip(browser, out));
   if (shouldRun("battery")) results.push(await checkBattery(browser, out));
   if (shouldRun("entity")) results.push(await checkEntity(browser, out));
   if (shouldRun("home-3d")) results.push(await checkHome3D(browser, out));

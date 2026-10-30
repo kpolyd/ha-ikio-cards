@@ -64,7 +64,7 @@ class FixtureStateIcon extends FixtureIcon {
     this._stateObj = value;
     const kind = value?.attributes?.device_class;
     const icon =
-      value?.attributes?.icon ||
+      this._icon || value?.attributes?.icon ||
       (value?.attributes?.unit_of_measurement === "MB"
         ? "mdi:database"
         : kind === "motion"
@@ -81,6 +81,8 @@ class FixtureStateIcon extends FixtureIcon {
   get stateObj() {
     return this._stateObj;
   }
+  set icon(value) { this._icon=value; this.stateObj=this._stateObj; }
+  get icon() {return this._icon;}
 }
 customElements.define("ha-state-icon", FixtureStateIcon);
 const types = [

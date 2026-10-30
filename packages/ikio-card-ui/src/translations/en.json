@@ -640,5 +640,7 @@
   "Show fewer": "Show fewer",
   "No battery devices found.": "No battery devices found.",
   "All batteries are above {threshold}%.": "All batteries are above {threshold}%.",
-  "Normal": "Normal"
+  "Normal": "Normal",
+  "Show name": "Show name",
+  "Icon must be text": "Icon must be text"
 }
