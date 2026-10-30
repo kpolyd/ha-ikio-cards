@@ -1,3 +1,25 @@
-import { entity, validateConfig } from "@ikio/card-ui/schema-editor";
-export const fields = [entity("entity", "Sensor", "sensor", true)];
-export const validate = (c) => validateConfig(c, fields);
+import { bool, entity, validateConfig } from "@ikio/card-ui/schema-editor";
+export const fields = [
+  entity("entity", "Sensor", "sensor", true),
+  bool("show_name", "Show name"),
+  { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
+];
+export function validate(config) {
+  validateConfig(config, fields);
+  if (config.show_name !== undefined && typeof config.show_name !== "boolean")
+    throw Error("Show name must be a toggle");
+  for (const key of ["name", "icon"])
+    if (config[key] !== undefined && typeof config[key] !== "string")
+      throw Error(
+        key === "name" ? "Card name must be text" : "Icon must be text",
+      );
+}
+export function normalizeConfig(config) {
+  validate(config);
+  return {
+    ...structuredClone(config),
+    schema_version: 1,
+    show_name: config.show_name ?? false,
+    appearance: { theme: "dark", ...config.appearance },
+  };
+}

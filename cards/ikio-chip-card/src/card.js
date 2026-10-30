@@ -7,9 +7,11 @@ import {
   sensorChip,
   updateChipIcons,
 } from "@ikio/card-ui";
-import { validate } from "./config.js";
+import { normalizeConfig } from "./config.js";
 export class Card extends ControlCard {
-  validate = validate;
+  setConfig(config) {
+    super.setConfig(normalizeConfig(config));
+  }
   constructor() {
     super();
     this.shadowRoot.append(
@@ -21,7 +23,7 @@ export class Card extends ControlCard {
     );
   }
   static getStubConfig() {
-    return { schema_version: 1 };
+    return { schema_version: 1, show_name: false };
   }
   static async getConfigElement() {
     await import("./editor.js");
@@ -40,7 +42,9 @@ export class Card extends ControlCard {
     if (!this.config.entity)
       return note(t(this.hass, "Choose a sensor in the visual editor."));
     const content = el("div", undefined, "chip-only");
-    content.append(sensorChip(this, this.config));
+    content.append(
+      sensorChip(this, this.config, this.config.entity, { compact: true }),
+    );
     return content;
   }
 }

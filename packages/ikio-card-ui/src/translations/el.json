@@ -618,5 +618,29 @@
   "Disarming": "Αφοπλισμός",
   "Motion detected": "Ανιχνεύθηκε κίνηση",
   "Entity": "Οντότητα",
-  "Press": "Πάτημα"
+  "Press": "Πάτημα",
+  "Batteries": "Μπαταρίες",
+  "Low battery threshold (%)": "Όριο χαμηλής μπαταρίας (%)",
+  "Collapse batteries above (%)": "Σύμπτυξη μπαταριών πάνω από (%)",
+  "Ignored devices": "Συσκευές που εξαιρούνται",
+  "Ignored devices must be a list of device IDs": "Οι εξαιρούμενες συσκευές πρέπει να είναι λίστα αναγνωριστικών συσκευών",
+  "{count} low": {
+    "one": "{count} χαμηλή",
+    "other": "{count} χαμηλές"
+  },
+  "Replace": "Αντικατάσταση",
+  "{count} battery types unknown": {
+    "one": "{count} άγνωστος τύπος μπαταρίας",
+    "other": "{count} άγνωστοι τύποι μπαταρίας"
+  },
+  "Show all {count} devices": {
+    "one": "Εμφάνιση της {count} συσκευής",
+    "other": "Εμφάνιση και των {count} συσκευών"
+  },
+  "Show fewer": "Εμφάνιση λιγότερων",
+  "No battery devices found.": "Δεν βρέθηκαν συσκευές με μπαταρία.",
+  "All batteries are above {threshold}%.": "Όλες οι μπαταρίες είναι πάνω από {threshold}%.",
+  "Normal": "Κανονική",
+  "Show name": "Εμφάνιση ονόματος",
+  "Icon must be text": "Το εικονίδιο πρέπει να είναι κείμενο"
 }

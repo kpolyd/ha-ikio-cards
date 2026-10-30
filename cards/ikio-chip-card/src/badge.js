@@ -21,7 +21,8 @@ if (!window.customBadges.some((badge) => badge.type === "ikio-chip-badge"))
   window.customBadges.push({
     type: "ikio-chip-badge",
     name: "Ikio Chip",
-    description: "A sensor chip with a native icon and stacked name/value.",
+    description:
+      "A compact sensor chip with an optional name and icon override.",
     preview: true,
     documentationURL:
       "https://github.com/kpolyd/ha-ikio-cards/tree/main/cards/ikio-chip-card#dashboard-badges",
