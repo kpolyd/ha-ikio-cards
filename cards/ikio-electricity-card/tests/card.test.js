@@ -192,10 +192,7 @@ test("three-column summary leads with integer watts and retains energy/cost prec
   const columns = card.shadowRoot.querySelector(".ae-energy-summary").children;
   assert.equal(columns.length, 3);
   assert.match(columns[0].textContent, /Current power160W/);
-  assert.match(
-    columns[1].textContent,
-    /EnergyDay11.9kWhNight7.1kWhTotal19.0kWh/,
-  );
+  assert.match(columns[1].textContent, /Total19.0kWhDay11.9kWhNight7.1kWh/);
   assert.match(columns[2].textContent, /Estimated bill30.09 €Forecast60.6 €/);
   assert.equal(card.hass.states["sensor.power"].state, "0.16049");
   card.remove();
@@ -484,7 +481,7 @@ test("each tariff value shows one decimal and its own kWh suffix without roundin
   ];
   assert.deepEqual(
     values.map((n) => n.textContent),
-    ["1.0kWh", "1.0kWh", "2.1kWh"],
+    ["2.1kWh", "1.0kWh", "1.0kWh"],
   );
   assert.ok(
     values.every((n) => n.querySelector("small").textContent === "kWh"),
@@ -492,8 +489,39 @@ test("each tariff value shows one decimal and its own kWh suffix without roundin
   assert.equal(card.hass.states["sensor.day"].state, "1040");
   card.hass = { ...card.hass, locale: { language: "el" } };
   assert.equal(
-    card.shadowRoot.querySelector(".ae-energy-tariffs .ae-value").textContent,
+    card.shadowRoot.querySelector(".ae-tariff-legend .ae-value").textContent,
     "1,0kWh",
   );
+  card.remove();
+});
+
+test("tariff chart preserves readings and only draws reconciled, available shares", () => {
+  const config = {
+    power_entity: "sensor.power",
+    day_entity: "sensor.day",
+    night_entity: "sensor.night",
+    total_energy_entity: "sensor.energy",
+  };
+  const states = {
+    "sensor.power": energySensor(80, "W"),
+    "sensor.day": energySensor(8400, "Wh"),
+    "sensor.night": energySensor(3.6, "kWh"),
+    "sensor.energy": energySensor(12, "kWh"),
+  };
+  const card = energyFixture(config, states);
+  const bar = () => card.shadowRoot.querySelector(".ae-tariff-bar");
+  assert.equal(bar().children.length, 2);
+  assert.equal(bar().firstChild.style.width, "70%");
+  assert.equal(bar().lastChild.style.width, "30%");
+  for (const value of ["unavailable", -1, 0]) {
+    card.hass = {
+      states: { ...states, "sensor.energy": energySensor(value, "kWh") },
+    };
+    assert.equal(bar().children.length, 0);
+    assert.match(
+      card.shadowRoot.querySelector(".ae-tariff-legend").textContent,
+      /Day8.4kWhNight3.6kWh/,
+    );
+  }
   card.remove();
 });

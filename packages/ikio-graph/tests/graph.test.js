@@ -460,3 +460,40 @@ test("a known stepped interval closes at its unavailable boundary", () => {
   );
   assert.match(node.querySelector("path").getAttribute("d"), /H180/);
 });
+
+test("optional sparkline fill follows held steps and closes before missing intervals", () => {
+  const series = [
+    {
+      name: "Device",
+      points: [
+        { time: 0, value: 10 },
+        { time: 1, value: 20 },
+        { time: 2, value: null },
+        { time: 3, value: 15 },
+        { time: 4, value: 25 },
+      ],
+    },
+  ];
+  const node = mod.graph(series, {
+    start: 0,
+    end: 4,
+    sparkline: true,
+    areaFill: true,
+  });
+  const fill = node.querySelector(".ae-area-fill");
+  assert.equal(fill.getAttribute("fill-opacity"), "0.08");
+  const d = fill.getAttribute("d");
+  assert.equal((d.match(/Z/g) || []).length, 2);
+  assert.match(d, /H180 L180,/);
+  assert.match(d, /H94 V/);
+  assert.equal(
+    mod
+      .graph(series, { start: 0, end: 4, sparkline: true })
+      .querySelector(".ae-area-fill"),
+    null,
+  );
+  assert.equal(
+    node.querySelector('path[fill="none"]').getAttribute("stroke-width"),
+    "0.8",
+  );
+});
