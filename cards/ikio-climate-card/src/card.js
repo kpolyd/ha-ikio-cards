@@ -32,11 +32,6 @@ const modes = {
   fan_only: ["Fan", "mdi:fan"],
 };
 const finite = (v) => typeof v === "number" && Number.isFinite(v);
-function svgNode(tag, attrs) {
-  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
-  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-  return n;
-}
 export class Card extends ControlCard {
   validate = validate;
   constructor() {
@@ -50,17 +45,15 @@ export class Card extends ControlCard {
   }
   onConfig() {
     this.active = "climate";
+    this.targetBound = "target_temp_low";
     this.drafts?.clear();
-    this.dragging = undefined;
   }
   onDisconnect() {
-    this.dragging = undefined;
     this.drafts.clear();
   }
   onVisibility() {
     if (!this.visible) {
       this.drafts.clear();
-      this.dragging = undefined;
     }
   }
   static getStubConfig() {
@@ -93,7 +86,7 @@ export class Card extends ControlCard {
       ? Math.max(native, Math.ceil(requested / native - 1e-8) * native)
       : native;
   }
-  dial(id, label, key, value, min, max, step, extra = {}) {
+  dial(id, label, key, value, min, max, step, extra = {}, selectable = false) {
     if (![value, min, max].every(finite) || min >= max)
       return note(t(this.hass, "{p0} unavailable", { p0: label }));
     const draftKey = `${id}:${key}`;
@@ -130,62 +123,22 @@ export class Card extends ControlCard {
       { icon: "mdi:plus", disabled: disabled || shown >= max, entity: id },
     );
     const dial = el("div", undefined, "climate-dial");
-    const svg = svgNode("svg", {
-      viewBox: "0 0 280 155",
-      class: "climate-arc",
-      "aria-hidden": "true",
-    });
-    const fraction = Math.max(0, Math.min(1, (shown - min) / (max - min))),
-      angle = Math.PI * (1 - fraction);
-    const path = "M20 140 A120 120 0 0 1 260 140";
-    svg.append(
-      svgNode("path", { d: path, class: "dial-track" }),
-      svgNode("path", {
-        d: path,
-        class: "dial-fill",
-        pathLength: 100,
-        "stroke-dasharray": `${fraction * 100} 100`,
-      }),
-      svgNode("circle", {
-        cx: 140 + 120 * Math.cos(angle),
-        cy: 140 - 120 * Math.sin(angle),
-        r: 10,
-        class: "dial-handle",
-      }),
-    );
-    const point = (e) => {
-      const box = e.currentTarget.getBoundingClientRect();
-      if (!box.width || !box.height) return;
-      const x = ((e.clientX - box.left) * 280) / box.width - 140,
-        y = 140 - ((e.clientY - box.top) * 155) / box.height;
-      this.drafts.set(
-        draftKey,
-        snap(min + (1 - Math.atan2(Math.max(0, y), x) / Math.PI) * (max - min)),
-      );
-      this.update();
-    };
-    event(svg, "pointerdown", (e) => {
-      if (disabled) return;
-      e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-      this.dragging = draftKey;
-      point(e);
-    });
-    event(svg, "pointermove", (e) => {
-      if (this.dragging === draftKey && !disabled) point(e);
-    });
-    event(svg, "pointerup", (e) => {
-      if (this.dragging !== draftKey) return;
-      this.dragging = undefined;
-      e.currentTarget.releasePointerCapture?.(e.pointerId);
-      if (!disabled) commit(this.drafts.get(draftKey) ?? shown);
-    });
-    event(svg, "pointercancel", () => {
-      this.dragging = undefined;
-      this.drafts.delete(draftKey);
-      this.update();
-    });
-    const caption = el("div", undefined, "dial-caption");
+    const caption = selectable
+      ? button(
+          label,
+          () => {
+            this.targetBound = key;
+            this.update();
+          },
+          { disabled, entity: id },
+        )
+      : el("div");
+    caption.className = "dial-caption";
+    if (selectable) {
+      caption.replaceChildren();
+      caption.setAttribute("aria-pressed", String(this.targetBound === key));
+      wrap.classList.toggle("dial-selected", this.targetBound === key);
+    }
     const output = el(
       "output",
       formatNumber(this.hass, shown, 3),
@@ -220,7 +173,14 @@ export class Card extends ControlCard {
       this.update();
     });
     event(input, "change", (e) => commit(Number(e.currentTarget.value)));
-    dial.append(svg, caption, input);
+    if (selectable)
+      event(input, "focus", () => {
+        if (this.targetBound !== key) {
+          this.targetBound = key;
+          this.update();
+        }
+      });
+    dial.append(caption, input);
     wrap.append(less, dial, more);
     if (disabled) wrap.classList.add("dial-disabled");
     return wrap;
@@ -277,10 +237,12 @@ export class Card extends ControlCard {
       ? ""
       : !available(s)
         ? "Unavailable"
-        : (a.hvac_action || modes[s.state]?.[0] || s.state).replaceAll(
-            "_",
-            " ",
-          );
+        : s.state === "off"
+          ? "Off"
+          : (a.hvac_action || modes[s.state]?.[0] || s.state).replaceAll(
+              "_",
+              " ",
+            );
     const result = group(
       title(
         this,
@@ -305,7 +267,13 @@ export class Card extends ControlCard {
     if (available(s)) {
       const step = this.step(a);
       if (features(s, 2) && (s.state === "heat_cool" || !features(s, 1))) {
-        result.append(
+        const targets = el(
+          "div",
+          undefined,
+          "climate-dual-targets",
+          "dual-targets",
+        );
+        targets.append(
           this.dial(
             id,
             t(this.hass, "Lower target"),
@@ -315,6 +283,7 @@ export class Card extends ControlCard {
             Math.min(a.max_temp, a.target_temp_high),
             step,
             { target_temp_high: a.target_temp_high },
+            true,
           ),
           this.dial(
             id,
@@ -325,8 +294,10 @@ export class Card extends ControlCard {
             a.max_temp,
             step,
             { target_temp_low: a.target_temp_low },
+            true,
           ),
         );
+        result.append(targets);
       } else if (features(s, 1))
         result.append(
           this.dial(
@@ -384,7 +355,6 @@ export class Card extends ControlCard {
     }
     if (a.hvac_modes?.length) {
       const section = el("section", undefined, "climate-modes-section");
-      section.append(el("span", t(this.hass, "Mode"), "ae-label"));
       const buttons = el("div", undefined, "climate-modes");
       buttons.setAttribute("role", "group");
       buttons.setAttribute("aria-label", t(this.hass, "HVAC mode"));
@@ -414,6 +384,12 @@ export class Card extends ControlCard {
       result.append(section);
     }
     const settings = [];
+    const quick = el(
+      "div",
+      undefined,
+      "climate-quick-settings",
+      "quick-settings",
+    );
     for (const [flag, toggle, label, values, key, service] of [
       [8, "fan", "Fan", "fan_modes", "fan_mode", "set_fan_mode"],
       [
@@ -434,18 +410,31 @@ export class Card extends ControlCard {
         "set_swing_horizontal_mode",
       ],
     ])
-      if (c[`show_${toggle}`] && features(s, flag) && a[values]?.length)
-        settings.push(
-          this.controlSelect(
-            id,
-            label,
-            a[values],
-            a[key],
-            "climate",
-            service,
-            key,
-          ),
+      if (c[`show_${toggle}`] && features(s, flag) && a[values]?.length) {
+        const control = this.controlSelect(
+          id,
+          label,
+          a[values],
+          a[key],
+          "climate",
+          service,
+          key,
         );
+        if (toggle === "preset") settings.push(control);
+        else {
+          control.prepend(
+            glyph(
+              toggle === "fan"
+                ? "mdi:fan"
+                : flag === 512
+                  ? "mdi:swap-horizontal"
+                  : "mdi:swap-vertical",
+            ),
+          );
+          quick.append(control);
+        }
+      }
+    if (quick.children.length) result.append(quick);
     settings.push(this.position("horizontal"), this.position("vertical"));
     if (settings.some(Boolean)) {
       const settingsView = disclosure(

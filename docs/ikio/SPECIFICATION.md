@@ -862,3 +862,12 @@ Add a small native HA lightning-bolt icon before the title. Both estimated and f
 ## 92. Electricity tariff palette
 
 On 31 October 2026 the owner approved replacing the amber/blue tariff colours with mint for Day and orchid for Night, taken from the existing graph palette endpoints for the active dark/light/HA appearance. Keep tariff labels muted, total and numeric readings in the normal text colour, and add small matching decorative markers. Preserve the yellow title icon, all configuration and existing card dimensions. Implementation and release are authorized.
+
+
+## 93. Flat Climate and Dehumidifier controls (branch proposal)
+
+On 31 October 2026 the owner approved the Climate HTML mock and its configuration, requested the same design for Dehumidifier, and authorized implementation in a branch only. Do not merge or release this work until requested; the branch will receive another change.
+
+Replace both semicircles with a large, mode-coloured target between 44 px minus/plus controls. Retain integration limits, steps, keyboard target inputs, confirmed values, pending/errors, off/unavailable handling, native details and configuration metadata. Climate dual targets share the outer buttons: select Lower or Upper target, preserve the opposite bound, and prevent crossing. Remove arc dragging together with the arc UI.
+
+Secondary readings become a quiet centred strip, modes use compact icon/label toggles, and native header icons follow the entity. Climate fan and swing selectors are directly visible when supported; presets and independently mapped horizontal/vertical positions stay in the existing collapsed Device settings disclosure. Dehumidifier fan controls are directly visible when mapped; native options, percentage increments, power-on-before-mode handling and tank alerts remain intact. No new configuration, services or capabilities are introduced. Keep the standard dark/light/HA appearances and English/Greek translations.

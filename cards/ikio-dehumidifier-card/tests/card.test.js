@@ -129,7 +129,7 @@ test("target commands respect native bounds and step, retain confirmed values, a
   assert.equal(card.content.querySelector("output").textContent, "59%");
   card.remove();
 });
-test("drag/keyboard previews send one command on commit; off devices preserve readings and disable targets", async () => {
+test("keyboard previews send one command on commit; off devices preserve readings and disable targets", async () => {
   const { card, calls } = setup({}, { target_humidity_step: 5 });
   const input = card.content.querySelector("input");
   input.value = "60";
@@ -281,7 +281,7 @@ test("configured tank-full polarity produces a visible warning without inventing
   assert.ok(card.content.querySelector('[role="alert"]'));
   card.remove();
 });
-test("fan select settings use the mapped entity, preserve disclosure/focus, and use the standard chevron", async () => {
+test("inline fan settings use the mapped entity and preserve focus", async () => {
   const { card, calls } = setup({ fan_entity: "select.speed" });
   card.hass = {
     ...card.hass,
@@ -293,19 +293,16 @@ test("fan select settings use the mapped entity, preserve disclosure/focus, and 
       },
     },
   };
-  const details = card.content.querySelector("details");
-  assert.equal(details.open, false);
-  assert.equal(
-    details.querySelector(".settings-chevron").getAttribute("icon"),
-    "mdi:chevron-down",
-  );
-  details.open = true;
-  details.dispatchEvent(new dom.window.Event("toggle"));
-  const select = details.querySelector("select");
+  assert.equal(card.content.querySelector("details"), null);
+  assert.equal(card.content.querySelector("svg"), null);
+  const quick = card.content.querySelector(".dehumidifier-quick-settings");
+  const select = quick.querySelector("select");
   select.focus();
   updateDevice(card, "on", { current_humidity: 61 });
-  assert.equal(card.content.querySelector("details"), details);
-  assert.equal(details.open, true);
+  assert.equal(
+    card.content.querySelector(".dehumidifier-quick-settings"),
+    quick,
+  );
   assert.equal(card.shadowRoot.activeElement, select);
   select.value = "Low";
   select.dispatchEvent(new dom.window.Event("change"));

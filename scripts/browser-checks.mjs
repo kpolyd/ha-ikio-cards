@@ -475,20 +475,23 @@ try {
           .content.textContent.includes("Updating device"),
       type,
     );
-    const summary = card.locator("summary");
-    assert.equal(
-      await summary.evaluate((s) => getComputedStyle(s, "::after").content),
-      "none",
-    );
-    await summary.click();
-    await page.waitForFunction(
-      (type) =>
-        window.ikioPreview.cards
-          .find((c) => c.localName === `ikio-${type}-card`)
-          .openSections.has(`${type}-settings`),
-      type,
-    );
-    assert.equal(await card.locator(".settings-chevron").count(), 1);
+    assert.equal(await card.locator(`.${type}-arc`).count(), 0);
+    const quick = card.locator(`.${type}-quick-settings`);
+    assert.ok(await quick.isVisible());
+    if (type === "climate") {
+      const summary = card.locator("summary");
+      assert.equal(
+        await summary.evaluate((s) => getComputedStyle(s, "::after").content),
+        "none",
+      );
+      await summary.click();
+      await page.waitForFunction(() =>
+        document
+          .querySelector("ikio-climate-card")
+          .openSections.has("climate-settings"),
+      );
+      assert.equal(await card.locator(".settings-chevron").count(), 1);
+    }
     if (type === "climate") {
       await card.getByRole("button", { name: "Heat", exact: true }).click();
       await page.waitForFunction(
@@ -530,8 +533,76 @@ try {
           .content.textContent.includes("Updating device"),
       type,
     );
-    assert.equal(await card.locator("details").evaluate((d) => d.open), true);
+    if (type === "climate")
+      assert.equal(await card.locator("details").evaluate((d) => d.open), true);
+    else assert.equal(await card.locator("details").count(), 0);
     await card.screenshot({ path: resolve(out, `${type}-dark.png`) });
+    if (type === "climate") {
+      await page.evaluate(() => {
+        const p = window.ikioPreview;
+        p.states["climate.room"] = {
+          ...p.states["climate.room"],
+          state: "heat_cool",
+          attributes: {
+            ...p.states["climate.room"].attributes,
+            supported_features: 2 | 8 | 16 | 32,
+            hvac_modes: ["off", "cool", "heat", "heat_cool", "auto"],
+            target_temp_low: 18,
+            target_temp_high: 25,
+          },
+        };
+      });
+      for (const width of [280, 390]) {
+        await page.evaluate(
+          (options) => window.ikioPreview.configure(options),
+          { theme: "dark", width },
+        );
+        const dual = card.locator(".climate-dual-targets");
+        assert.equal(await dual.count(), 1);
+        assert.equal(
+          await dual.evaluate((n) => n.scrollWidth > n.clientWidth + 1),
+          false,
+        );
+        await card
+          .getByRole("button", { name: "Upper target", exact: true })
+          .click();
+        assert.equal(
+          await card
+            .getByRole("button", { name: "Increase upper target", exact: true })
+            .isVisible(),
+          true,
+        );
+        assert.equal(
+          await card
+            .getByRole("button", { name: "Increase lower target", exact: true })
+            .count(),
+          0,
+        );
+        if (width === 280) {
+          await card
+            .getByRole("button", { name: "Increase upper target", exact: true })
+            .click();
+          await page.waitForFunction(
+            () =>
+              window.ikioPreview.states["climate.room"].attributes
+                .target_temp_high === 25.5,
+          );
+          assert.equal(
+            await page.evaluate(
+              () =>
+                window.ikioPreview.states["climate.room"].attributes
+                  .target_temp_low,
+            ),
+            18,
+          );
+          await page.waitForFunction(
+            () => !document.querySelector("ikio-climate-card").pending.size,
+          );
+        }
+      }
+      await card.screenshot({ path: resolve(out, "climate-dual-dark.png") });
+    }
+
     assert.deepEqual(errors, []);
     results.push({ card: type, passed: true });
     await page.close();

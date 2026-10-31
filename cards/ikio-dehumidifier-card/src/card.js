@@ -17,18 +17,12 @@ import {
   available,
   installRefinement,
   refine,
-  disclosure,
   glyph,
   updateChipIcons,
 } from "@ikio/card-ui";
 import { validate, normalize } from "./config.js";
 import { dehumidifierStyles } from "./styles.js";
 const finite = (v) => typeof v === "number" && Number.isFinite(v);
-function svgNode(tag, attrs) {
-  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
-  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-  return n;
-}
 export class Card extends ControlCard {
   validate = validate;
   constructor() {
@@ -44,18 +38,15 @@ export class Card extends ControlCard {
     this.active = "humidifier";
     this.cancelMode?.();
     this.drafts?.clear();
-    this.dragging = undefined;
   }
   onDisconnect() {
     this.cancelMode?.();
-    this.dragging = undefined;
     this.drafts.clear();
   }
   onVisibility() {
     if (!this.visible) {
       this.cancelMode?.();
       this.drafts.clear();
-      this.dragging = undefined;
     }
   }
   static getStubConfig() {
@@ -125,61 +116,6 @@ export class Card extends ControlCard {
       { icon: "mdi:plus", disabled: disabled || shown >= max, entity: id },
     );
     const dial = el("div", undefined, "dehumidifier-dial");
-    const svg = svgNode("svg", {
-      viewBox: "0 0 280 155",
-      class: "dehumidifier-arc",
-      "aria-hidden": "true",
-    });
-    const fraction = Math.max(0, Math.min(1, (shown - min) / (max - min))),
-      angle = Math.PI * (1 - fraction);
-    const path = "M20 140 A120 120 0 0 1 260 140";
-    svg.append(
-      svgNode("path", { d: path, class: "dial-track" }),
-      svgNode("path", {
-        d: path,
-        class: "dial-fill",
-        pathLength: 100,
-        "stroke-dasharray": `${fraction * 100} 100`,
-      }),
-      svgNode("circle", {
-        cx: 140 + 120 * Math.cos(angle),
-        cy: 140 - 120 * Math.sin(angle),
-        r: 10,
-        class: "dial-handle",
-      }),
-    );
-    const point = (e) => {
-      const box = e.currentTarget.getBoundingClientRect();
-      if (!box.width || !box.height) return;
-      const x = ((e.clientX - box.left) * 280) / box.width - 140,
-        y = 140 - ((e.clientY - box.top) * 155) / box.height;
-      this.drafts.set(
-        draftKey,
-        snap(min + (1 - Math.atan2(Math.max(0, y), x) / Math.PI) * (max - min)),
-      );
-      this.update();
-    };
-    event(svg, "pointerdown", (e) => {
-      if (disabled) return;
-      e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-      this.dragging = draftKey;
-      point(e);
-    });
-    event(svg, "pointermove", (e) => {
-      if (this.dragging === draftKey && !disabled) point(e);
-    });
-    event(svg, "pointerup", (e) => {
-      if (this.dragging !== draftKey) return;
-      this.dragging = undefined;
-      e.currentTarget.releasePointerCapture?.(e.pointerId);
-      if (!disabled) commit(this.drafts.get(draftKey) ?? shown);
-    });
-    event(svg, "pointercancel", () => {
-      this.dragging = undefined;
-      this.drafts.delete(draftKey);
-      this.update();
-    });
     const caption = el("div", undefined, "dial-caption");
     const output = el(
       "output",
@@ -204,7 +140,7 @@ export class Card extends ControlCard {
       this.update();
     });
     event(input, "change", (e) => commit(Number(e.currentTarget.value)));
-    dial.append(svg, caption, input);
+    dial.append(caption, input);
     wrap.append(less, dial, more);
     if (disabled) wrap.classList.add("dial-disabled");
     return wrap;
@@ -453,7 +389,6 @@ export class Card extends ControlCard {
       return result;
     }
     const section = el("section", undefined, "dehumidifier-modes-section");
-    section.append(el("span", t(this.hass, "Mode"), "ae-label"));
     const modes = el("div", undefined, "dehumidifier-modes");
     modes.setAttribute("role", "group");
     modes.setAttribute("aria-label", t(this.hass, "Mode"));
@@ -483,6 +418,7 @@ export class Card extends ControlCard {
           ),
         { entity: id, disabled: this.blocked(id), key: "on" },
       );
+      on.prepend(glyph("mdi:power"));
       on.setAttribute(
         "aria-pressed",
         String(s.state === "on" && !options.includes(a.mode)),
@@ -496,6 +432,7 @@ export class Card extends ControlCard {
         disabled: this.blocked(id),
         key: `mode:${mode}`,
       });
+      control.prepend(glyph("mdi:water-percent"));
       control.setAttribute(
         "aria-pressed",
         String(s.state === "on" && a.mode === mode),
@@ -506,16 +443,18 @@ export class Card extends ControlCard {
     result.append(section);
     const settings = this.fanSettings();
     if (settings.length) {
-      const settingsView = disclosure(
-        this,
-        "dehumidifier-settings",
-        t(this.hass, "Device settings"),
-        ...settings,
+      const quick = el(
+        "div",
+        undefined,
+        "dehumidifier-quick-settings",
+        "quick-settings",
       );
-      const chevron = glyph("mdi:chevron-down");
-      chevron.classList.add("settings-chevron");
-      settingsView.querySelector("summary").append(chevron);
-      result.append(settingsView);
+      for (const control of settings) {
+        if (control.classList.contains("ae-select"))
+          control.prepend(glyph("mdi:fan"));
+        quick.append(control);
+      }
+      result.append(quick);
     }
     if (this.pending.size || this.requests.size)
       result.append(note(t(this.hass, "Updating device…")));
