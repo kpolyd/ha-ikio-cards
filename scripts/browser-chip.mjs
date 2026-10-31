@@ -247,6 +247,38 @@ export async function checkChip(browser, out) {
     assert.match(await card.locator(".ikio-chip-value").textContent(), /home/i);
     await card.locator("button").click();
     assert.match(await page.locator("#log").textContent(), /person.demo/);
+    await card.evaluate((c) => {
+      window.ikioPreview.states["switch.demo_plug"] = {
+        entity_id: "switch.demo_plug",
+        state: "on",
+        attributes: { friendly_name: "Demo plug", icon: "mdi:power-socket-eu" },
+      };
+      c.setConfig({ entity: "switch.demo_plug" });
+      c.hass = { ...c.hass, states: { ...window.ikioPreview.states } };
+    });
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector("ikio-chip-card")
+          .content.querySelector(".ikio-chip-value")
+          .textContent.toLowerCase() === "on",
+    );
+    await card.locator("button").click();
+    assert.match(await page.locator("#log").textContent(), /switch.demo_plug/);
+    await card.evaluate((c) => {
+      window.ikioPreview.states["switch.demo_plug"] = {
+        ...window.ikioPreview.states["switch.demo_plug"],
+        state: "off",
+      };
+      c.hass = { ...c.hass, states: { ...window.ikioPreview.states } };
+    });
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector("ikio-chip-card")
+          .content.querySelector(".ikio-chip-value")
+          .textContent.toLowerCase() === "off",
+    );
     assert.deepEqual(errors, []);
     return { card: "chip", passed: true };
   } finally {

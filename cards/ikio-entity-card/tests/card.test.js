@@ -181,6 +181,7 @@ test("configuration rejects unsupported types and the editor preserves metadata"
   const f = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
     f.schema.some((s) => s.name === "entity"),
   );
+  assert(f.schema[0].selector.entity.filter.domain.includes("switch"));
   f.dispatchEvent(
     new CustomEvent("value-changed", {
       detail: { value: { ...f.data, entity: "sensor.demo", name: "New" } },

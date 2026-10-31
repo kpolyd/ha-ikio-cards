@@ -6,7 +6,7 @@ export const chipStyles = `
 .ikio-sensor-chip.ae-button{display:inline-flex;align-items:center;gap:0;min-height:44px;min-width:44px;max-width:100%;padding:0;border:0;border-radius:7px;background:transparent;color:var(--ae-text);text-align:left;font:inherit}
 .ikio-chip-surface{display:inline-flex;align-items:center;gap:5px;min-height:28px;max-width:100%;padding:4px 7px;border:1px solid var(--ae-border);border-radius:7px;background:var(--ae-well)}
 .ikio-sensor-chip.with-name .ikio-chip-surface{min-height:34px;padding:3px 7px}
-.ikio-sensor-chip ha-state-icon{--mdc-icon-size:14px;flex:none;color:var(--ae-accent)}
+.ikio-sensor-chip ha-state-icon{--mdc-icon-size:16px;flex:none;color:var(--ae-accent)}
 .ikio-chip-text{display:grid;gap:0;min-width:0}
 .ikio-chip-name{font-size:11px;line-height:12px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
 .ikio-chip-value{font-size:12px;line-height:14px;font-weight:500;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
