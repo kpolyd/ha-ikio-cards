@@ -1,5 +1,18 @@
 # Ikio changelog
 
+## [0.23.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.22.1...v0.23.0) (2026-10-31)
+
+
+### Features
+
+* **climate:** add flat climate and dehumidifier controls ([2eed165](https://github.com/kpolyd/ha-ikio-cards/commit/2eed1655a90c3c0c5edf1ff29cdd853c83d2381c))
+
+
+### Bug Fixes
+
+* **electricity:** keep tariff markers within existing padding ([33bfbe0](https://github.com/kpolyd/ha-ikio-cards/commit/33bfbe03ea230b1cdddb6162e8ed771d56c5ab29))
+* **ui:** refine HA active tiles and light indicators ([3661604](https://github.com/kpolyd/ha-ikio-cards/commit/3661604fe395e0c45f7995894e48d29392500cfd))
+
 ## [0.22.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.22.0...v0.22.1) (2026-10-31)
 
 
