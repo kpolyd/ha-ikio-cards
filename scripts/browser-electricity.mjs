@@ -34,6 +34,10 @@ export async function checkElectricity(browser, out) {
         const tariffs = root.querySelector(".ae-energy-tariffs");
         const originalChildren = [...tariffs.childNodes];
         const height = c.getBoundingClientRect().height;
+        const markers = [...tariffs.querySelectorAll(".ae-tariff-marker")];
+        for (const marker of markers) marker.style.display = "none";
+        const withoutMarkersHeight = c.getBoundingClientRect().height;
+        for (const marker of markers) marker.style.removeProperty("display");
         const energyLabel = document.createElement("p");
         energyLabel.className = "ae-note";
         energyLabel.textContent = "Energy";
@@ -46,6 +50,7 @@ export async function checkElectricity(browser, out) {
         tariffs.replaceChildren(...originalChildren);
         return {
           baselineHeight,
+          withoutMarkersHeight,
           height: c.getBoundingClientRect().height,
           summary: summary.getBoundingClientRect().height,
           overflow: c.scrollWidth > c.clientWidth,
@@ -90,6 +95,7 @@ export async function checkElectricity(browser, out) {
         };
       });
       assert.equal(size.overflow, false);
+      assert.equal(size.height, size.withoutMarkersHeight);
       assert.equal(size.icon, "mdi:lightning-bolt");
       assert.equal(size.times.length, 4);
       assert.equal(size.verticalGuides, 4);
