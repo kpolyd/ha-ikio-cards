@@ -4137,7 +4137,8 @@ void main() {
       .ae-energy-tariffs>.ae-note{margin:0 0 3px}
       .ae-tariff-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--ae-well);margin:4px 0}
       .ae-tariff-day{background:var(--ae-tariff-day-colour)}.ae-tariff-night{background:var(--ae-tariff-night-colour)}
-      .ae-tariff-marker{display:inline-block;width:5px;height:5px;border-radius:50%;margin-inline-end:4px;vertical-align:middle}
+      .ae-tariff-legend .ae-label{position:relative}
+      .ae-tariff-marker{position:absolute;inset-inline-start:-6px;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%}
       .ae-energy-summary .ae-energy-tariffs .ae-value{color:var(--ae-text)}
       .ae-energy .ae-energy-tariffs .ae-reading{width:100%;min-height:24px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
       .ae-energy-tariffs .ae-value{min-width:0;text-align:right}
