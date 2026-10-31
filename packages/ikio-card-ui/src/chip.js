@@ -6,12 +6,62 @@ export const chipStyles = `
 .ikio-sensor-chip.ae-button{display:inline-flex;align-items:center;gap:0;min-height:44px;min-width:44px;max-width:100%;padding:0;border:0;border-radius:7px;background:transparent;color:var(--ae-text);text-align:left;font:inherit}
 .ikio-chip-surface{display:inline-flex;align-items:center;gap:5px;min-height:28px;max-width:100%;padding:4px 7px;border:1px solid var(--ae-border);border-radius:7px;background:var(--ae-well)}
 .ikio-sensor-chip.with-name .ikio-chip-surface{min-height:34px;padding:3px 7px}
-.ikio-sensor-chip ha-state-icon{--mdc-icon-size:16px;flex:none;color:var(--ae-accent)}
+.ikio-sensor-chip ha-state-icon{--mdc-icon-size:16px;flex:none;color:var(--ikio-chip-color,var(--ae-accent))}
 .ikio-chip-text{display:grid;gap:0;min-width:0}
 .ikio-chip-name{font-size:11px;line-height:12px;font-weight:400;color:var(--ae-muted);overflow-wrap:anywhere}
 .ikio-chip-value{font-size:12px;line-height:14px;font-weight:500;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .ikio-chip-name[hidden]{display:none}
 `;
+// Keep status semantics shared by cards, badges and embedded chips. Numeric
+// sensors have no implicit thresholds; their normal reading stays neutral.
+function chipColor(state, entity) {
+  const value = state?.state;
+  if (!value || ["unknown", "unavailable"].includes(value)) return "muted";
+  const domain = entity?.split(".")[0];
+  const deviceClass = state.attributes?.device_class;
+  if (domain === "binary_sensor") {
+    if (!["on", "off"].includes(value)) return "muted";
+    if (deviceClass === "connectivity")
+      return value === "on" ? "temperature" : "error";
+    if (
+      [
+        "battery",
+        "carbon_monoxide",
+        "gas",
+        "moisture",
+        "problem",
+        "safety",
+        "smoke",
+        "tamper",
+      ].includes(deviceClass)
+    )
+      return value === "on" ? "error" : "temperature";
+    if (
+      ["door", "garage_door", "lock", "opening", "window"].includes(deviceClass)
+    )
+      return value === "on" ? "warning" : "temperature";
+    return value === "on" ? "accent" : "muted";
+  }
+  if (domain === "person" || domain === "device_tracker")
+    return value === "home" ? "temperature" : "muted";
+  if (domain === "lock") {
+    if (value === "locked") return "temperature";
+    if (value === "jammed") return "error";
+    return "warning";
+  }
+  if (domain === "cover") return value === "closed" ? "temperature" : "warning";
+  if (domain === "alarm_control_panel") {
+    if (value === "triggered") return "error";
+    if (["pending", "arming", "disarming"].includes(value)) return "warning";
+    return value.startsWith("armed_") ? "temperature" : "muted";
+  }
+  if (["error", "problem", "jammed"].includes(value)) return "error";
+  if (["off", "idle", "standby", "paused", "docked"].includes(value))
+    return "muted";
+  if (value === "heat") return "warning";
+  if (value === "cool" || value === "dry") return "humidity";
+  return "accent";
+}
 export function sensorChip(card, config, key = config.entity) {
   const name =
     config.name?.trim() ||
@@ -46,6 +96,10 @@ export function updateChipIcons(card) {
   )) {
     icon.hass = card.hass;
     icon.stateObj = card.state(icon.dataset.chipEntity);
+    icon.style.setProperty(
+      "--ikio-chip-color",
+      `var(--ae-${chipColor(icon.stateObj, icon.dataset.chipEntity)})`,
+    );
     icon.icon = icon.dataset.chipIcon || undefined;
   }
 }

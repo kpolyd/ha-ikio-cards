@@ -33,6 +33,32 @@ export async function checkChip(browser, out) {
             }))
               c.style.setProperty(name, value);
           });
+        const stateColors = await card.evaluate(async (c) => {
+          const colors = [];
+          c.setConfig({ ...c.config, entity: "light.chip_test" });
+          for (const state of ["on", "off", "unknown"]) {
+            c.hass = {
+              ...c.hass,
+              states: {
+                ...c.hass.states,
+                "light.chip_test": {
+                  entity_id: "light.chip_test",
+                  state,
+                  attributes: {},
+                },
+              },
+            };
+            await new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(resolve)),
+            );
+            colors.push(
+              getComputedStyle(c.content.querySelector("ha-state-icon")).color,
+            );
+          }
+          return colors;
+        });
+        assert.notEqual(stateColors[0], stateColors[1], `${theme}/active`);
+        assert.equal(stateColors[1], stateColors[2], `${theme}/unknown`);
         for (const show_name of [false, true]) {
           await card.evaluate(
             (c, show_name) =>
@@ -118,6 +144,7 @@ export async function checkChip(browser, out) {
     await card.evaluate((c) => {
       const badge = document.createElement("ikio-chip-badge");
       badge.id = "chip-test-badge";
+      badge.style.cssText = c.style.cssText;
       badge.setConfig({ ...c.config, name: "Room", icon: "mdi:thermometer" });
       badge.hass = c.hass;
       document.querySelector("main").append(badge);
@@ -159,7 +186,8 @@ export async function checkChip(browser, out) {
           "hass-more-info",
           (e) => (opened = e.detail.entityId),
         );
-        const values = [];
+        const values = [],
+          colors = [];
         for (const state of ["on", "off", "unavailable"]) {
           c.hass = {
             ...hass,
@@ -167,6 +195,9 @@ export async function checkChip(browser, out) {
           };
           await new Promise((resolve) =>
             requestAnimationFrame(() => requestAnimationFrame(resolve)),
+          );
+          colors.push(
+            getComputedStyle(c.content.querySelector("ha-state-icon")).color,
           );
           values.push(
             c.content
@@ -177,12 +208,15 @@ export async function checkChip(browser, out) {
         c.content.querySelector("button").click();
         return {
           values,
+          colors,
           opened,
           calls: calls.length,
           native: c.content.querySelector("ha-state-icon").stateObj.entity_id,
         };
       });
       assert.deepEqual(light.values, ["on", "off", "unavailable"]);
+      assert.notEqual(light.colors[0], light.colors[1]);
+      assert.equal(light.colors[1], light.colors[2]);
       assert.equal(light.opened, "light.strip");
       assert.equal(light.native, "light.strip");
       assert.equal(light.calls, 0);
