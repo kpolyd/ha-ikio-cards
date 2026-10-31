@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.21.2](https://github.com/kpolyd/ha-ikio-cards/compare/v0.21.1...v0.21.2) (2026-10-31)
+
+
+### Bug Fixes
+
+* **cards:** allow switch chips and enlarge entity icons ([54e163a](https://github.com/kpolyd/ha-ikio-cards/commit/54e163a5b465a7d96f6e1c1223b250db5cf5db19))
+
 ## [0.21.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.21.0...v0.21.1) (2026-10-30)
 
 
