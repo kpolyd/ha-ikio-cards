@@ -381,50 +381,55 @@ test("people work in the chip card and badge with native state, icon and details
   }
 });
 
-test("switches are selectable in chips and badges, update live, and only open details", async () => {
-  for (const type of ["ikio-chip-card", "ikio-chip-badge"]) {
-    const card = document.createElement(type),
-      calls = [];
-    card.setConfig({ entity: "switch.demo_plug", view_layout: { column: 2 } });
-    const state = {
-      entity_id: "switch.demo_plug",
-      state: "on",
-      attributes: { friendly_name: "Demo plug", icon: "mdi:power-socket-eu" },
-    };
-    card.hass = {
-      states: { "switch.demo_plug": state },
-      callService: async (...args) => calls.push(args),
-    };
-    document.body.append(card);
-    const value = () =>
-      card.content.querySelector(".ikio-chip-value").textContent;
-    assert.equal(value().toLowerCase(), "on");
-    assert.equal(card.content.querySelector("ha-state-icon").stateObj, state);
-    let opened;
-    card.addEventListener(
-      "hass-more-info",
-      (e) => (opened = e.detail.entityId),
-    );
-    card.content.querySelector("button").click();
-    assert.equal(opened, "switch.demo_plug");
-    assert.deepEqual(calls, []);
-    for (const next of ["off", "unavailable"]) {
-      card.hass = {
-        ...card.hass,
-        states: { "switch.demo_plug": { ...state, state: next } },
+test("switches and lights are selectable in chips and badges, update live, and only open details", async () => {
+  for (const domain of ["switch", "light"])
+    for (const type of ["ikio-chip-card", "ikio-chip-badge"]) {
+      const id = `${domain}.demo`;
+      const card = document.createElement(type),
+        calls = [];
+      card.setConfig({ entity: id, view_layout: { column: 2 } });
+      const state = {
+        entity_id: id,
+        state: "on",
+        attributes: {
+          friendly_name: "Demo entity",
+          icon: domain === "light" ? "mdi:lightbulb" : "mdi:power-socket-eu",
+        },
       };
-      assert.equal(value().toLowerCase(), next);
+      card.hass = {
+        states: { [id]: state },
+        callService: async (...args) => calls.push(args),
+      };
+      document.body.append(card);
+      const value = () =>
+        card.content.querySelector(".ikio-chip-value").textContent;
+      assert.equal(value().toLowerCase(), "on");
+      assert.equal(card.content.querySelector("ha-state-icon").stateObj, state);
+      let opened;
+      card.addEventListener(
+        "hass-more-info",
+        (e) => (opened = e.detail.entityId),
+      );
+      card.content.querySelector("button").click();
+      assert.equal(opened, id);
+      assert.deepEqual(calls, []);
+      for (const next of ["off", "unavailable"]) {
+        card.hass = {
+          ...card.hass,
+          states: { [id]: { ...state, state: next } },
+        };
+        assert.equal(value().toLowerCase(), next);
+      }
+      const editor = await card.constructor.getConfigElement();
+      editor.setConfig(card.config);
+      document.body.append(editor);
+      await new Promise((r) => setTimeout(r, 0));
+      const field = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+        (f) => f.schema[0].name === "entity",
+      );
+      assert(field.schema[0].selector.entity.filter.domain.includes(domain));
+      assert.deepEqual(editor.config.view_layout, { column: 2 });
+      editor.remove();
+      card.remove();
     }
-    const editor = await card.constructor.getConfigElement();
-    editor.setConfig(card.config);
-    document.body.append(editor);
-    await new Promise((r) => setTimeout(r, 0));
-    const field = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
-      (f) => f.schema[0].name === "entity",
-    );
-    assert(field.schema[0].selector.entity.filter.domain.includes("switch"));
-    assert.deepEqual(editor.config.view_layout, { column: 2 });
-    editor.remove();
-    card.remove();
-  }
 });
