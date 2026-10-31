@@ -841,3 +841,11 @@ On 30 October 2026 the owner requested an IP sensor selector instead of manual t
 Server Monitor exposes optional `ip_address_entity` (sensor). The header shows its current raw IPv4/IPv6 state and updates with HA; unknown/unavailable/missing sensors remain explicit. Legacy `ip_address` text is preserved until an IP sensor is selected, then removed so clearing the sensor does not resurrect stale text. IP does not establish server availability.
 
 Entity and Chip selectors accept `person` entities. People show HA-formatted states and native icons, open native details and issue no services. Chip badges inherit this support. Shared chips show names unless `show_name: false` is explicit, superseding earlier off defaults. The common Show name field defaults to true for standalone chips and Server Monitor/Router extra readings. Existing explicit false values remain false. Compact surfaces, borders and native details are preserved.
+
+## 89. Switches in Chip selectors
+
+On 31 October 2026 the owner reported that switch entities could not be selected in a Chip card. Chip and badge selectors now accept `switch` alongside `sensor` and `person`. Switch chips show the reported HA state and native icon, update live, and retain details-only tap/hold behaviour. Entity already supports switches and retains its existing toggle behaviour. Tests use fictional switches and never operate a real plug.
+
+## 90. Slightly larger Chip and Entity icons
+
+The owner requested slightly larger icons in both cards on 31 October 2026. Shared Chip icons increase from 14 to 16 px, including badges and embedded Server Monitor/Router readings. The Entity card's primary entity icon increases from 17 to 19 px with a matching flex basis. Card dimensions, chip surfaces, spacing and touch targets retain their existing sizes.
