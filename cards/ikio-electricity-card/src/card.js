@@ -53,9 +53,9 @@ export class Card extends HistoryCard {
       .ae-energy-summary .ae-energy-secondary .ae-value{font-size:13px;font-weight:400;color:var(--ae-muted)}
       .ae-energy-tariffs>.ae-note{margin:0 0 3px}
       .ae-tariff-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--ae-well);margin:4px 0}
-      .ae-tariff-day{background:var(--ae-warning)}.ae-tariff-night{background:var(--ae-accent)}
-      .ae-tariff-legend .ae-reading:first-child .ae-label{color:var(--ae-warning)}
-      .ae-tariff-legend .ae-reading:last-child .ae-label{color:var(--ae-accent)}
+      .ae-tariff-day{background:var(--ae-tariff-day-colour)}.ae-tariff-night{background:var(--ae-tariff-night-colour)}
+      .ae-tariff-marker{display:inline-block;width:5px;height:5px;border-radius:50%;margin-inline-end:4px;vertical-align:middle}
+      .ae-energy-summary .ae-energy-tariffs .ae-value{color:var(--ae-text)}
       .ae-energy .ae-energy-tariffs .ae-reading{width:100%;min-height:24px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
       .ae-energy-tariffs .ae-value{min-width:0;text-align:right}
       .ae-energy-bills{display:grid;gap:5px;text-align:right}
@@ -283,6 +283,14 @@ export class Card extends HistoryCard {
         undefined,
         "ae-energy-tariffs ae-energy-secondary",
       );
+      tariffs.style.setProperty(
+        "--ae-tariff-day-colour",
+        this.graphStops[0][1],
+      );
+      tariffs.style.setProperty(
+        "--ae-tariff-night-colour",
+        this.graphStops.at(-1)[1],
+      );
       tariffs.setAttribute("role", "group");
       tariffs.setAttribute(
         "aria-label",
@@ -328,12 +336,21 @@ export class Card extends HistoryCard {
         }
         tariffs.append(bar);
         const legend = el("div", undefined, "ae-tariff-legend");
-        if (c.day_entity)
-          legend.append(this.tariffReading(t(this.hass, "Day"), c.day_entity));
-        if (c.night_entity)
-          legend.append(
-            this.tariffReading(t(this.hass, "Night"), c.night_entity),
+        for (const [name, label, entity] of [
+          ["day", "Day", c.day_entity],
+          ["night", "Night", c.night_entity],
+        ]) {
+          if (!entity) continue;
+          const item = this.tariffReading(t(this.hass, label), entity);
+          const marker = el(
+            "span",
+            undefined,
+            `ae-tariff-marker ae-tariff-${name}`,
           );
+          marker.setAttribute("aria-hidden", "true");
+          item.querySelector(".ae-label").prepend(marker);
+          legend.append(item);
+        }
         tariffs.append(legend);
       }
       summary.append(tariffs);

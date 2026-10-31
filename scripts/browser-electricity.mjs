@@ -50,6 +50,22 @@ export async function checkElectricity(browser, out) {
           summary: summary.getBoundingClientRect().height,
           overflow: c.scrollWidth > c.clientWidth,
           segments: bar.children.length,
+          tariffPalette: [
+            tariffs.style.getPropertyValue("--ae-tariff-day-colour"),
+            tariffs.style.getPropertyValue("--ae-tariff-night-colour"),
+          ],
+          tariffMarkers: [...tariffs.querySelectorAll(".ae-tariff-marker")].map(
+            (n) => getComputedStyle(n).backgroundColor,
+          ),
+          tariffSegments: [...bar.children].map(
+            (n) => getComputedStyle(n).backgroundColor,
+          ),
+          tariffLabels: [...tariffs.querySelectorAll(".ae-label")].map(
+            (n) => getComputedStyle(n).color,
+          ),
+          tariffValues: [...tariffs.querySelectorAll(".ae-value")].map(
+            (n) => getComputedStyle(n).color,
+          ),
           fill: !!root.querySelector(".ae-area-fill"),
           verticalGuides: root.querySelectorAll('[data-guide="time"]').length,
           times: [...root.querySelectorAll(".ae-time-axis span")].map(
@@ -83,6 +99,13 @@ export async function checkElectricity(browser, out) {
       assert.equal(size.billValues[0].weight, "600");
       assert.ok(size.height <= size.baselineHeight + 0.1, JSON.stringify(size));
       assert.equal(size.segments, 2);
+      assert.deepEqual(
+        size.tariffPalette,
+        theme === "dark" ? ["#a4e4b8", "#c47dd4"] : ["#48835b", "#9553a7"],
+      );
+      assert.deepEqual(size.tariffMarkers, size.tariffSegments);
+      assert.ok(size.tariffValues.every((c) => c === size.billValue));
+      assert.ok(size.tariffLabels.every((c) => c === size.billLabel));
       assert.equal(size.fill, true, JSON.stringify(size));
       assert.equal(size.sparkFill, true);
       sizes.push({ theme, width, ...size });
