@@ -14,11 +14,11 @@ export async function checkEntity(browser, out) {
     await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
     await page.waitForFunction(() => window.ikioPreview?.ready);
     const card = page.locator("ikio-entity-card");
-    for (const theme of ["dark", "light", "ha"])
+    for (const theme of ["dark", "light", "ha-dark", "ha-light"])
       for (const width of [100, 160, 320, 520]) {
         await page.evaluate(
           (options) => window.ikioPreview.configure(options),
-          { theme, width },
+          { theme: theme.startsWith("ha-") ? "ha" : theme, width },
         );
         await card.scrollIntoViewIfNeeded();
         for (const domain of [
@@ -32,11 +32,24 @@ export async function checkEntity(browser, out) {
         ]) {
           const result = await card.evaluate(
             (c, { domain, theme }) => {
+              if (theme.startsWith("ha-")) {
+                const dark = theme === "ha-dark";
+                for (const [key, value] of Object.entries({
+                  "--ha-card-background": dark ? "#1c1c1c" : "#ffffff",
+                  "--secondary-background-color": dark ? "#282828" : "#e5e5e5",
+                  "--primary-text-color": dark ? "#eeeeee" : "#212121",
+                  "--secondary-text-color": dark ? "#aaaaaa" : "#727272",
+                  "--divider-color": dark ? "#444444" : "#cccccc",
+                  "--primary-color": "#03a9f4",
+                  "--state-light-active-color": "#ff9800",
+                }))
+                  c.style.setProperty(key, value);
+              }
               const id = domain + ".entity_test";
               c.setConfig({
                 entity: id,
                 name: "A long entity name for a compact card",
-                appearance: { theme },
+                appearance: { theme: theme.startsWith("ha-") ? "ha" : theme },
               });
               c.hass = {
                 ...c.hass,
@@ -66,7 +79,38 @@ export async function checkEntity(browser, out) {
               };
               const b = c.control.getBoundingClientRect();
               const dot = c.dot.getBoundingClientRect();
+              const onBackground = getComputedStyle(c.control).backgroundColor;
+              const onIcon = getComputedStyle(c.icon).color;
+              const actionColour = getComputedStyle(c.actionIcon).color;
+              const actionSize = getComputedStyle(c.actionIcon)
+                .getPropertyValue("--mdc-icon-size")
+                .trim();
+              const lampColour =
+                c.control.style.getPropertyValue("--lamp-colour");
+              const dotColour = getComputedStyle(c.dot).backgroundColor;
+              c.style.setProperty("--state-light-active-color", "#ff00ff");
+              const legacyBackground = getComputedStyle(
+                c.control,
+              ).backgroundColor;
+              c.style.setProperty("--primary-color", "#ab47bc");
+              const changedBackground = getComputedStyle(
+                c.control,
+              ).backgroundColor;
+              const changedIcon = getComputedStyle(c.icon).color;
+              const dotRestored =
+                getComputedStyle(c.dot).backgroundColor === dotColour;
+              c.style.setProperty("--primary-color", "#03a9f4");
               return {
+                onBackground,
+                onIcon,
+                actionColour,
+                actionSize,
+                lampColour,
+                dotColour,
+                legacyBackground,
+                changedBackground,
+                changedIcon,
+                dotRestored,
                 width: b.width,
                 height: b.height,
                 native: c.icon.localName,
@@ -82,6 +126,20 @@ export async function checkEntity(browser, out) {
             { domain, theme },
           );
           assert.equal(result.native, "ha-state-icon");
+          if (["switch", "input_boolean"].includes(domain))
+            assert.equal(result.actionSize, "18px");
+          if (
+            theme.startsWith("ha-") &&
+            ["light", "switch", "input_boolean"].includes(domain)
+          ) {
+            assert.equal(result.onIcon, "rgb(3, 169, 244)");
+            if (domain !== "light")
+              assert.equal(result.actionColour, "rgb(3, 169, 244)");
+            assert.equal(result.legacyBackground, result.onBackground);
+            assert.notEqual(result.changedBackground, result.onBackground);
+            assert.equal(result.changedIcon, "rgb(171, 71, 188)");
+            if (domain === "light") assert.equal(result.dotRestored, true);
+          }
           assert.equal(result.dot, domain === "light");
           assert.equal(result.line, domain === "light");
           assert.equal(
@@ -94,6 +152,25 @@ export async function checkEntity(browser, out) {
           assert(!result.overflow, `${domain}/${width} overflow`);
           assert(result.height >= 46);
           if (result.dot) assert(result.centred);
+          if (domain === "light") {
+            const hidden = await card.evaluate((c) => {
+              const original = c.hass,
+                id = c.config.entity;
+              const results = [];
+              for (const state of ["off", "unavailable", "on"]) {
+                c.hass = {
+                  ...original,
+                  states: {
+                    ...original.states,
+                    [id]: { ...original.states[id], state },
+                  },
+                };
+                results.push(c.dot.hidden);
+              }
+              return results;
+            });
+            assert.deepEqual(hidden, [true, true, false]);
+          }
         }
       }
     const actions = await card.evaluate(async (c) => {

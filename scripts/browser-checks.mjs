@@ -107,10 +107,19 @@ try {
           };
           const off = setState("off");
           const on = setState("on");
+          const dotOn = !row.dot.hidden;
+          const icon = getComputedStyle(row.icon).color;
+          const lampColour = row.toggle.style.getPropertyValue("--lamp-colour");
+          const dot = getComputedStyle(row.dot).backgroundColor;
           return {
+            icon,
+            lampColour,
+            dot,
             off,
             on,
+            dotOn,
             restored: setState("off"),
+            dotOff: row.dot.hidden,
             stable: c.rows[0].toggle === row.toggle,
             pressed: row.toggle.getAttribute("aria-pressed"),
           };
@@ -121,6 +130,8 @@ try {
           `${theme}/${width}: on must differ from off`,
         );
         assert.equal(colours.restored, colours.off);
+        assert.equal(colours.dotOn, true);
+        assert.equal(colours.dotOff, true);
         assert.equal(colours.stable, true);
         assert.equal(colours.pressed, "false");
         if (theme.startsWith("ha-")) {
@@ -144,10 +155,32 @@ try {
             colours.off,
             "Primary colour fallback remains visibly active",
           );
-          assert.notEqual(
+          assert.equal(
             fallback,
             colours.on,
-            "HA light active colour overrides the primary fallback",
+            "HA light active colour must not tint the tile",
+          );
+          assert.equal(colours.icon, "rgb(3, 169, 244)");
+          const changed = await card.evaluate((c) => {
+            const row = c.rows[0];
+            c.style.setProperty("--state-light-active-color", "#ff00ff");
+            const legacy = getComputedStyle(row.tile).backgroundColor;
+            c.style.setProperty("--primary-color", "#ab47bc");
+            return {
+              legacy,
+              background: getComputedStyle(row.tile).backgroundColor,
+              icon: getComputedStyle(row.icon).color,
+              lampColour: row.toggle.style.getPropertyValue("--lamp-colour"),
+              dot: getComputedStyle(row.dot).backgroundColor,
+            };
+          });
+          assert.equal(changed.legacy, colours.on);
+          assert.notEqual(changed.background, colours.on);
+          assert.equal(changed.icon, "rgb(171, 71, 188)");
+          assert.equal(changed.lampColour, colours.lampColour);
+          assert.equal(changed.dot, colours.dot);
+          await card.evaluate((c) =>
+            c.style.setProperty("--primary-color", "#03a9f4"),
           );
         }
         if (width === 390) {
@@ -198,6 +231,7 @@ try {
           name = getComputedStyle(ui.name);
         return {
           height: button.height,
+          dot: !ui.dot.hidden,
           centre: Math.abs(
             dot.y + dot.height / 2 - button.y - button.height / 2,
           ),
@@ -214,14 +248,20 @@ try {
       mixed.map((r) => r.line),
       [true, true, true, false],
     );
+    assert.deepEqual(
+      mixed.map((r) => r.dot),
+      [true, true, true, false],
+    );
     assert(mixed[0].colour && mixed[1].colour);
     assert.equal(mixed[2].colour, "");
     assert.equal(mixed[0].icon, "mdi:led-strip");
     for (const row of mixed) {
       assert.equal(row.native, "ha-state-icon");
       assert.equal(row.height, 44);
-      assert(row.centre < 1);
-      assert(row.right < 10);
+      if (row.dot) {
+        assert(row.centre < 1);
+        assert(row.right < 10);
+      }
       assert.equal(row.nameWrap, "nowrap");
     }
     assert.deepEqual(errors, []);

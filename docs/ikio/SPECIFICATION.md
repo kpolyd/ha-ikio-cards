@@ -871,3 +871,12 @@ On 31 October 2026 the owner approved the Climate HTML mock and its configuratio
 Replace both semicircles with a large, mode-coloured target between 44 px minus/plus controls. Retain integration limits, steps, keyboard target inputs, confirmed values, pending/errors, off/unavailable handling, native details and configuration metadata. Climate dual targets share the outer buttons: select Lower or Upper target, preserve the opposite bound, and prevent crossing. Remove arc dragging together with the arc UI.
 
 Secondary readings become a quiet centred strip, modes use compact icon/label toggles, and native header icons follow the entity. Climate fan and swing selectors are directly visible when supported; presets and independently mapped horizontal/vertical positions stay in the existing collapsed Device settings disclosure. Dehumidifier fan controls are directly visible when mapped; native options, percentage increments, power-on-before-mode handling and tank alerts remain intact. No new configuration, services or capabilities are introduced. Keep the standard dark/light/HA appearances and English/Greek translations.
+
+
+## 94. HA active tile accents and Entity power icon (branch proposal)
+
+On 31 October 2026 the owner approved replacing mustard active backgrounds in Lights and Entity when following the Home Assistant theme. Use a faint 10% HA primary-colour tint over the neutral control surface, and use HA's primary accent for active entity icons and power indicators. Do not use the light-domain active colour for these surfaces or switches. Preserve each light's actual colour dot, brightness indicator and all existing actions. Ikio dark/light active styling remains unchanged.
+
+Show the light-colour dot only while its entity reports on in Lights and Entity. Off or unavailable lights no longer show an empty circle; a later reported on state restores the dot.
+
+Increase only Entity's trailing power symbol from 15 to 18 px in every theme, retaining the original light dot and press icon sizes and enough label clearance. Card dimensions and hit targets remain unchanged. Include this work in the existing Climate/Dehumidifier branch, without merging or releasing until requested.

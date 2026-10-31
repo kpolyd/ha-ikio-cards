@@ -17,7 +17,8 @@ const css = `
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .tile{min-width:0;border-radius:10px;background:var(--ae-well);overflow:hidden}
 .tile.on{background:var(--ae-active)}
-:host([appearance=ha]) .tile.on{background:color-mix(in srgb,var(--state-light-active-color,var(--state-active-color,var(--primary-color,#ffc107))) 24%,var(--ae-well))}
+:host([appearance=ha]) .tile.on{background:color-mix(in srgb,var(--primary-color,#03a9f4) 10%,var(--ae-well))}
+:host([appearance=ha]) .tile.on ha-state-icon{color:var(--primary-color,#03a9f4)}
 .toggle{position:relative;width:100%;min-height:44px;padding:4px 4px;text-align:left;background:none;display:flex;gap:4px;align-items:center}
 .labels{min-width:0;flex:1;padding-inline-end:12px}.name{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .location{display:block;font-size:12px;color:var(--ae-muted);margin-top:3px;overflow-wrap:anywhere}
@@ -32,7 +33,7 @@ const css = `
 .summary{display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}.summary ha-icon{color:var(--ae-temperature)}
 .state-dot{position:absolute;inset-inline-end:7px;top:50%;transform:translateY(-50%);width:7px;height:7px;box-sizing:border-box;border-radius:50%;border:1px solid var(--ae-muted);background:transparent}
 .tile.on .state-dot{background:var(--lamp-colour,var(--ae-temperature));border:0;box-shadow:0 0 0 1px color-mix(in srgb,var(--ae-text) 20%,transparent)}
-.tile.unavailable .state-dot{border-style:dashed}
+.state-dot[hidden]{display:none}
 .level{position:absolute;bottom:0;inset-inline-start:0;height:2px;background:var(--ae-temperature);pointer-events:none}.level[hidden]{display:none}
 .area-grid{grid-template-columns:repeat(var(--area-columns),minmax(0,1fr))}
 @container(max-width:239px){.layout:not(.grouped)>.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.packed-row{display:block}.area-group+.area-group{border-inline-start:0;padding-inline-start:0;margin-top:6px}.area-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -241,6 +242,7 @@ export class IkioLightsCard extends IkioCard {
       if (appearance.colour)
         ui.toggle.style.setProperty("--lamp-colour", appearance.colour);
       else ui.toggle.style.removeProperty("--lamp-colour");
+      ui.dot.hidden = !model.on;
       ui.level.hidden = appearance.brightness === null;
       ui.level.style.width = `${appearance.brightness ?? 0}%`;
       ui.tile.classList.toggle("on", model.on);
