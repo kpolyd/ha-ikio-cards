@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.22.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.21.2...v0.22.0) (2026-10-31)
+
+
+### Features
+
+* **electricity:** add tariff chart and shaded power history ([53f4c27](https://github.com/kpolyd/ha-ikio-cards/commit/53f4c274f7e664daf17cc3d21c42c84852062298))
+
 ## [0.21.2](https://github.com/kpolyd/ha-ikio-cards/compare/v0.21.1...v0.21.2) (2026-10-31)
 
 
