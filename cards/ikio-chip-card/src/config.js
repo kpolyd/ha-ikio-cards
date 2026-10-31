@@ -4,7 +4,7 @@ import {
   validateConfig,
 } from "@ikio/card-ui/schema-editor";
 export const fields = [
-  entity("entity", "Entity", ["sensor", "person", "switch"], true),
+  entity("entity", "Entity", ["sensor", "person", "switch", "light"], true),
   showNameField,
   { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
 ];

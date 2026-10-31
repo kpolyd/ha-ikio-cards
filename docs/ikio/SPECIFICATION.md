@@ -880,3 +880,8 @@ On 31 October 2026 the owner approved replacing mustard active backgrounds in Li
 Show the light-colour dot only while its entity reports on in Lights and Entity. Off or unavailable lights no longer show an empty circle; a later reported on state restores the dot.
 
 Increase only Entity's trailing power symbol from 15 to 18 px in every theme, retaining the original light dot and press icon sizes and enough label clearance. Card dimensions and hit targets remain unchanged. Include this work in the existing Climate/Dehumidifier branch, without merging or releasing until requested.
+
+
+## 95. Lights in Chip and badge selectors
+
+On 31 October 2026 the owner reported that a light could not be added to Ikio Chip badges. Add `light` to the shared Chip card/badge entity selector and validation, alongside sensor, person and switch. Reuse native entity icons, live state formatting and existing visual-editor metadata. Tap/hold remain details-only and do not toggle a light or send services. Existing chip dimensions, show-name defaults and appearance configuration remain unchanged.

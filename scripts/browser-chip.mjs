@@ -129,6 +129,64 @@ export async function checkChip(browser, out) {
         .evaluate((n) => n.getBoundingClientRect().height),
       34,
     );
+    for (const target of [card, badge]) {
+      await target.scrollIntoViewIfNeeded();
+      await target.evaluate(
+        () =>
+          new Promise((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve)),
+          ),
+      );
+      const light = await target.evaluate(async (c) => {
+        const id = "light.strip",
+          calls = [];
+        c.setConfig({
+          ...c.config,
+          entity: id,
+          name: "Example light",
+          icon: "",
+        });
+        const original = window.ikioPreview.states[id];
+        const hass = {
+          ...c.hass,
+          locale: { language: "en" },
+          language: "en",
+          formatEntityState: (s) => s.state,
+          callService: async (...args) => calls.push(args),
+        };
+        let opened;
+        c.addEventListener(
+          "hass-more-info",
+          (e) => (opened = e.detail.entityId),
+        );
+        const values = [];
+        for (const state of ["on", "off", "unavailable"]) {
+          c.hass = {
+            ...hass,
+            states: { ...hass.states, [id]: { ...original, state } },
+          };
+          await new Promise((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve)),
+          );
+          values.push(
+            c.content
+              .querySelector(".ikio-chip-value")
+              .textContent.toLowerCase(),
+          );
+        }
+        c.content.querySelector("button").click();
+        return {
+          values,
+          opened,
+          calls: calls.length,
+          native: c.content.querySelector("ha-state-icon").stateObj.entity_id,
+        };
+      });
+      assert.deepEqual(light.values, ["on", "off", "unavailable"]);
+      assert.equal(light.opened, "light.strip");
+      assert.equal(light.native, "light.strip");
+      assert.equal(light.calls, 0);
+    }
     const server = page.locator("ikio-server-monitor-card");
     for (const theme of ["dark", "light", "ha"])
       for (const width of [280, 320, 390, 520]) {
