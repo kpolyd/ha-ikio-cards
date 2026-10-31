@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.22.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.22.0...v0.22.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **electricity:** match tariff colours to graph palette ([312a14a](https://github.com/kpolyd/ha-ikio-cards/commit/312a14aebaf78ff93a7f6bc5cf220849ce0a9eb4))
+
 ## [0.22.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.21.2...v0.22.0) (2026-10-31)
 
 
