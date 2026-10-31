@@ -41,6 +41,8 @@ export class Card extends HistoryCard {
       ${distributionStyles}
       .ae-energy{gap:4px}.ae-energy-header{display:flex;align-items:center;gap:8px;justify-content:space-between}
       .ae-energy-header h2{min-width:0;margin:0;font-size:14px;font-weight:600;overflow-wrap:anywhere}.ae-energy-header .ae-note{text-align:right;max-width:55%}
+      .ae-energy-header h2{display:flex;align-items:center;gap:5px}
+      .ae-energy-header h2 ha-icon{--mdc-icon-size:16px;color:var(--ae-warning);flex:none}
       .ae-energy-summary{display:grid;gap:10px;align-items:start;min-width:0}
       .ae-energy-summary>*{min-width:0}.ae-energy-summary .ae-reading{padding:2px 0;min-height:44px}
       .ae-energy-summary .ae-hero{justify-content:flex-start;gap:6px}
@@ -50,9 +52,14 @@ export class Card extends HistoryCard {
       .ae-energy-tariffs,.ae-energy-bills{border-inline-start:1px solid var(--ae-border);padding-inline-start:9px;color:var(--ae-muted)}
       .ae-energy-summary .ae-energy-secondary .ae-value{font-size:13px;font-weight:400;color:var(--ae-muted)}
       .ae-energy-tariffs>.ae-note{margin:0 0 3px}
+      .ae-tariff-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--ae-well);margin:4px 0}
+      .ae-tariff-day{background:var(--ae-warning)}.ae-tariff-night{background:var(--ae-accent)}
+      .ae-tariff-legend .ae-reading:first-child .ae-label{color:var(--ae-warning)}
+      .ae-tariff-legend .ae-reading:last-child .ae-label{color:var(--ae-accent)}
       .ae-energy .ae-energy-tariffs .ae-reading{width:100%;min-height:24px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
       .ae-energy-tariffs .ae-value{min-width:0;text-align:right}
       .ae-energy-bills{display:grid;gap:5px;text-align:right}
+      .ae-energy-summary .ae-energy-bills .ae-value{color:var(--ae-text);font-weight:600}
       .ae-energy-bills .ae-reading{align-items:flex-end;text-align:right;width:100%}
       .ae-energy-bills .ae-label,.ae-energy-bills .ae-value{text-align:right;width:100%}
       .ae-energy-tariffs .ae-value{display:flex;justify-content:flex-end;align-items:baseline;gap:3px;flex-wrap:wrap}
@@ -212,6 +219,7 @@ export class Card extends HistoryCard {
           unit: "W",
           hass: this.hass,
           sparkline: true,
+          areaFill: true,
           graphId: `device-${encodeURIComponent(entity || name)}`,
           colourStops: this.graphStops,
           min: this.config.expected_min ?? 0,
@@ -231,7 +239,12 @@ export class Card extends HistoryCard {
         ),
       );
     const header = el("div", undefined, "ae-energy-header");
-    header.append(el("h2", c.name || t(this.hass, "Electricity")));
+    const title = el("h2");
+    const icon = el("ha-icon");
+    icon.setAttribute("icon", "mdi:lightning-bolt");
+    icon.setAttribute("aria-hidden", "true");
+    title.append(icon, el("span", c.name || t(this.hass, "Electricity")));
+    header.append(title);
     const now = Date.now();
     this.cycleTimezone = this.hass?.config?.time_zone;
     this.billingCycle = c.billing_cycle_cron?.trim()
@@ -275,26 +288,54 @@ export class Card extends HistoryCard {
         "aria-label",
         t(this.hass, "Billing-cycle energy in kilowatt-hours"),
       );
-      tariffs.append(note(t(this.hass, "Energy")));
-      if (c.day_entity)
-        tariffs.append(this.tariffReading(t(this.hass, "Day"), c.day_entity));
-      if (c.night_entity)
-        tariffs.append(
-          this.tariffReading(t(this.hass, "Night"), c.night_entity),
-        );
+      const total = c.total_energy_entity
+        ? unitValue(this.state(c.total_energy_entity), "energy")
+        : cycleTotal(
+            this.state(c.day_entity),
+            this.state(c.night_entity),
+            c.same_cycle,
+          );
       tariffs.append(
         this.tariffReading(
           t(this.hass, "Total"),
           c.total_energy_entity,
-          c.total_energy_entity
-            ? undefined
-            : cycleTotal(
-                this.state(c.day_entity),
-                this.state(c.night_entity),
-                c.same_cycle,
-              ),
+          c.total_energy_entity ? undefined : total,
         ),
       );
+      const day = unitValue(this.state(c.day_entity), "energy");
+      const night = unitValue(this.state(c.night_entity), "energy");
+      if (c.day_entity || c.night_entity) {
+        const bar = el("div", undefined, "ae-tariff-bar");
+        bar.setAttribute("aria-hidden", "true");
+        // Only show a contribution when both sensors reconcile with the total.
+        if (
+          day !== null &&
+          night !== null &&
+          day >= 0 &&
+          night >= 0 &&
+          day + night > 0 &&
+          Number.isFinite(total) &&
+          Math.abs(total - day - night) <= Math.max(0.05, total * 0.001)
+        ) {
+          for (const [name, value] of [
+            ["day", day],
+            ["night", night],
+          ]) {
+            const segment = el("span", undefined, `ae-tariff-${name}`);
+            segment.style.width = `${(100 * value) / (day + night)}%`;
+            bar.append(segment);
+          }
+        }
+        tariffs.append(bar);
+        const legend = el("div", undefined, "ae-tariff-legend");
+        if (c.day_entity)
+          legend.append(this.tariffReading(t(this.hass, "Day"), c.day_entity));
+        if (c.night_entity)
+          legend.append(
+            this.tariffReading(t(this.hass, "Night"), c.night_entity),
+          );
+        tariffs.append(legend);
+      }
       summary.append(tariffs);
       widths.push("1.1fr");
       if (!c.same_cycle && !c.total_energy_entity)
@@ -332,6 +373,8 @@ export class Card extends HistoryCard {
     summary.style.gridTemplateColumns = widths.join(" ");
     result.append(
       this.historyView([{ entity: c.power_entity }], {
+        areaFill: true,
+        timeLabels: true,
         axisLabels: true,
         axisGuides: true,
         formatAxis: (value, unit) => {

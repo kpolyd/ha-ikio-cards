@@ -1,3 +1,4 @@
+import { checkElectricity } from "./browser-electricity.mjs";
 import { checkEditor } from "./browser-editor.mjs";
 import { checkReview } from "./browser-review.mjs";
 import { chromium } from "playwright";
@@ -23,6 +24,7 @@ if (
   selected.some(
     (name) =>
       ![
+        "electricity",
         "editor",
         "lights",
         "weather",
@@ -41,7 +43,7 @@ if (
   )
 )
   throw Error(
-    "Choose chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
+    "Choose electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({
@@ -49,6 +51,8 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader"],
 });
 try {
+  if (shouldRun("electricity"))
+    results.push(await checkElectricity(browser, out));
   if (shouldRun("editor")) results.push(await checkEditor(browser, out));
   if (shouldRun("lights")) {
     const page = await browser.newPage({

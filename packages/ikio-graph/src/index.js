@@ -218,6 +218,8 @@ export function graph(
     axisGuides = false,
     formatAxis,
     sparkline = false,
+    areaFill = false,
+    timeLabels = false,
     colourStops = stops,
     graphId = ++graphSequence,
   } = {},
@@ -256,6 +258,10 @@ export function graph(
           : high;
   const xMin = start ?? Math.min(...data.map((p) => p.time)),
     xMax = end ?? Math.max(...data.map((p) => p.time));
+  const timeTicks = Array.from(
+    { length: 4 },
+    (_, index) => xMin + ((xMax - xMin) * index) / 3,
+  );
   const width = 360,
     height = 100,
     x = (t) => 8 + ((t - xMin) / Math.max(1, xMax - xMin)) * 344,
@@ -311,6 +317,22 @@ export function graph(
           "data-guide": tick.kind,
         }),
       );
+    if (timeLabels)
+      for (const time of timeTicks)
+        guides.append(
+          svgNode("line", {
+            x1: x(time),
+            x2: x(time),
+            y1: y(yMax),
+            y2: y(yMin),
+            stroke: "var(--ae-text)",
+            "stroke-opacity": 0.07,
+            "stroke-width": 1,
+            "stroke-dasharray": "3 4",
+            "vector-effect": "non-scaling-stroke",
+            "data-guide": "time",
+          }),
+        );
     svg.append(guides);
   }
   series.forEach((s, index) => {
@@ -346,6 +368,34 @@ export function graph(
           : `${previous ? "L" : "M"}${x(point.time)},${y(point.value)} `;
       previous = true;
     }
+    if (areaFill) {
+      // Close each uninterrupted history segment independently to preserve gaps.
+      const baseline = y(yMin);
+      const areas = d.match(/M[^M]+/g) || [];
+      const areaPath = areas
+        .map((segment) => {
+          const commands = [...segment.matchAll(/([MLHV])([^MLHVZ]+)/g)];
+          const firstX = commands[0]?.[2].split(",")[0].trim();
+          const lastX = commands
+            .filter(([_, command]) => command !== "V")
+            .at(-1)?.[2]
+            .split(",")[0]
+            .trim();
+          if (firstX === undefined || lastX === undefined) return "";
+          return `${segment}L${lastX},${baseline} L${firstX},${baseline} Z`;
+        })
+        .join(" ");
+      svg.append(
+        svgNode("path", {
+          d: areaPath,
+          class: "ae-area-fill",
+          fill: `url(#${id})`,
+          "fill-opacity": sparkline ? 0.08 : 0.16,
+          "aria-hidden": "true",
+          "pointer-events": "none",
+        }),
+      );
+    }
     const path = svgNode("path", {
       d,
       fill: "none",
@@ -373,6 +423,32 @@ export function graph(
       labels.append(node);
     }
     plot.append(labels, svg);
+    if (timeLabels) {
+      // Reserve the existing graph height for plot + labels, avoiding card growth.
+      plot.style.gridTemplateRows = "68px 16px";
+      svg.style.height = "68px";
+      const times = el("div", undefined, "ae-time-axis");
+      times.style.cssText =
+        "grid-column:2;position:relative;font-size:10px;color:var(--ae-muted);font-variant-numeric:tabular-nums;line-height:16px;white-space:nowrap";
+      const formatter = new Intl.DateTimeFormat(
+        hass?.locale?.language || hass?.language,
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+          ...(hass?.config?.time_zone
+            ? { timeZone: hass.config.time_zone }
+            : {}),
+        },
+      );
+      for (const [index, time] of timeTicks.entries()) {
+        const label = el("span", formatter.format(time));
+        label.title = new Date(time).toISOString();
+        label.style.cssText = `position:absolute;left:${(x(time) / width) * 100}%;transform:translateX(${index === 0 ? 0 : index === timeTicks.length - 1 ? -100 : -50}%)`;
+        times.append(label);
+      }
+      plot.append(times);
+    }
     wrap.append(plot);
   } else if (sparkline) {
     wrap.append(svg);

@@ -849,3 +849,11 @@ On 31 October 2026 the owner reported that switch entities could not be selected
 ## 90. Slightly larger Chip and Entity icons
 
 The owner requested slightly larger icons in both cards on 31 October 2026. Shared Chip icons increase from 14 to 16 px, including badges and embedded Server Monitor/Router readings. The Entity card's primary entity icon increases from 17 to 19 px with a matching flex basis. Card dimensions, chip surfaces, spacing and touch targets retain their existing sizes.
+
+## 91. Electricity consumption chart and history presentation
+
+On 31 October 2026 the owner approved the actual HTML preview and authorized implementation and release. Replace the day/night/total reading list with a total above a compact stacked day/night bar and visible tariff readings. Reuse existing entity bindings and matching-cycle consent; there are no editor fields or migration changes. Draw shares only when non-negative, available day/night readings reconcile with a valid total; retain readings and a neutral track otherwise.
+
+The main history graph has a subtle value-coloured area and four evenly spaced 24-hour time labels in HA's configured timezone, with vertical guides matching the horizontal dashed guides. Reserve label space inside the existing graph height. Device sparklines retain held steps, 0.8 px lines and their dimensions, with half-strength fill. Missing intervals remain gaps. These shared renderer capabilities are opt-in for Electricity only.
+
+Add a small native HA lightning-bolt icon before the title. Both estimated and forecast bill values use the same primary text colour and slightly bolder weight than muted labels. Preserve the existing card height, device layout, distribution diagram and interactions. Verify with simulated browser fixtures; this does not establish native HA installation/device results.
