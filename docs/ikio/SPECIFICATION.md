@@ -857,3 +857,8 @@ On 31 October 2026 the owner approved the actual HTML preview and authorized imp
 The main history graph has a subtle value-coloured area and four evenly spaced 24-hour time labels in HA's configured timezone, with vertical guides matching the horizontal dashed guides. Reserve label space inside the existing graph height. Device sparklines retain held steps, 0.8 px lines and their dimensions, with half-strength fill. Missing intervals remain gaps. These shared renderer capabilities are opt-in for Electricity only.
 
 Add a small native HA lightning-bolt icon before the title. Both estimated and forecast bill values use the same primary text colour and slightly bolder weight than muted labels. Preserve the existing card height, device layout, distribution diagram and interactions. Verify with simulated browser fixtures; this does not establish native HA installation/device results.
+
+
+## 92. Electricity tariff palette
+
+On 31 October 2026 the owner approved replacing the amber/blue tariff colours with mint for Day and orchid for Night, taken from the existing graph palette endpoints for the active dark/light/HA appearance. Keep tariff labels muted, total and numeric readings in the normal text colour, and add small matching decorative markers. Preserve the yellow title icon, all configuration and existing card dimensions. Implementation and release are authorized.
