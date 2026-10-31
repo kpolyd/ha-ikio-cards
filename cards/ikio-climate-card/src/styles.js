@@ -7,41 +7,57 @@ export const climateStyles = `
 .climate-card[data-mode=auto],.climate-card[data-mode=heat_cool]{--climate-color:var(--ae-temperature,#a4e4b8)}
 .climate-card[data-mode=dry]{--climate-color:var(--ae-humidity,#adcfff)}
 .climate-card[data-mode=fan_only]{--climate-color:var(--ae-temperature,#a4e4b8)}
-.climate-card>header>ha-state-icon{--mdc-icon-size:18px;color:var(--ae-muted)}
+
+.climate-card>header>ha-state-icon{--mdc-icon-size:23px;color:var(--climate-color)}
 .climate-card>header .summary{color:var(--climate-color);text-transform:capitalize}
-.climate-card .climate-dial-row{display:flex;align-items:flex-end;justify-content:center;gap:8px;max-width:304px;width:100%;margin:4px auto}
-.climate-card .climate-dial-row>.ae-button{flex:0 0 44px;margin-bottom:4px;padding:4px;border:0}
-.climate-card .climate-dial{position:relative;max-width:200px;min-width:0;flex:1}
-.climate-card .climate-arc{display:block;width:100%;height:auto;touch-action:none;user-select:none}
-.climate-card .dial-track,.climate-card .dial-fill{fill:none;stroke-width:12;stroke-linecap:round}
-.climate-card .dial-track{stroke:var(--ae-well)}
-.climate-card .dial-fill{stroke:var(--climate-color)}
-.climate-card .dial-handle{fill:var(--climate-color)}
-.climate-card .dial-caption{position:absolute;left:0;right:0;bottom:6px;text-align:center;pointer-events:none}
-.climate-card .dial-value{display:block;color:var(--climate-color);font-size:40px;line-height:1.2;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-1px}
-.climate-card .dial-unit{font-size:20px;letter-spacing:0}
+.climate-card.ikio-refined>header{grid-template-columns:23px minmax(0,1fr) auto;gap:7px}
+.climate-card.ikio-refined>header>.ae-title{font-size:15px;font-weight:600}
+.climate-card .climate-dial-row{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px;max-width:340px;width:100%;margin:3px auto;padding:0 10px}
+.climate-card .climate-dial-row>.ae-button{width:44px;height:44px;min-width:44px;padding:0;border:1px solid var(--ae-border);border-radius:50%;background:var(--ae-well)}
+.climate-card .climate-dial{position:relative;min-width:0;text-align:center}
+.climate-card .dial-caption{display:block;text-align:center;border:0;background:none;color:inherit;padding:0;min-width:0;width:100%}
+.climate-card .dial-caption>.ae-label{font-size:11px;color:var(--ae-muted)}
+.climate-card .dial-value{display:block;color:var(--climate-color);font-size:43px;line-height:1.17;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-1.7px}
+.climate-card .dial-unit{font-size:19px;font-weight:400;letter-spacing:0;margin-inline-start:2px}
 .climate-card .dial-input{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden;left:50%;bottom:0}
 .climate-card .climate-dial:focus-within{outline:2px solid var(--climate-color);outline-offset:2px;border-radius:8px}
-.climate-card .dial-disabled .climate-arc{opacity:.4}
-.climate-card .climate-readings{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 12px;padding:2px 6px;border-radius:8px;background:var(--ae-well)}
-.climate-card .climate-readings>.ae-reading{flex-direction:row;align-items:center;gap:4px;min-height:36px}
-.climate-card .climate-readings>button.ae-reading{min-height:44px}
+.climate-card .dial-disabled .dial-value{color:var(--ae-muted)}
+.climate-card .climate-readings{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:5px;padding:0 0 7px;border-bottom:1px solid var(--ae-border)}
+.climate-card .climate-readings>.ae-reading{flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;padding:0;background:none}
 .climate-card .climate-readings .ae-label{font-size:11px;display:flex;align-items:center;gap:3px}
-.climate-card .climate-readings ha-icon{--mdc-icon-size:14px}
-.climate-card .climate-readings .ae-value{font-size:12px}
-.climate-card .climate-modes-section{border-top:1px solid var(--ae-border);padding-top:6px}
-.climate-card .climate-modes-section>.ae-label{display:block;margin-bottom:4px;font-size:11px}
-.climate-card .climate-modes{display:flex;flex-wrap:wrap;gap:3px;background:var(--ae-well);padding:4px;border-radius:10px}
-.climate-card .climate-modes>.ae-button{flex:1 1 54px;min-width:44px;border:0;background:transparent;color:var(--ae-muted);font-size:12px;padding:4px;display:flex;flex-wrap:wrap;overflow-wrap:anywhere;align-items:center;justify-content:center;gap:4px}
-.climate-card .climate-modes ha-icon{--mdc-icon-size:16px}
-.climate-card .climate-modes>.ae-button[aria-pressed=true]{background:var(--climate-color);color:var(--ae-surface)}
+.climate-card .climate-readings ha-icon{--mdc-icon-size:13px}
+.climate-card .climate-readings .ae-value{font-size:13px;font-weight:500}
+.climate-card .climate-modes-section{padding:0}
+.climate-card .climate-modes{display:flex;flex-wrap:wrap;gap:3px}
+.climate-card .climate-modes>.ae-button{flex:1 1 43px;min-width:44px;min-height:46px;border:0;background:none;border-radius:7px;color:var(--ae-muted);font-size:10px;padding:4px 1px;display:flex;flex-direction:column;overflow-wrap:anywhere;align-items:center;justify-content:center;gap:3px}
+.climate-card .climate-modes ha-icon{--mdc-icon-size:18px}
+.climate-card .climate-modes>.ae-button[aria-pressed=true]{background:color-mix(in srgb,var(--climate-color) 15%,var(--ae-well));color:var(--climate-color)}
+.climate-card .climate-quick-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;border-top:1px solid var(--ae-border);padding-top:7px}
+.climate-card .climate-quick-settings>.ae-select{display:flex;align-items:center;gap:5px;min-width:0;min-height:44px;border:1px solid var(--ae-border);border-radius:7px;background:var(--ae-well);padding-inline-start:7px}
+.climate-card .climate-quick-settings>.ae-select>.sr{font-size:11px;position:static;width:auto;height:auto;clip-path:none;overflow:visible}
+.climate-card .climate-quick-settings ha-icon{--mdc-icon-size:15px;flex:none;color:var(--ae-muted)}
+.climate-card .climate-quick-settings select{min-width:0;width:0;flex:1;min-height:44px;border:0;background:transparent;padding:0 3px;font-size:12px;color:var(--ae-text)}
+.climate-card .climate-quick-settings>.ae-range,.climate-card .climate-quick-settings>.ae-note{grid-column:1/-1}
+.climate-card .climate-quick-settings>.ae-select:only-child{grid-column:1/-1}
 .climate-card .ikio-disclosure-body{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
 .climate-card .ikio-disclosure-body>.ae-select{grid-template-columns:1fr;gap:2px}
-.climate-card .ikio-disclosure-body select{font-size:13px;border:0;padding:4px 6px;border-radius:6px}
+.climate-card .ikio-disclosure-body select{min-height:44px;font-size:13px;border:0;padding:4px 6px;border-radius:6px;background:var(--ae-well)}
 .climate-card .ikio-disclosure-body>.ae-range,.climate-card .ikio-disclosure-body>.ae-note{grid-column:1/-1}
-@container(max-width:300px){.climate-card .climate-modes>.ae-button{flex-direction:column}.climate-card .dial-value{font-size:34px}.climate-card .dial-unit{font-size:16px}.climate-card .climate-dial-row{gap:4px}.climate-card .dial-caption .ae-label{font-size:11px}}
-
 .climate-card.ikio-refined .ikio-disclosure>summary:after,.climate-card.ikio-refined .ikio-disclosure[open]>summary:after{content:none}
-.climate-card .settings-chevron{--mdc-icon-size:18px}
+.climate-card .settings-chevron{--mdc-icon-size:15px}
 .climate-card .ikio-disclosure[open] .settings-chevron{transform:rotate(180deg)}
+@container(max-width:330px){.climate-card .climate-dial-row{padding-inline:0;gap:4px}.climate-card .dial-value{font-size:38px}.climate-card .climate-quick-settings>.ae-select{padding-inline-start:5px;gap:3px}.climate-card .climate-quick-settings>.ae-select>ha-icon{display:none}}
+
+.climate-card .climate-dual-targets{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;align-items:center;margin:3px 0}
+.climate-card .climate-dual-targets .climate-dial-row{display:contents}
+.climate-card .climate-dual-targets .climate-dial-row>.ae-button{display:none;grid-row:1}
+.climate-card .climate-dual-targets .dial-selected>.ae-button{display:block}
+.climate-card .climate-dual-targets .ae-button:first-child{grid-column:1}
+.climate-card .climate-dual-targets .ae-button:last-child{grid-column:4}
+.climate-card .climate-dual-targets .climate-dial-row:first-child>.climate-dial{grid-column:2;grid-row:1}
+.climate-card .climate-dual-targets .climate-dial-row:last-child>.climate-dial{grid-column:3;grid-row:1}
+.climate-card .climate-dual-targets .dial-value{font-size:28px;letter-spacing:-.7px}
+.climate-card .climate-dual-targets .dial-unit{font-size:13px}
+.climate-card .climate-dual-targets .dial-selected .dial-value{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
+.climate-card .climate-dual-targets .dial-caption{min-height:60px}
 `;

@@ -465,3 +465,16 @@ test("native entity icons, state dots, lines and minimal count update without re
   assert.equal(card.rows[0].icon.icon, "mdi:lamp");
   card.remove();
 });
+
+test("colour dots appear only for reported on states and return without rebuilding controls", () => {
+  const { card } = fixture({ "light.strip": light("on") });
+  const dot = card.rows[0].dot,
+    toggle = card.rows[0].toggle;
+  assert.equal(dot.hidden, false);
+  for (const state of ["off", "unavailable", "unknown", "on"]) {
+    card.hass = { ...card.hass, states: { "light.strip": light(state) } };
+    assert.equal(dot.hidden, state !== "on");
+    assert.equal(card.rows[0].toggle, toggle);
+  }
+  card.remove();
+});

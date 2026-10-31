@@ -58,6 +58,7 @@ test("native icons, light dot and brightness line follow reported capability and
   };
   assert.equal(c.control, control);
   assert.equal(c.level.hidden, true);
+  assert.equal(c.dot.hidden, true);
   assert.equal(c.control.style.getPropertyValue("--lamp-colour"), "");
   c.remove();
 });

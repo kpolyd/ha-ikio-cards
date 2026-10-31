@@ -107,10 +107,19 @@ try {
           };
           const off = setState("off");
           const on = setState("on");
+          const dotOn = !row.dot.hidden;
+          const icon = getComputedStyle(row.icon).color;
+          const lampColour = row.toggle.style.getPropertyValue("--lamp-colour");
+          const dot = getComputedStyle(row.dot).backgroundColor;
           return {
+            icon,
+            lampColour,
+            dot,
             off,
             on,
+            dotOn,
             restored: setState("off"),
+            dotOff: row.dot.hidden,
             stable: c.rows[0].toggle === row.toggle,
             pressed: row.toggle.getAttribute("aria-pressed"),
           };
@@ -121,6 +130,8 @@ try {
           `${theme}/${width}: on must differ from off`,
         );
         assert.equal(colours.restored, colours.off);
+        assert.equal(colours.dotOn, true);
+        assert.equal(colours.dotOff, true);
         assert.equal(colours.stable, true);
         assert.equal(colours.pressed, "false");
         if (theme.startsWith("ha-")) {
@@ -144,10 +155,32 @@ try {
             colours.off,
             "Primary colour fallback remains visibly active",
           );
-          assert.notEqual(
+          assert.equal(
             fallback,
             colours.on,
-            "HA light active colour overrides the primary fallback",
+            "HA light active colour must not tint the tile",
+          );
+          assert.equal(colours.icon, "rgb(3, 169, 244)");
+          const changed = await card.evaluate((c) => {
+            const row = c.rows[0];
+            c.style.setProperty("--state-light-active-color", "#ff00ff");
+            const legacy = getComputedStyle(row.tile).backgroundColor;
+            c.style.setProperty("--primary-color", "#ab47bc");
+            return {
+              legacy,
+              background: getComputedStyle(row.tile).backgroundColor,
+              icon: getComputedStyle(row.icon).color,
+              lampColour: row.toggle.style.getPropertyValue("--lamp-colour"),
+              dot: getComputedStyle(row.dot).backgroundColor,
+            };
+          });
+          assert.equal(changed.legacy, colours.on);
+          assert.notEqual(changed.background, colours.on);
+          assert.equal(changed.icon, "rgb(171, 71, 188)");
+          assert.equal(changed.lampColour, colours.lampColour);
+          assert.equal(changed.dot, colours.dot);
+          await card.evaluate((c) =>
+            c.style.setProperty("--primary-color", "#03a9f4"),
           );
         }
         if (width === 390) {
@@ -198,6 +231,7 @@ try {
           name = getComputedStyle(ui.name);
         return {
           height: button.height,
+          dot: !ui.dot.hidden,
           centre: Math.abs(
             dot.y + dot.height / 2 - button.y - button.height / 2,
           ),
@@ -214,14 +248,20 @@ try {
       mixed.map((r) => r.line),
       [true, true, true, false],
     );
+    assert.deepEqual(
+      mixed.map((r) => r.dot),
+      [true, true, true, false],
+    );
     assert(mixed[0].colour && mixed[1].colour);
     assert.equal(mixed[2].colour, "");
     assert.equal(mixed[0].icon, "mdi:led-strip");
     for (const row of mixed) {
       assert.equal(row.native, "ha-state-icon");
       assert.equal(row.height, 44);
-      assert(row.centre < 1);
-      assert(row.right < 10);
+      if (row.dot) {
+        assert(row.centre < 1);
+        assert(row.right < 10);
+      }
       assert.equal(row.nameWrap, "nowrap");
     }
     assert.deepEqual(errors, []);
@@ -475,20 +515,23 @@ try {
           .content.textContent.includes("Updating device"),
       type,
     );
-    const summary = card.locator("summary");
-    assert.equal(
-      await summary.evaluate((s) => getComputedStyle(s, "::after").content),
-      "none",
-    );
-    await summary.click();
-    await page.waitForFunction(
-      (type) =>
-        window.ikioPreview.cards
-          .find((c) => c.localName === `ikio-${type}-card`)
-          .openSections.has(`${type}-settings`),
-      type,
-    );
-    assert.equal(await card.locator(".settings-chevron").count(), 1);
+    assert.equal(await card.locator(`.${type}-arc`).count(), 0);
+    const quick = card.locator(`.${type}-quick-settings`);
+    assert.ok(await quick.isVisible());
+    if (type === "climate") {
+      const summary = card.locator("summary");
+      assert.equal(
+        await summary.evaluate((s) => getComputedStyle(s, "::after").content),
+        "none",
+      );
+      await summary.click();
+      await page.waitForFunction(() =>
+        document
+          .querySelector("ikio-climate-card")
+          .openSections.has("climate-settings"),
+      );
+      assert.equal(await card.locator(".settings-chevron").count(), 1);
+    }
     if (type === "climate") {
       await card.getByRole("button", { name: "Heat", exact: true }).click();
       await page.waitForFunction(
@@ -530,8 +573,76 @@ try {
           .content.textContent.includes("Updating device"),
       type,
     );
-    assert.equal(await card.locator("details").evaluate((d) => d.open), true);
+    if (type === "climate")
+      assert.equal(await card.locator("details").evaluate((d) => d.open), true);
+    else assert.equal(await card.locator("details").count(), 0);
     await card.screenshot({ path: resolve(out, `${type}-dark.png`) });
+    if (type === "climate") {
+      await page.evaluate(() => {
+        const p = window.ikioPreview;
+        p.states["climate.room"] = {
+          ...p.states["climate.room"],
+          state: "heat_cool",
+          attributes: {
+            ...p.states["climate.room"].attributes,
+            supported_features: 2 | 8 | 16 | 32,
+            hvac_modes: ["off", "cool", "heat", "heat_cool", "auto"],
+            target_temp_low: 18,
+            target_temp_high: 25,
+          },
+        };
+      });
+      for (const width of [280, 390]) {
+        await page.evaluate(
+          (options) => window.ikioPreview.configure(options),
+          { theme: "dark", width },
+        );
+        const dual = card.locator(".climate-dual-targets");
+        assert.equal(await dual.count(), 1);
+        assert.equal(
+          await dual.evaluate((n) => n.scrollWidth > n.clientWidth + 1),
+          false,
+        );
+        await card
+          .getByRole("button", { name: "Upper target", exact: true })
+          .click();
+        assert.equal(
+          await card
+            .getByRole("button", { name: "Increase upper target", exact: true })
+            .isVisible(),
+          true,
+        );
+        assert.equal(
+          await card
+            .getByRole("button", { name: "Increase lower target", exact: true })
+            .count(),
+          0,
+        );
+        if (width === 280) {
+          await card
+            .getByRole("button", { name: "Increase upper target", exact: true })
+            .click();
+          await page.waitForFunction(
+            () =>
+              window.ikioPreview.states["climate.room"].attributes
+                .target_temp_high === 25.5,
+          );
+          assert.equal(
+            await page.evaluate(
+              () =>
+                window.ikioPreview.states["climate.room"].attributes
+                  .target_temp_low,
+            ),
+            18,
+          );
+          await page.waitForFunction(
+            () => !document.querySelector("ikio-climate-card").pending.size,
+          );
+        }
+      }
+      await card.screenshot({ path: resolve(out, "climate-dual-dark.png") });
+    }
+
     assert.deepEqual(errors, []);
     results.push({ card: type, passed: true });
     await page.close();

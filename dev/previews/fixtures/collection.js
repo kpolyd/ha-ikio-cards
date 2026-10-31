@@ -179,7 +179,8 @@ state("vacuum.robot", "docked", {
   fan_speed_list: ["Quiet", "Balanced", "Turbo"],
 });
 state("climate.room", "cool", {
-  supported_features: 1 | 8,
+  icon: "mdi:air-conditioner",
+  supported_features: 1 | 8 | 16 | 32,
   hvac_modes: ["off", "cool", "heat", "auto"],
   hvac_action: "cooling",
   temperature: 22,
@@ -188,6 +189,10 @@ state("climate.room", "cool", {
   target_temp_step: 0.5,
   fan_modes: ["auto", "low", "high"],
   fan_mode: "auto",
+  preset_modes: ["none", "eco", "comfort"],
+  preset_mode: "none",
+  swing_modes: ["off", "on"],
+  swing_mode: "on",
 });
 sensor("dehumidifier_power", 245, "W");
 state("binary_sensor.dehumidifier_tank", "off", { device_class: "problem" });
@@ -586,8 +591,11 @@ const hass = {
       attrs.media_position = data.seek_position;
       attrs.media_position_updated_at = new Date(Date.now()).toISOString();
     }
-    if (domain === "climate" && data.hvac_mode) value = data.hvac_mode;
-    for (const key of ["temperature", "humidity", "percentage", "mode"])
+    if (domain === "climate" && data.hvac_mode) {
+      value = data.hvac_mode;
+      attrs.hvac_action = {cool:'cooling',heat:'heating',off:'off',auto:'idle',heat_cool:'idle',dry:'drying',fan_only:'fan'}[value] || 'idle';
+    }
+    for (const key of ["temperature", "humidity", "percentage", "mode", "target_temp_low", "target_temp_high", "fan_mode", "preset_mode", "swing_mode", "swing_horizontal_mode"])
       if (data[key] !== undefined) attrs[key] = data[key];
     if (data.brightness_pct !== undefined)
       attrs.brightness = Math.round((data.brightness_pct / 100) * 255);

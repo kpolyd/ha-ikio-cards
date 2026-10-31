@@ -110,7 +110,7 @@ test("mode order, selected colour state and target commands follow HA with a lar
   );
   card.remove();
 });
-test("drag previews do not send commands until release; keyboard range changes use the integration step", async () => {
+test("keyboard previews send on commit and use the integration step", async () => {
   const { card, calls } = setup();
   const input = card.shadowRoot.querySelector("input");
   assert.equal(input.step, "0.5");
@@ -216,6 +216,7 @@ test("unavailable devices preserve independent readings, removed fridge does not
   card.remove();
   const off = setup({}, {}, "off").card;
   assert.match(off.content.textContent, /24.5 °C/);
+  assert.equal(off.content.querySelector(".summary").textContent, "Off");
   assert.ok(off.content.querySelector("input").disabled);
   off.remove();
 });
@@ -226,7 +227,12 @@ test("settings disclosure survives HA updates and legacy configuration migrates 
       fan_entity: "fan.old",
       grid_options: { columns: 6 },
     },
-    { supported_features: 9, fan_modes: ["auto", "low"] },
+    {
+      supported_features: 1 | 8 | 16,
+      fan_modes: ["auto", "low"],
+      preset_modes: ["eco"],
+      preset_mode: "eco",
+    },
   );
   assert.equal(card.config.power_entity, "sensor.power");
   assert.equal(card.config.fan_entity, undefined);
@@ -268,5 +274,73 @@ test("preview blocks service calls and backend failures remain visible", async (
   card.shadowRoot.querySelector('[aria-label="Increase target"]').click();
   await new Promise((r) => setTimeout(r, 0));
   assert.match(card.error.textContent, /Test failure/);
+  card.remove();
+});
+
+test("flat controls expose fan and swing immediately and select the correct dual target", async () => {
+  const { card, calls } = setup(
+    {},
+    {
+      supported_features: 2 | 8 | 32,
+      target_temp_low: 18,
+      target_temp_high: 25,
+      fan_modes: ["auto", "low"],
+      fan_mode: "auto",
+      swing_modes: ["off", "on"],
+      swing_mode: "off",
+    },
+    "heat_cool",
+  );
+  assert.equal(card.content.querySelector("svg"), null);
+  assert.ok(
+    card.content.querySelector(
+      '.climate-quick-settings select[aria-label="Fan"]',
+    ),
+  );
+  assert.ok(
+    card.content.querySelector(
+      '.climate-quick-settings select[aria-label="Swing"]',
+    ),
+  );
+  assert.equal(card.content.querySelector("details"), null);
+  const high = card.content.querySelector(
+    '[data-key="target_temp_high"] .dial-caption',
+  );
+  high.click();
+  assert.equal(card.targetBound, "target_temp_high");
+  card.content.querySelector('[aria-label="Increase upper target"]').click();
+  await Promise.resolve();
+  assert.equal(calls[0][2].target_temp_high, 25.5);
+  assert.equal(calls[0][2].target_temp_low, 18);
+  card.remove();
+});
+
+test("holding a dual-target selector opens native details without selecting or sending", async () => {
+  const { card, calls } = setup(
+    {},
+    { supported_features: 2, target_temp_low: 18, target_temp_high: 25 },
+    "heat_cool",
+  );
+  let entity;
+  card.addEventListener("hass-more-info", (e) => (entity = e.detail.entityId));
+  const upper = card.content.querySelector(
+    '[data-key="target_temp_high"] .dial-caption',
+  );
+  upper.dispatchEvent(
+    new dom.window.MouseEvent("pointerdown", {
+      bubbles: true,
+      button: 0,
+      clientX: 10,
+      clientY: 10,
+    }),
+  );
+  await new Promise((r) => setTimeout(r, 580));
+  upper.dispatchEvent(
+    new dom.window.MouseEvent("pointerup", { bubbles: true }),
+  );
+  upper.click();
+  assert.equal(entity, "climate.test");
+  assert.equal(card.targetBound, "target_temp_low");
+  assert.equal(calls.length, 0);
   card.remove();
 });
