@@ -83,81 +83,81 @@ Ikio was previously developed as Aethora. Version 0.3.0 introduces the Ikio name
 An original-source license has not yet been selected. Dependency notices are included in generated distributions and apply to their respective dependencies.
 
 <!-- IKIO_PREVIEWS_START -->
-## Card previews · 0.21.2
+## Card previews · 0.22.0
 
 Actual compiled cards with simulated Home Assistant data. Click an image to open the interactive gallery.
 
 ### Lights
 
-[![Lights](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/lights/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#lights)
+[![Lights](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/lights/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#lights)
 
 ### Electricity
 
-[![Electricity](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/electricity/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#electricity)
+[![Electricity](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/electricity/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#electricity)
 
 ### Vehicle
 
-[![Vehicle](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/vehicle/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#vehicle)
+[![Vehicle](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/vehicle/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#vehicle)
 
 ### Alarmo
 
-[![Alarmo](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/alarmo/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#alarmo)
+[![Alarmo](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/alarmo/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#alarmo)
 
 ### Server Monitor
 
-[![Server Monitor](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/server-monitor/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#server-monitor)
+[![Server Monitor](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/server-monitor/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#server-monitor)
 
 ### Climate
 
-[![Climate](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/climate/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#climate)
+[![Climate](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/climate/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#climate)
 
 ### Dehumidifier
 
-[![Dehumidifier](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/dehumidifier/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#dehumidifier)
+[![Dehumidifier](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/dehumidifier/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#dehumidifier)
 
 ### Media
 
-[![Media](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/media/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#media)
+[![Media](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/media/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#media)
 
 ### Camera
 
-[![Camera](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/camera/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#camera)
+[![Camera](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/camera/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#camera)
 
 ### Vacuum
 
-[![Vacuum](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/vacuum/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#vacuum)
+[![Vacuum](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/vacuum/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#vacuum)
 
 ### Appliances
 
-[![Appliances](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/appliances/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#appliances)
+[![Appliances](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/appliances/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#appliances)
 
 ### Graph
 
-[![Graph](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/graph/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#graph)
+[![Graph](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/graph/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#graph)
 
 ### Chip
 
-[![Chip](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/chip/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#chip)
+[![Chip](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/chip/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#chip)
 
 ### Router
 
-[![Router](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/router/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#router)
+[![Router](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/router/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#router)
 
 ### Weather
 
-[![Weather](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/weather/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#weather)
+[![Weather](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/weather/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#weather)
 
 ### Home 3D
 
-[![Home 3D](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/home-3d/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#home-3d)
+[![Home 3D](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/home-3d/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#home-3d)
 
 ### Entity
 
-[![Entity](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/entity/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#entity)
+[![Entity](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/entity/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#entity)
 
 ### Batteries
 
-[![Batteries](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/screenshots/battery/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.21.2/index.html#battery)
+[![Batteries](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/screenshots/battery/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.22.0/index.html#battery)
 <!-- IKIO_PREVIEWS_END -->
 
 ## Languages
