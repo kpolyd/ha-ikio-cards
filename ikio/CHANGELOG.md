@@ -1,5 +1,13 @@
 # Ikio changelog
 
+## [0.23.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.23.0...v0.23.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **chip:** allow light entities in cards and badges ([6637030](https://github.com/kpolyd/ha-ikio-cards/commit/66370302916679fce4f29963e13919a8e667486e))
+* **chip:** colour shared icons by entity status ([c38d17f](https://github.com/kpolyd/ha-ikio-cards/commit/c38d17f04b8ea7dd2c4fb1a0ae35af731f1786a6))
+
 ## [0.23.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.22.1...v0.23.0) (2026-10-31)
 
 
