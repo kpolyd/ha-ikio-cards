@@ -31,7 +31,21 @@ export async function checkElectricity(browser, out) {
         const root = c.shadowRoot;
         const bar = root.querySelector(".ae-tariff-bar");
         const summary = root.querySelector(".ae-energy-summary");
+        const tariffs = root.querySelector(".ae-energy-tariffs");
+        const originalChildren = [...tariffs.childNodes];
+        const height = c.getBoundingClientRect().height;
+        const energyLabel = document.createElement("p");
+        energyLabel.className = "ae-note";
+        energyLabel.textContent = "Energy";
+        const baselineRows = [
+          ...root.querySelectorAll(".ae-tariff-legend .ae-reading"),
+        ].map((n) => n.cloneNode(true));
+        const total = tariffs.querySelector(".ae-reading").cloneNode(true);
+        tariffs.replaceChildren(energyLabel, ...baselineRows, total);
+        const baselineHeight = c.getBoundingClientRect().height;
+        tariffs.replaceChildren(...originalChildren);
         return {
+          baselineHeight,
           height: c.getBoundingClientRect().height,
           summary: summary.getBoundingClientRect().height,
           overflow: c.scrollWidth > c.clientWidth,
@@ -67,7 +81,7 @@ export async function checkElectricity(browser, out) {
       assert.notEqual(size.billLabel, size.billValue);
       assert.equal(size.billValues[0].colour, size.billValues[1].colour);
       assert.equal(size.billValues[0].weight, "600");
-      assert.ok(size.height <= (width === 280 ? 604 : 575));
+      assert.ok(size.height <= size.baselineHeight + 0.1, JSON.stringify(size));
       assert.equal(size.segments, 2);
       assert.equal(size.fill, true, JSON.stringify(size));
       assert.equal(size.sparkFill, true);
