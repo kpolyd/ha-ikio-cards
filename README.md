@@ -66,7 +66,7 @@ npm run package:ikio
 
 Run a focused workspace command with, for example, `npm test --workspace @ikio/electricity-card`. Format changed workspaces with `npm run format --workspace @ikio/card-ui`. Shared packages are bundled locally, with no separate HA resources or runtime CDN dependencies.
 
-Serve the repository root after building and open `dev/previews/collection.html` for the simulated interactive gallery. It never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
+Run `npm run build && npm run preview:build`, then serve the repository root and open `dev/previews/collection.html` for the simulated interactive gallery. The standalone `dist/previews/index.html` works offline. Both use the same fully populated fixtures, including optional fields. The demo never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
 
 The collection version is defined only in `ikio/package.json`. Private card and shared-library workspaces have no independent versions; internal dependencies use local `file:` workspace links. Release Please prepares version changes, the changelog, README preview links and the tracked HACS bundle in a release PR. `npm run check:ikio-version` rejects duplicate workspace versions and non-local internal dependencies.
 

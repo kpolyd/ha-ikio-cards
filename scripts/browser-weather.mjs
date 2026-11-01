@@ -17,6 +17,15 @@ export async function checkWeather(browser, out) {
     await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
     await page.waitForFunction(() => window.ikioPreview?.ready);
     const card = page.locator("ikio-weather-card");
+    // Compactness checks exercise the default options. The gallery enables
+    // every optional detail; those options are tested separately below.
+    await page.evaluate(() =>
+      Object.assign(window.ikioPreview.configs.weather, {
+        show_pressure: false,
+        show_precipitation_probability: false,
+        show_forecast_wind: false,
+      }),
+    );
     for (const theme of ["dark", "light", "ha"])
       for (const width of [280, 320, 390, 520]) {
         await page.evaluate(

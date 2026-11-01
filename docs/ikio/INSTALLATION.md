@@ -44,7 +44,7 @@ Graph history uses the authenticated HA recorder WebSocket interface. It reports
 
 ## Validation boundaries
 
-Automated tests cover card/editor contracts, state transitions, action payloads, number/unit handling, colour math, history gaps and cleanup. The fixture gallery at `dev/previews/collection.html` uses simulated entities/actions and can be served from the repository root after building. It does not establish real HA integration, native icon rendering or hardware behaviour. Validate the native editor, actual device capabilities, browser touch/accessibility and real service outcomes on a test dashboard before wider use.
+Automated tests cover card/editor contracts, state transitions, action payloads, number/unit handling, colour math, history gaps and cleanup. The fixture gallery at `dev/previews/collection.html` uses simulated entities/actions and can be served from the repository root after `npm run build && npm run preview:build`. It does not establish real HA integration, native icon rendering or hardware behaviour. Validate the native editor, actual device capabilities, browser touch/accessibility and real service outcomes on a test dashboard before wider use.
 
 
 ## Upgrading from Aethora

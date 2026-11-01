@@ -18,6 +18,10 @@ const html =
   shell +
   `<p>Actual compiled cards with simulated Home Assistant data. Native HA controls are represented by local substitutes.</p><script>Date.now=()=>${fixed};</script><script type="module">${(bundle + "\n" + fixture.outputFiles[0].text).replaceAll("</script", "<\\/script")}</script></html>`;
 await mkdir(out, { recursive: true });
+await writeFile(
+  `${out}/fixtures.js`,
+  `Date.now=()=>${fixed};\n${fixture.outputFiles[0].text}`,
+);
 await writeFile(`${out}/index.html`, html);
 await writeFile(
   `${out}/LICENSES.txt`,
