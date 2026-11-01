@@ -1,3 +1,4 @@
+import { actionTypes, validateActions } from "./actions.js";
 import { t, language } from "./i18n.js";
 import { element } from "./card.js";
 import {
@@ -11,7 +12,10 @@ export const entity = (name, label, domain, required = false) => ({
   label,
   required,
   selector: {
-    entity: { filter: { domain: Array.isArray(domain) ? domain : [domain] } },
+    entity:
+      domain == null
+        ? {}
+        : { filter: { domain: Array.isArray(domain) ? domain : [domain] } },
   },
 });
 export const number = (name, label, min, max, step = 1) => ({
@@ -46,6 +50,7 @@ export const baseFields = [text("name", "Card name (optional)")];
 export function validateConfig(config, fields, lists = []) {
   if (!config || typeof config !== "object")
     throw Error("Choose entities using the visual editor.");
+  validateActions(config);
   if (config.schema_version && config.schema_version !== 1)
     throw Error("Unsupported configuration version");
   if (
@@ -59,8 +64,10 @@ export function validateConfig(config, fields, lists = []) {
       if (v === undefined || v === "") continue;
       const domains = f.selector?.entity?.filter?.domain;
       if (
-        domains &&
-        (!/^[a-z_]+\.[\w]+$/.test(v) || !domains.includes(v.split(".")[0]))
+        f.selector?.entity &&
+        (typeof v !== "string" ||
+          !/^[a-z_][a-z0-9_]*\.[\w]+$/.test(v) ||
+          (domains && !domains.includes(v.split(".")[0])))
       )
         throw Error(`${f.label}: choose a compatible entity`);
       const n = f.selector?.number;
@@ -91,6 +98,11 @@ export function defineEditor(
       super();
       this.attachShadow({ mode: "open" });
       this.expanded = new Set();
+      this.shadowRoot.addEventListener("focusout", () => {
+        queueMicrotask(() => {
+          if (this.isConnected) this.render();
+        });
+      });
     }
     setConfig(config) {
       config = normalizeConfig(config);
@@ -130,8 +142,9 @@ export function defineEditor(
       )
         this.render();
     }
-    section(label, parent = this.shadowRoot) {
+    section(label, parent = this.renderRoot) {
       const section = element("section");
+      section.dataset.editorKey = `section:${label}`;
       section.append(element("h3", t(this._hass, label)));
       parent.append(section);
       return section;
@@ -157,6 +170,7 @@ export function defineEditor(
         if (field.visible && !field.visible(this.config)) continue;
         const { label, helper, visible, ...schema } = field;
         const wrap = element("div", undefined, "field");
+        wrap.dataset.editorKey = `field:${field.name}`;
         const caption = element("div", undefined, "field-label");
         caption.append(element("span", t(this._hass, label), "field-name"));
         const id = `field-${this._fieldId++}`;
@@ -171,9 +185,12 @@ export function defineEditor(
           { ...data, [field.name]: data[field.name] ?? field.default },
           [schema],
           { [field.name]: label },
-          (value) => {
+          (value, source) => {
             changed({ [field.name]: value[field.name] });
-            error.hidden = !field.required || !empty(value[field.name]);
+            const liveError =
+              source.parentElement?.querySelector(".field-error");
+            if (liveError)
+              liveError.hidden = !field.required || !empty(value[field.name]);
           },
         );
         // Native HA selectors retain their own visible and accessible labels,
@@ -206,7 +223,8 @@ export function defineEditor(
         else this.expanded.delete(node.dataset.key);
       }
       this._fieldId = 0;
-      this.shadowRoot.replaceChildren(
+      this.renderRoot = document.createDocumentFragment();
+      this.renderRoot.append(
         element(
           "style",
           `
@@ -229,7 +247,7 @@ export function defineEditor(
         star,
         document.createTextNode(t(this._hass, "Required field")),
       );
-      this.shadowRoot.append(legend);
+      this.renderRoot.append(legend);
       const general = this.section("General");
       const generalFields = options.generalFields ?? baseFields;
       this.controls(general, generalFields, this.config, (value) =>
@@ -294,13 +312,17 @@ export function defineEditor(
               ...value,
             };
             this.change({ ...this.config, [list.name]: updated });
-            row.querySelector("summary").textContent =
-              updated[index].name ||
-              updated[index].label ||
-              this._hass?.states?.[updated[index].entity]?.attributes
-                ?.friendly_name ||
-              updated[index].entity ||
-              title;
+            const liveRow = this.shadowRoot.querySelector(
+              `[data-key="${rowKey}"]`,
+            );
+            if (liveRow)
+              liveRow.querySelector("summary").textContent =
+                updated[index].name ||
+                updated[index].label ||
+                this._hass?.states?.[updated[index].entity]?.attributes
+                  ?.friendly_name ||
+                updated[index].entity ||
+                title;
           });
           const actions = element("div", undefined, "actions");
           for (const [label, delta] of [
@@ -371,6 +393,41 @@ export function defineEditor(
         };
         section.append(add);
       }
+      if (tag !== "ikio-home-3d-card-editor") {
+        const actions = this.disclosure(
+          t(this._hass, "Actions"),
+          "card-actions",
+          this.renderRoot,
+        );
+        actions.dataset.key = "card-actions";
+        actions.append(
+          element(
+            "p",
+            t(
+              this._hass,
+              "Defaults preserve current behaviour. Actions apply to the tile or card header; device controls keep their own actions. Shift+Enter runs the hold action.",
+            ),
+          ),
+        );
+        this.controls(
+          actions,
+          [
+            entity("action_entity", "Action entity (optional)", undefined),
+            {
+              name: "tap_action",
+              label: "Tap action",
+              selector: { ui_action: { actions: actionTypes } },
+            },
+            {
+              name: "hold_action",
+              label: "Hold action",
+              selector: { ui_action: { actions: actionTypes } },
+            },
+          ],
+          this.config,
+          (value) => this.change({ ...this.config, ...value }),
+        );
+      }
       const appearance = this.section("Appearance");
       // Keep this dedicated native form last for the collection-wide contract.
       appearance.append(
@@ -393,7 +450,13 @@ export function defineEditor(
         ),
       );
       if (options.helper)
-        this.shadowRoot.append(element("p", t(this._hass, options.helper)));
+        this.renderRoot.append(element("p", t(this._hass, options.helper)));
+      reconcileEditor(
+        this.shadowRoot,
+        [...this.renderRoot.childNodes],
+        this.shadowRoot.activeElement,
+      );
+      this.renderRoot = null;
     }
   }
   if (!customElements.get(tag)) customElements.define(tag, Editor);
@@ -406,4 +469,60 @@ function empty(value) {
     (typeof value === "string" && !value.trim()) ||
     (Array.isArray(value) && !value.length)
   );
+}
+
+function nodeKey(node) {
+  return node.dataset?.editorKey || node.dataset?.key;
+}
+function reconcileEditor(parent, children, focused) {
+  for (let i = 0; i < children.length; i++) {
+    const next = children[i],
+      key = nodeKey(next);
+    let current = parent.childNodes[i];
+    if (key && nodeKey(current || {}) !== key) {
+      const match = [...parent.childNodes].find((n) => nodeKey(n) === key);
+      if (match) {
+        parent.insertBefore(match, current || null);
+        current = match;
+      } else {
+        parent.insertBefore(next, current || null);
+        continue;
+      }
+    }
+    if (!current) {
+      parent.append(next);
+      continue;
+    }
+    if (current.nodeName !== next.nodeName || nodeKey(current) !== key) {
+      current.replaceWith(next);
+      continue;
+    }
+    if (current.nodeType === 3) {
+      if (current.textContent !== next.textContent)
+        current.textContent = next.textContent;
+      continue;
+    }
+    for (const attr of [...current.attributes])
+      if (!next.hasAttribute(attr.name)) current.removeAttribute(attr.name);
+    for (const attr of [...next.attributes])
+      if (current.getAttribute(attr.name) !== attr.value)
+        current.setAttribute(attr.name, attr.value);
+    current.onclick = next.onclick;
+    if (current.localName === "ha-form") {
+      if (!sameConfig(current.schema, next.schema))
+        current.schema = next.schema;
+      if (current.hass !== next.hass) current.hass = next.hass;
+      current.computeLabel = next.computeLabel;
+      current.ikioChanged = next.ikioChanged;
+      // Normalization can restore a default while a numeric input is blank.
+      // Keep that in-progress native draft/caret until focus leaves the form.
+      if (
+        current !== focused &&
+        !current.contains(focused) &&
+        !sameConfig(current.data, next.data)
+      )
+        current.data = next.data;
+    } else reconcileEditor(current, [...next.childNodes], focused);
+  }
+  while (parent.childNodes.length > children.length) parent.lastChild.remove();
 }

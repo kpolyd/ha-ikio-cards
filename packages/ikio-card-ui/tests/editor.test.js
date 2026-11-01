@@ -36,11 +36,13 @@ before(async () => {
         this.input = document.createElement("input");
         this.shadowRoot.append(this.input);
         this.input.addEventListener("input", () => {
-          const key =
-            this.schema.length === 1 && this.schema[0].name === "entity"
-              ? "entity"
-              : "name";
-          this.data = { ...this.data, [key]: this.input.value };
+          const key = this.schema[0].name;
+          const value = this.schema[0].selector?.number
+            ? this.input.value === ""
+              ? undefined
+              : Number(this.input.value)
+            : this.input.value;
+          this.data = { ...this.data, [key]: value };
           this.dispatchEvent(
             new CustomEvent("value-changed", { detail: { value: this.data } }),
           );
@@ -96,7 +98,10 @@ for (const card of cards)
     const external = card === "vacuum" ? "vacuum.external" : "External change";
     editor.setConfig({ ...saved, [key]: external });
     assert.equal(editor.config[key], external);
-    assert.notEqual(editor.shadowRoot.querySelector("ha-form"), forms[0]);
+    assert.equal(editor.shadowRoot.querySelector("ha-form"), forms[0]);
+    input.blur();
+    await Promise.resolve();
+    assert.equal(form.data[key], external);
     editor.remove();
   });
 
@@ -271,4 +276,97 @@ test("embedded chip editors default names on while retaining an explicit off set
     assert.equal(field().data.show_name, false, type);
     editor.remove();
   }
+});
+
+test("backspace through text and numeric values retains the same focused native field after normalized HA feedback", async () => {
+  const { defineEditor, number } = await import("../src/schema-editor.js");
+  defineEditor(
+    "focus-regression-editor",
+    [number("amount", "Amount", 0, 100)],
+    [],
+    (c) => ({
+      ...c,
+      amount: c.amount ?? 10,
+      appearance: { theme: "dark", ...c.appearance },
+    }),
+  );
+  const editor = document.createElement("focus-regression-editor");
+  editor.setConfig({ name: "Office", amount: 12, view_layout: { column: 2 } });
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  let saved;
+  editor.addEventListener("config-changed", (e) => {
+    saved = JSON.parse(JSON.stringify(e.detail.config));
+    if (saved.name === "") delete saved.name;
+    editor.setConfig({ ...saved, schema_version: 1 });
+  });
+  for (const [key, initial, replacement] of [
+    ["name", "Office", "Room"],
+    ["amount", "12", "25"],
+  ]) {
+    const form = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
+      (f) => f.schema[0].name === key,
+    );
+    const input = form.input;
+    input.value = initial;
+    input.focus();
+    for (let i = initial.length; i >= 0; i--) {
+      input.value = initial.slice(0, i);
+      input.setSelectionRange(i, i);
+      input.dispatchEvent(new dom.window.Event("input"));
+      assert.equal(form.isConnected, true);
+      assert.equal(editor.shadowRoot.activeElement, form);
+      assert.equal(form.shadowRoot.activeElement, input);
+      assert.equal(input.selectionStart, i);
+      assert.equal(input.value, initial.slice(0, i));
+    }
+    if (key === "amount")
+      assert.equal(
+        form.data.amount,
+        undefined,
+        "do not overwrite an empty numeric draft with a normalized default",
+      );
+    for (const char of replacement) {
+      input.value += char;
+      input.dispatchEvent(new dom.window.Event("input"));
+    }
+    assert.equal(saved[key], key === "amount" ? 25 : "Room");
+    input.blur();
+    await Promise.resolve();
+    assert.equal(
+      [...editor.shadowRoot.querySelectorAll("ha-form")].filter(
+        (f) => f.schema[0].name === key,
+      ).length,
+      1,
+    );
+  }
+  assert.deepEqual(saved.view_layout, { column: 2 });
+  editor.remove();
+});
+
+test("focus and list callbacks remain current after an unrelated external configuration update", async () => {
+  const editor = document.createElement("ikio-server-monitor-card-editor");
+  editor.setConfig({
+    name: "Server",
+    extra_readings: [{ entity: "sensor.example", name: "Old" }],
+  });
+  document.body.append(editor);
+  await new Promise((r) => setTimeout(r, 0));
+  const row = editor.shadowRoot.querySelector(
+    '[data-key="list:extra_readings:0"]',
+  );
+  row.open = true;
+  const nameForm = [...row.querySelectorAll("ha-form")].find(
+    (f) => f.schema[0].name === "name",
+  );
+  nameForm.input.focus();
+  editor.setConfig({ ...editor.config, ip_address_entity: "sensor.address" });
+  assert.equal(nameForm.isConnected, true);
+  nameForm.input.value = "Updated";
+  nameForm.input.dispatchEvent(new dom.window.Event("input"));
+  assert.equal(editor.config.extra_readings[0].name, "Updated");
+  assert.equal(row.querySelector("summary").textContent, "Updated");
+  assert.equal(editor.config.ip_address_entity, "sensor.address");
+  assert.equal(nameForm.shadowRoot.activeElement, nameForm.input);
+  editor.remove();
 });

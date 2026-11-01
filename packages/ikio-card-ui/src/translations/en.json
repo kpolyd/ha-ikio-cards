@@ -653,5 +653,19 @@
   "light or switch": "light or switch",
   "Metrics": "Metrics",
   "IP address sensor (optional)": "IP address sensor (optional)",
-  "Choose an entity in the visual editor.": "Choose an entity in the visual editor."
+  "Choose an entity in the visual editor.": "Choose an entity in the visual editor.",
+  "Actions": "Actions",
+  "Action entity (optional)": "Action entity (optional)",
+  "Tap action": "Tap action",
+  "Hold action": "Hold action",
+  "Defaults preserve current behaviour. Actions apply to the tile or card header; device controls keep their own actions. Shift+Enter runs the hold action.": "Defaults preserve current behaviour. Actions apply to the tile or card header; device controls keep their own actions. Shift+Enter runs the hold action.",
+  "Choose a valid action entity.": "Choose a valid action entity.",
+  "Choose a supported card action.": "Choose a supported card action.",
+  "Choose an action to perform.": "Choose an action to perform.",
+  "Action data and target must be objects.": "Action data and target must be objects.",
+  "Choose a local navigation path.": "Choose a local navigation path.",
+  "Choose an HTTP or HTTPS URL.": "Choose an HTTP or HTTPS URL.",
+  "Choose an action entity for this card.": "Choose an action entity for this card.",
+  "This entity does not support toggle.": "This entity does not support toggle.",
+  "The action did not respond. Check Home Assistant before retrying.": "The action did not respond. Check Home Assistant before retrying."
 }

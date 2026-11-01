@@ -42,6 +42,37 @@ test("every card ends its editor with the standard theme selector and defaults t
         ["General", "Card settings", "Appearance"],
         `${id}: shared section order`,
       );
+      const actionSection = editor.shadowRoot.querySelector(
+        '[data-key="card-actions"]',
+      );
+      if (id === "ikio-home-3d-card") assert.equal(actionSection, null);
+      else {
+        assert(actionSection, `${id}: shared Actions section`);
+        assert.equal(
+          actionSection.open,
+          false,
+          `${id}: actions start collapsed`,
+        );
+        const forms = [...actionSection.querySelectorAll("ha-form")];
+        assert.deepEqual(
+          forms.map((f) => f.schema[0].name),
+          ["action_entity", "tap_action", "hold_action"],
+        );
+        for (const f of forms.slice(1)) {
+          assert(
+            f.schema[0].selector.ui_action.actions.includes("perform-action"),
+          );
+          assert.equal(
+            f.data[f.schema[0].name],
+            undefined,
+            `${id}: preserve original default`,
+          );
+        }
+        assert.equal(
+          actionSection.nextElementSibling.querySelector("h3").textContent,
+          "Appearance",
+        );
+      }
       const getAppearance = () => {
         const forms = [...editor.shadowRoot.querySelectorAll("ha-form")];
         const appearance = forms.filter((f) =>

@@ -29,6 +29,11 @@ export async function checkEntity(browser, out) {
           "binary_sensor",
           "button",
           "input_button",
+          "select",
+          "input_select",
+          "number",
+          "climate",
+          "lock",
         ]) {
           const result = await card.evaluate(
             (c, { domain, theme }) => {

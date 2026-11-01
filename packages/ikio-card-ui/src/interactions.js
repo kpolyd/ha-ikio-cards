@@ -1,5 +1,9 @@
 /** A hold never dispatches the subsequent synthetic click. Vertical movement cancels it. */
-export function bindHold(target, onHold, { delay = 550 } = {}) {
+export function bindHold(
+  target,
+  onHold,
+  { delay = 550, capture = false, enabled = () => true } = {},
+) {
   let timer,
     origin,
     held = false;
@@ -9,13 +13,20 @@ export function bindHold(target, onHold, { delay = 550 } = {}) {
     origin = undefined;
   };
   const down = (event) => {
-    if (event.button !== undefined && event.button !== 0) return;
+    if (!enabled(event) || (event.button !== undefined && event.button !== 0)) {
+      if (capture) {
+        held = false;
+        cancel();
+      }
+      return;
+    }
+    if (capture) event.stopPropagation();
     cancel();
     held = false;
     origin = [event.clientX, event.clientY];
     timer = setTimeout(() => {
       held = true;
-      onHold();
+      onHold(event);
     }, delay);
   };
   const move = (event) => {
@@ -32,15 +43,23 @@ export function bindHold(target, onHold, { delay = 550 } = {}) {
       held = false;
     }
   };
+  const leave = (event) => {
+    if (
+      !capture ||
+      !event.relatedTarget?.nodeType ||
+      !target.contains(event.relatedTarget)
+    )
+      cancel();
+  };
   const context = (event) => {
-    event.preventDefault();
+    if (enabled(event)) event.preventDefault();
   };
   const listeners = [
-    ["pointerdown", down],
-    ["pointermove", move],
-    ["pointerup", cancel],
-    ["pointercancel", cancel],
-    ["pointerleave", cancel],
+    ["pointerdown", down, capture],
+    ["pointermove", move, capture],
+    ["pointerup", cancel, capture],
+    ["pointercancel", cancel, capture],
+    ["pointerleave", leave, capture],
     ["contextmenu", context],
     ["click", click, true],
   ];
@@ -50,8 +69,8 @@ export function bindHold(target, onHold, { delay = 550 } = {}) {
     get held() {
       return held;
     },
-    reset() {
-      held = false;
+    reset({ suppressClick = false } = {}) {
+      held = suppressClick && (held || Boolean(origin));
       cancel();
     },
     destroy() {

@@ -368,7 +368,9 @@ test("visual editor exposes all fields and preserves HA metadata and appearance 
   Editor.hass = { states: {}, locale: { language: "en" } };
   document.body.append(Editor);
   await flush();
-  const forms = [...Editor.shadowRoot.querySelectorAll("ha-form")];
+  const forms = [...Editor.shadowRoot.querySelectorAll("ha-form")].filter(
+    (f) => !f.closest('[data-key="card-actions"]'),
+  );
   assert.deepEqual(
     new Set(forms.flatMap((f) => f.schema.map((s) => s.name))).size,
     fields.length + 2,

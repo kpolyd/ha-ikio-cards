@@ -375,7 +375,7 @@ test("people work in the chip card and badge with native state, icon and details
     const selector = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
       (f) => f.schema[0].name === "entity",
     ).schema[0].selector;
-    assert(selector.entity.filter.domain.includes("person"));
+    assert.deepEqual(selector.entity, {});
     editor.remove();
     card.remove();
   }
@@ -427,9 +427,100 @@ test("switches and lights are selectable in chips and badges, update live, and o
       const field = [...editor.shadowRoot.querySelectorAll("ha-form")].find(
         (f) => f.schema[0].name === "entity",
       );
-      assert(field.schema[0].selector.entity.filter.domain.includes(domain));
+      assert.deepEqual(field.schema[0].selector.entity, {});
       assert.deepEqual(editor.config.view_layout, { column: 2 });
       editor.remove();
       card.remove();
     }
+});
+
+test("chips and badges accept arbitrary entity domains and retain details-only interaction", async () => {
+  for (const type of ["ikio-chip-card", "ikio-chip-badge"])
+    for (const domain of [
+      "select",
+      "input_select",
+      "number",
+      "input_number",
+      "input_text",
+      "climate",
+      "cover",
+      "lock",
+      "script",
+      "timer",
+      "custom_domain2",
+    ]) {
+      const id = `${domain}.example`,
+        c = document.createElement(type),
+        calls = [];
+      c.setConfig({ entity: id });
+      const original = {
+        entity_id: id,
+        state: "Example state",
+        attributes: { friendly_name: "Example" },
+      };
+      c.hass = {
+        states: { [id]: original },
+        callService: async (...args) => calls.push(args),
+      };
+      document.body.append(c);
+      let opened;
+      c.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+      const value = () =>
+        c.content.querySelector(".ikio-chip-value").textContent;
+      assert.equal(value(), "Example state");
+      c.content.querySelector("button").click();
+      assert.equal(opened, id);
+      assert.equal(c.content.querySelector("ha-state-icon").stateObj, original);
+      for (const state of ["Another state", "unknown", "unavailable"]) {
+        c.hass = { ...c.hass, states: { [id]: { ...original, state } } };
+        assert.equal(value(), state);
+      }
+      if (["select", "input_select", "input_text"].includes(domain)) {
+        c.hass = { ...c.hass, states: { [id]: { ...original, state: "001" } } };
+        assert.equal(
+          value(),
+          "001",
+          "numeric-looking labels retain their exact text",
+        );
+      }
+      c.hass = { ...c.hass, states: {} };
+      assert.match(value(), /Entity not found/);
+      assert.deepEqual(calls, []);
+      c.remove();
+    }
+});
+
+test("unrestricted entity selectors still reject malformed IDs and other fields keep domain restrictions", async () => {
+  const { validateConfig, entity } = await import(
+    "@ikio/card-ui/schema-editor"
+  );
+  for (const id of [
+    "missing_domain",
+    "select.",
+    ".example",
+    "select.bad name",
+    123,
+    {},
+    [],
+  ]) {
+    assert.throws(
+      () =>
+        validateConfig({ entity: id }, [
+          entity("entity", "Entity", undefined, true),
+        ]),
+      /compatible entity/,
+    );
+  }
+  assert.throws(
+    () =>
+      validateConfig({ entity: "select.example" }, [
+        entity("entity", "Sensor", "sensor"),
+      ]),
+    /compatible entity/,
+  );
+  assert.doesNotThrow(() =>
+    validateConfig({ entity: "sensor.example" }, [
+      entity("entity", "Sensor", "sensor"),
+    ]),
+  );
 });

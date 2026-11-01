@@ -54,10 +54,11 @@ export function form(hass, data, schema, labels, changed) {
       : field;
   });
   node.computeLabel = (field) => t(node.hass, labels[field.name] || field.name);
+  node.ikioChanged = changed;
   node.addEventListener("value-changed", (event) => {
     event.stopPropagation();
     node.data = event.detail.value;
-    changed(node.data);
+    node.ikioChanged(node.data, node);
   });
   return node;
 }

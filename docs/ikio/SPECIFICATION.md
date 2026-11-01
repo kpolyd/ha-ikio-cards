@@ -885,3 +885,18 @@ Increase only Entity's trailing power symbol from 15 to 18 px in every theme, re
 ## 95. Lights in Chip and badge selectors
 
 On 31 October 2026 the owner reported that a light could not be added to Ikio Chip badges. Add `light` to the shared Chip card/badge entity selector and validation, alongside sensor, person and switch. Reuse native entity icons, live state formatting and existing visual-editor metadata. Tap/hold remain details-only and do not toggle a light or send services. Existing chip dimensions, show-name defaults and appearance configuration remain unchanged.
+
+
+## 96. Unrestricted Chip, badge and Entity selectors
+
+On 1 November 2026 the owner approved allowing any Home Assistant entity in standalone Chip cards, Chip badges and Entity cards, instead of repeatedly extending domain allowlists. Use an unrestricted native entity picker while validating entity-ID syntax. New and integration-specific domains display their reported state/value and open native details on tap/hold. Preserve existing Entity light/switch/input_boolean toggles and button/input_button press actions; never infer a service from an arbitrary domain. Preserve layout, themes, icons, live updates, missing-data handling and configuration metadata. Keep domain restrictions for other specialised card fields. Implementation is authorized; merge and release remain separate stages.
+
+
+## 97. Shared configurable tap and hold actions
+
+On 1 November 2026 the owner approved and requested implementation and release of a shared collapsed Actions section immediately above Appearance. The optional native HA action selectors offer Default, More info, Toggle, Perform action, Navigate, Open URL and None, with an optional unrestricted Action entity override for cards without a primary entity. Missing/default configuration retains the existing behaviour. The whole standalone Chip/badge/Entity tile is the action area; other cards use their header/main entity area. Dedicated power, mode, transport, slider, sensor-row and disclosure controls keep their actions. Home 3D is excluded because of its canvas gestures. An explicitly configured hold overrides the older always-more-info convention only in this action area; Shift+Enter provides a keyboard equivalent. Custom actions do not run in editor previews. Confirmations use inline review, URLs are limited to HTTP(S), local navigation uses HA's navigation event, unsupported toggles never guess a service, and requests retain remap/disconnect guards. Include the unrestricted entity support from section 96 in this release.
+
+
+## 98. Preserve configuration focus while clearing fields
+
+On 1 November 2026 the owner reported that Backspace could move focus out of text/number configuration fields on mobile. Preserve keyed native form instances across shared-editor updates, including feedback that omits empty/undefined values or restores normalized defaults. Keep the active form's in-progress draft, caret and keyboard focus until it loses focus; then synchronize normalized/external values. Refresh callbacks and nonfocused values without replacing controls, retain list disclosure state and configuration metadata, and keep explicit add/move/remove focus behaviour. Validate real Backspace input at a mobile-sized browser viewport using a simulated ha-form, plus nested-shadow focus and normalization regression tests. Include this fix in the pending actions/any-entity release; native Android/HA verification remains separate.
