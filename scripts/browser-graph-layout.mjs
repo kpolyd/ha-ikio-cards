@@ -165,6 +165,73 @@ export async function checkGraphLayout(browser, out) {
       );
       assert.ok(await server.locator("[data-extremum]").count(), unit);
     }
+    const generic = page.locator("ikio-graph-card");
+    for (const theme of ["dark", "light", "ha"])
+      for (const width of [280, 390, 520]) {
+        await page.evaluate(
+          (options) => window.ikioPreview.configure(options),
+          { theme, width },
+        );
+        await generic.scrollIntoViewIfNeeded();
+        await generic.locator(".ae-axis-chart svg").waitFor();
+        const heights = [];
+        for (const height of [180, 300]) {
+          await generic.evaluate(
+            (c, height) => (c.style.height = `${height}px`),
+            height,
+          );
+          const metrics = await generic.evaluate((c) => ({
+            plot: c.content.querySelector(".ae-graph").getBoundingClientRect()
+              .height,
+            width: c.shell.scrollWidth > c.shell.clientWidth + 1,
+            height: c.shell.scrollHeight > c.shell.clientHeight + 1,
+            stroke: getComputedStyle(
+              c.content.querySelector("path:not(.ae-area-fill)"),
+            ).strokeWidth,
+            current: c.content.querySelectorAll(".graph-current").length,
+          }));
+          assert.equal(
+            metrics.width,
+            false,
+            `${theme}/${width}: horizontal overflow`,
+          );
+          assert.equal(
+            metrics.height,
+            false,
+            `${theme}/${width}/${height}: height overflow`,
+          );
+          assert.equal(metrics.stroke, "0.8px");
+          assert.equal(metrics.current, 1);
+          heights.push(metrics.plot);
+        }
+        assert(
+          heights[1] > heights[0] + 100,
+          "plot must fill the native chosen height",
+        );
+        if (width === 390 && theme === "dark")
+          await generic.screenshot({
+            path: resolve(out, "graph-native-size.png"),
+          });
+      }
+    await generic.evaluate((c) => {
+      c.setConfig({
+        ...c.config,
+        entities: [
+          { entity: "sensor.demo_graph_power", name: "Power" },
+          { entity: "sensor.office", name: "Office" },
+        ],
+        grid_options: { columns: 9, rows: 5 },
+      });
+      c.style.height = "240px";
+    });
+    await generic.locator(".ikio-legend-entry").first().waitFor();
+    assert.equal(await generic.locator(".ikio-legend-entry").count(), 2);
+    assert.equal(
+      await generic.evaluate(
+        (c) => c.shell.scrollHeight > c.shell.clientHeight + 1,
+      ),
+      false,
+    );
     assert.deepEqual(errors, []);
     return { card: "graph-layout", passed: true };
   } finally {

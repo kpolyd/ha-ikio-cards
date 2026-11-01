@@ -667,5 +667,9 @@
   "Choose an HTTP or HTTPS URL.": "Επιλέξτε διεύθυνση HTTP ή HTTPS.",
   "Choose an action entity for this card.": "Επιλέξτε οντότητα ενέργειας για αυτή την κάρτα.",
   "This entity does not support toggle.": "Αυτή η οντότητα δεν υποστηρίζει εναλλαγή.",
-  "The action did not respond. Check Home Assistant before retrying.": "Η ενέργεια δεν ανταποκρίθηκε. Ελέγξτε το Home Assistant πριν δοκιμάσετε ξανά."
+  "The action did not respond. Check Home Assistant before retrying.": "Η ενέργεια δεν ανταποκρίθηκε. Ελέγξτε το Home Assistant πριν δοκιμάσετε ξανά.",
+  "Show readings": "Εμφάνιση τιμών",
+  "Minimum colour value (empty = Auto)": "Ελάχιστη τιμή χρώματος (κενό = Αυτόματα)",
+  "Maximum colour value (empty = Auto)": "Μέγιστη τιμή χρώματος (κενό = Αυτόματα)",
+  "Colour range (optional)": "Εύρος χρωμάτων (προαιρετικό)"
 }

@@ -5,11 +5,9 @@ let dom;
 const cards = [
   "electricity",
   "climate",
-  "appliances",
   "media",
   "vacuum",
   "alarmo",
-  "camera",
   "server-monitor",
   "vehicle",
   "graph",
@@ -106,34 +104,37 @@ for (const card of cards)
   });
 
 test("editing a main field does not restore stale repeatable-list values", async () => {
-  const editor = document.createElement("ikio-appliances-card-editor");
+  const editor = document.createElement("ikio-server-monitor-card-editor");
   editor.setConfig({
-    name: "Appliance",
-    timed_runs: [{ label: "Old", start_script: "script.example" }],
+    name: "Server",
+    extra_readings: [{ name: "Old", entity: "sensor.example" }],
     view_layout: { column: 2 },
   });
   editor.hass = { states: {} };
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
   const forms = [...editor.shadowRoot.querySelectorAll("ha-form")],
-    main = forms[0],
-    row = forms.find((f) => f.schema.some((s) => s.name === "label"));
-  assert(row);
+    main = forms[0];
+  const row = [
+    ...editor.shadowRoot
+      .querySelector('[data-key="list:extra_readings:0"]')
+      .querySelectorAll("ha-form"),
+  ].find((f) => f.schema[0].name === "name");
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
   row.dispatchEvent(
     new CustomEvent("value-changed", {
-      detail: { value: { ...row.data, label: "New" } },
+      detail: { value: { ...row.data, name: "New" } },
     }),
   );
-  assert.equal(saved.timed_runs[0].label, "New");
+  assert.equal(saved.extra_readings[0].name, "New");
   main.dispatchEvent(
     new CustomEvent("value-changed", {
       detail: { value: { ...main.data, name: "Renamed" } },
     }),
   );
   assert.equal(saved.name, "Renamed");
-  assert.equal(saved.timed_runs[0].label, "New");
+  assert.equal(saved.extra_readings[0].name, "New");
   assert.deepEqual(saved.view_layout, { column: 2 });
   editor.remove();
 });

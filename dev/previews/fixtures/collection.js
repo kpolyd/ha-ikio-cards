@@ -1,3 +1,4 @@
+import { demoGraphHistory } from "./graph-history.js";
 import { addBatteryFixtures } from "./battery.js";
 import home3dModel from "../../../cards/ikio-home-3d-card/examples/home-model.json";
 import home3dEntities from "../../../cards/ikio-home-3d-card/examples/entities.json";
@@ -89,11 +90,9 @@ const types = [
   "lights",
   "climate",
   "dehumidifier",
-  "appliances",
   "media",
   "vacuum",
   "alarmo",
-  "camera",
   "electricity",
   "server-monitor",
   "vehicle",
@@ -141,10 +140,6 @@ for (let i = 0; i < 6; i++) {
   state(`switch.demo_service_${i}`, i === 2 ? "off" : "on");
 }
 state("script.timed_heater", "off");
-state("script.snapshot", "off");
-state("automation.snapshots", "on");
-state("switch.camera", "off");
-state("camera.room", "unavailable");
 state("person.owner", "home", {
   user_id: "demo-user",
   friendly_name: "Demo resident",
@@ -250,7 +245,7 @@ for (const [id, value, unit] of [
   ["fuel", 86, "%"],
   ["range", 437, "km"],
   ["odometer", 25901, "km"],
-  ["cpu", 2, "%"],
+  ["cpu", 18.6, "%"],
   ["ram", 30.1, "%"],
   ["ram_used", 4.8, "GiB"],
   ["ram_free", 11.2, "GiB"],
@@ -292,14 +287,6 @@ const configs = {
     tank_full_entity: "binary_sensor.dehumidifier_tank",
     fan_entity: "select.dehumidifier_fan",
   },
-  appliances: {
-    name: "Water heater",
-    entity: "switch.heater",
-    power_entity: "sensor.heater",
-    timed_runs: [
-      { label: "Start 30-minute run", start_script: "script.timed_heater" },
-    ],
-  },
   media: {
     name: "Living room speaker", entity: "media_player.tv", power_entity: "sensor.media_power",
   },
@@ -310,13 +297,6 @@ const configs = {
     entity: "alarm_control_panel.home",
     persons: [{ entity: "person.owner", name: "Resident" }],
     contacts: [{ entity: "binary_sensor.window", name: "Kitchen window" }],
-  },
-  camera: {
-    name: "Living room camera",
-    entity: "camera.room",
-    power_switch: "switch.camera",
-    snapshot_automation: "automation.snapshots",
-    snapshot_script: "script.snapshot",
   },
   electricity: {
     name: "Electricity",
@@ -382,8 +362,8 @@ const configs = {
   },
   chip: { entity: "sensor.database", name: "Database" },
   graph: {
-    name: "Office power",
-    entities: [{ entity: "sensor.office" }],
+    name: "Power usage",
+    entities: [{ entity: "sensor.demo_graph_power" }],
     expected_min: 0,
     expected_max: 3500,
     hours: 6,
@@ -407,8 +387,9 @@ configs.router = {
   connection_type:"cellular",network_type_entity:"sensor.demo_network_type",signal_entity:"sensor.demo_signal",rsrp_entity:"sensor.demo_rsrp",rsrq_entity:"sensor.demo_rsrq",snr_entity:"sensor.demo_snr",
   network_rx_entity:"sensor.network_rx",network_tx_entity:"sensor.network_tx"
 };
-sensor("network_rx", 0.3, "MB/s");
-sensor("network_tx", 0.1, "MB/s");
+sensor("network_rx", 2.84, "MB/s");
+sensor("network_tx", 0.34, "MB/s");
+sensor("demo_graph_power", 812, "W");
 // Forecast subscriptions are local fixtures; no weather service is contacted.
 state("weather.demo", "rainy", {
   friendly_name: "Weather", supported_features: 3, temperature: 7.7, temperature_unit: "°C",
@@ -527,26 +508,7 @@ const hass = {
               Date.parse(msg.start_time),
               Date.parse(msg.end_time),
             )
-          : Array.from({ length: 121 }, (_, i) => ({
-              lu:
-                Date.parse(msg.start_time) / 1000 +
-                (i * (Date.parse(msg.end_time) - Date.parse(msg.start_time))) /
-                  120000,
-              s:
-                i % 19 === 7
-                  ? "unknown"
-                  : String(
-                      id.includes("network")
-                        ? i % 11 === 0
-                          ? 0.3
-                          : 0
-                        : Math.round(100 + 50 * Math.sin(i / 5)),
-                    ),
-              a: {
-                unit_of_measurement:
-                  states[id]?.attributes?.unit_of_measurement || "W",
-              },
-            })),
+          : demoGraphHistory(id, states[id], Date.parse(msg.start_time), Date.parse(msg.end_time)),
       ]),
     );
   },

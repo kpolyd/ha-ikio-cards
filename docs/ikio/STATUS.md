@@ -1,4 +1,6 @@
-# Ikio implementation status
+# Historical implementation status (0.4.0)
+
+This is an archived snapshot. See the [README](../../README.md) for the current sixteen-card collection; Appliances and Camera are removed.
 
 Repository: `kpolyd/ha-ikio-cards`. Collection version: **0.4.0**, synchronized across eleven card workspaces and two internal packages.
 

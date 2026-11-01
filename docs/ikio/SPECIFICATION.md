@@ -900,3 +900,15 @@ On 1 November 2026 the owner approved and requested implementation and release o
 ## 98. Preserve configuration focus while clearing fields
 
 On 1 November 2026 the owner reported that Backspace could move focus out of text/number configuration fields on mobile. Preserve keyed native form instances across shared-editor updates, including feedback that omits empty/undefined values or restores normalized defaults. Keep the active form's in-progress draft, caret and keyboard focus until it loses focus; then synchronize normalized/external values. Refresh callbacks and nonfocused values without replacing controls, retain list disclosure state and configuration metadata, and keep explicit add/move/remove focus behaviour. Validate real Backspace input at a mobile-sized browser viewport using a simulated ha-form, plus nested-shadow focus and normalization regression tests. Include this fix in the pending actions/any-entity release; native Android/HA verification remains separate.
+
+
+## 99. Collection removal and graph design/demo follow-up
+
+On 1 November 2026 the owner requested removal of Appliances and Camera, leaving sixteen cards. Remove their source workspaces, registration, bundle entries, editor/demo inventory and current documentation; retain historical changelog/specification records. Existing installations using those types must remove/replace them when upgrading to a release containing the removal. This request does not authorize a release.
+
+The owner also requested a simple compact Graph redesign following Electricity's existing graph logic. Prepare a visual mock and complete configuration proposal for approval before implementation, preserving Electricity. Improve the GitHub Pages graph demo histories using deterministic fictional profiles, meaningful value/colour variation, distinct upload/download bursts, consistent units and a final history value matching each live reading; demo changes must not alter production history/graph rendering.
+
+
+## 100. Compact Graph implementation and native resizing
+
+On 1 November 2026 the owner approved the Graph mock and complete configuration proposal, asked for a slightly more compact layout and native Home Assistant card-size support, and authorized implementation and release together with the card removals and improved Pages demo histories. Use 8 px card padding, a compact header/current reading, thin 0.8 px gradient lines, subtle fill, Electricity-style dashed min/mid/max guides and quiet min/max/time labels. Multi-series readings stay compact with their line patterns and native details. Keep 44 px action targets. New configurations default to automatic colour ranges; old shared/per-sensor overrides and `show_legend` retain their saved keys. No separate graph height setting: advertise native Sections grid sizing and let the graph fill the assigned dimensions. Scope styles and range changes to Graph so Electricity retains its approved appearance.

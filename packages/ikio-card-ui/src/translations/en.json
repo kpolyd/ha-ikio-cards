@@ -667,5 +667,9 @@
   "Choose an HTTP or HTTPS URL.": "Choose an HTTP or HTTPS URL.",
   "Choose an action entity for this card.": "Choose an action entity for this card.",
   "This entity does not support toggle.": "This entity does not support toggle.",
-  "The action did not respond. Check Home Assistant before retrying.": "The action did not respond. Check Home Assistant before retrying."
+  "The action did not respond. Check Home Assistant before retrying.": "The action did not respond. Check Home Assistant before retrying.",
+  "Show readings": "Show readings",
+  "Minimum colour value (empty = Auto)": "Minimum colour value (empty = Auto)",
+  "Maximum colour value (empty = Auto)": "Maximum colour value (empty = Auto)",
+  "Colour range (optional)": "Colour range (optional)"
 }
