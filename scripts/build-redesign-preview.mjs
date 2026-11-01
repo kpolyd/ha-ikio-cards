@@ -2,15 +2,7 @@ import { build } from "esbuild";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 const root = resolve(import.meta.dirname, "..");
-const types = [
-  "climate",
-  "media",
-  "vacuum",
-  "appliances",
-  "server-monitor",
-  "camera",
-  "graph",
-];
+const types = ["climate", "media", "vacuum", "server-monitor", "graph"];
 const entry =
   types.map((t) => `import './cards/ikio-${t}-card/src/index.js';`).join("\n") +
   "\nimport './dev/previews/redesign.js';";

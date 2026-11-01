@@ -117,3 +117,92 @@ test("multi-series legend labels remain associated with distinct line patterns a
   assert.equal(card.shadowRoot.querySelector(".ikio-legend"), null);
   card.remove();
 });
+
+test("compact graph reuses Electricity-style axes without duplicate readings and exposes native layout sizing", () => {
+  const card = document.createElement("ikio-graph-card"),
+    now = Date.now();
+  card.setConfig({
+    entities: [{ entity: "sensor.temp" }],
+    grid_options: { columns: 9, rows: 5 },
+  });
+  card.hass = {
+    states: {
+      "sensor.temp": {
+        entity_id: "sensor.temp",
+        state: "23.4",
+        attributes: { unit_of_measurement: "°C" },
+      },
+    },
+  };
+  card.history = {
+    "sensor.temp": [
+      { lu: now / 1000 - 100, s: "19.5", a: { unit_of_measurement: "°C" } },
+      { lu: now / 1000, s: "23.4" },
+    ],
+  };
+  card.update();
+  assert.equal(card.content.querySelectorAll(".graph-current").length, 1);
+  assert.equal(card.content.querySelector(".ae-hero"), null);
+  assert.equal(
+    card.content.querySelectorAll(".ae-axis-guides line[data-guide]").length,
+    7,
+  );
+  assert(card.content.querySelector(".ae-time-axis"));
+  assert.deepEqual(card.colourRange(card.config.entities), {
+    min: 19.5,
+    max: 23.4,
+  });
+  assert.deepEqual(card.config.grid_options, { columns: 9, rows: 5 });
+  assert.deepEqual(card.getGridOptions(), {
+    columns: 6,
+    rows: 3,
+    min_columns: 3,
+    min_rows: 3,
+  });
+  card.setConfig({ ...card.config, show_legend: false });
+  assert.equal(card.content.querySelector(".graph-current"), null);
+  card.setConfig({ ...card.config, show_legend: true });
+  card.hass = { ...card.hass, states: {}, formatEntityState: (s) => s.state };
+  assert.match(card.content.textContent, /Entity not found|Graph/);
+  card.remove();
+});
+
+test("automatic colour ranges support negative/constant data and retain optional legacy overrides", async () => {
+  const { normalizeConfig } = await import("../src/config.js");
+  const card = document.createElement("ikio-graph-card"),
+    now = Date.now();
+  card.setConfig({
+    entities: [{ entity: "sensor.temp", expected_min: -10, expected_max: 30 }],
+    expected_min: "",
+    expected_max: null,
+    show_legend: false,
+    view_layout: { column: 2 },
+  });
+  assert.equal(card.config.expected_min, undefined);
+  assert.equal(card.config.entities[0].expected_min, -10);
+  assert.deepEqual(card.config.view_layout, { column: 2 });
+  card.hass = {
+    states: {
+      "sensor.temp": { state: "-5", attributes: { unit_of_measurement: "°C" } },
+    },
+  };
+  card.history = {
+    "sensor.temp": [
+      { lu: now / 1000, s: "-5", a: { unit_of_measurement: "°C" } },
+    ],
+  };
+  assert.deepEqual(card.colourRange(card.config.entities), {
+    min: -6,
+    max: -4,
+  });
+  card.config.expected_min = 100;
+  assert.equal(card.colourRange(card.config.entities).min, 100);
+  assert(card.colourRange(card.config.entities).max > 100);
+  assert.throws(() =>
+    normalizeConfig({ entities: [], expected_min: 10, expected_max: 5 }),
+  );
+  assert.doesNotThrow(() =>
+    normalizeConfig({ entities: [], expected_min: 100 }),
+  );
+  card.remove();
+});

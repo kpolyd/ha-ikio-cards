@@ -1,34 +1,11 @@
 # Ikio Graph
 
-Install the full collection through the [HACS custom repository instructions](../../docs/ikio/INSTALLATION.md#hacs). All cards and editors share one HACS download and version.
+A compact numeric-history card using the Electricity chart's value-colour palette, shallow area fill, thin 0.8 px lines, dashed min/mid/max guides and quiet min/max and time labels. The current reading sits in the header for one sensor. Multiple same-unit sensors share one axis with solid/dashed/dotted patterns and a compact reading legend. Missing history stays a gap; missing current values remain explicit.
 
-Collection version: see [the shared version](../../ikio/package.json). Native HA frontend target: 2026.10. This code has automated DOM/behaviour validation; native HA/device compatibility still needs live verification.
+Add Ikio Graph through the visual card picker after installing the collection through HACS. Pick one or more numeric sensors and optional display names. **History hours** defaults to six. **Show readings** defaults on (the existing saved key is `show_legend`). The optional **Colour range** disclosure accepts minimum/maximum values; blank means automatic from the visible history. Per-sensor colour overrides remain available in each entity row. Existing saved ranges keep their behaviour. The plot's axis always follows the visible history; mixed units are rejected instead of sharing a misleading scale.
 
-## Installation
+Use Home Assistant's native **Layout** settings in a Sections dashboard to resize the card. Graph advertises a six-column, three-row default and three-column/three-row minimum. The chart fills the assigned width and height while text and line thickness remain readable. Other dashboard layouts control their own sizing. No separate Ikio height/width field is needed. Existing `grid_options`, `view_layout`, visibility and other HA metadata survive visual edits.
 
-From the root run `npm ci`, `npm run build`, `npm run package:ikio`. Copy only `ikio.js` and the eleven `ikio-*-card/` folders from the generated collection to `/config/www/ikio` and add `/local/ikio/ikio.js?v=0.6.1` as a JavaScript module in Settings → Dashboards → Resources. Keep every module and lazy `chunks/` directory. Alternatively install this card’s complete `dist/` directory and register its own `ikio-graph-card.js`. Use only one route.
+The shared **Actions** section and dark/light/Home Assistant **Appearance** selector remain available. Defaults keep native entity details on the single-sensor title and readings; custom header tap/hold actions do not replace the individual reading controls. Tap or hold a legend reading to open its native details.
 
-Add card → Ikio Graph. Configure all fields through the visual editor. No YAML required. No household entities are guessed.
-
-## Visual editor fields
-
-| Field | Setting |
-|---|---|
-| hours | History hours |
-| expected_min | Expected minimum |
-| expected_max | Expected maximum |
-| show_legend | Show current-value legend |
-
-### Graph entities
-Add, remove and reorder rows in the editor.
-
-- **Numeric entity** (entity)
-- **Display name** (name)
-- **Expected minimum (optional override)** (expected_min)
-- **Expected maximum (optional override)** (expected_max)
-
-## Shared behaviour
-
-Dark, light and follow-HA appearance use the same shared Ikio styles. Controls have at least 44 px targets; readings remain useful when another entity is offline. Native entity details open on hold. No service call is made in the editor preview. Backend errors remain visible. Optional entities may be omitted. See [full contract](../../docs/ikio/SPECIFICATION.md) and [collection status](../../docs/ikio/STATUS.md).
-
-No external runtime CDN dependencies. esbuild MIT license is copied into the build output. Shared UI/graph code is bundled locally.
+Collection version: [ikio/package.json](../../ikio/package.json). Build/package from the root with the standard repository checks. Automated unit/browser fixtures use simulated data and do not establish native Home Assistant or device outcomes.

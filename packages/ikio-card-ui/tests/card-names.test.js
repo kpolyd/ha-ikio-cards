@@ -26,9 +26,7 @@ test("all renamed cards and editors register with current names and no legacy al
     climate: "Climate",
     dehumidifier: "Dehumidifier",
     media: "Media",
-    camera: "Camera",
     vacuum: "Vacuum",
-    appliances: "Appliances",
     graph: "Graph",
     chip: "Chip",
   };
@@ -50,7 +48,7 @@ test("all renamed cards and editors register with current names and no legacy al
     assert.ok(card.shadowRoot.textContent.length, id);
     card.remove();
   }
-  assert.equal(window.customCards.length, 18);
+  assert.equal(window.customCards.length, 16);
   for (const old of [
     "light",
     "energy",
@@ -60,6 +58,8 @@ test("all renamed cards and editors register with current names and no legacy al
     "comfort",
     "cleaning",
     "appliance",
+    "appliances",
+    "camera",
   ])
     assert.equal(customElements.get(`ikio-${old}-card`), undefined);
   dom.window.close();

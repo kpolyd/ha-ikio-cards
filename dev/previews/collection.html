@@ -104,11 +104,9 @@
       "lights",
       "climate",
   "dehumidifier",
-      "appliances",
       "media",
       "vacuum",
       "alarmo",
-      "camera",
       "electricity",
       "server-monitor",
       "vehicle",
@@ -262,14 +260,6 @@ state("media_player.tv", "playing", {
     tank_full_entity: "binary_sensor.dehumidifier_tank",
     fan_entity: "select.dehumidifier_fan",
   },
-      "appliances": {
-        name: "Water heater",
-        entity: "switch.heater",
-        power_entity: "sensor.heater",
-        timed_runs: [
-          { label: "Start 30-minute run", start_script: "script.timed_heater" },
-        ],
-      },
       media: {
  name: "Living room speaker", entity: "media_player.tv", power_entity: "sensor.media_power",
  more_controls: [{ entity: "light.strip", name: "Backlight" }, { entity: "scene.movie", name: "Movie night" }],
@@ -280,13 +270,6 @@ state("media_player.tv", "playing", {
         entity: "alarm_control_panel.home",
         persons: [{ entity: "person.owner", name: "Resident" }],
         contacts: [{ entity: "binary_sensor.window", name: "Kitchen window" }],
-      },
-      camera: {
-        name: "Living room camera",
-        entity: "camera.room",
-        power_switch: "switch.camera",
-        snapshot_automation: "automation.snapshots",
-        snapshot_script: "script.snapshot",
       },
       "electricity": {
         name: "Home energy",

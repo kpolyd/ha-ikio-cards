@@ -38,3 +38,8 @@ Replace the YAML `type` values below. Update individual bundle resource filename
 The locked Media redesign always displays available artwork as a background behind the playing title, transport and timeline. `show_artwork` is removed. Volume becomes a compact minus/mute-and-percentage/plus control; `volume_step` defaults to 5 percentage points, used for known numeric volume with volume-set support. Native step-only players retain their integration's native step. Existing player/name/volume/source/power/appearance bindings and dashboard metadata remain. Source and volume are hidden while off.
 
 Replace the fixed `backlight_entity` and `shortcuts` with the new repeatable `more_controls` list of `{ entity, name? }` entries. Accept light/switch/scene/script entities. If the new list is absent, normalization puts the old backlight first and then old shortcuts in their existing order, mapping each shortcut `label` to `name`. An explicitly configured new list, including `[]`, wins. Saving the visual editor removes legacy keys without mutating the input object. No manual migration or new resource is needed.
+
+
+## Removal of Appliances and Camera
+
+The collection now contains sixteen cards. Remove or replace any dashboard uses of `custom:ikio-appliances-card` and `custom:ikio-camera-card` before upgrading to a release containing this removal. Those card/editor registrations are no longer included. Other card identifiers are unchanged. Graph keeps existing entity lists, names, colour ranges, `show_legend`, history duration, actions and native layout metadata. New Graph configurations use automatic colour ranges unless overridden.

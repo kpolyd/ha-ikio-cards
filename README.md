@@ -4,18 +4,16 @@
 
 Compact, mobile-first Home Assistant cards with a consistent design and visual configuration editors.
 
-Eighteen independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
+Sixteen independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
 
 | Card | Purpose |
 |---|---|
 | [Lights](cards/ikio-lights-card/README.md) | Compact light/switch buttons with location labels |
 | [Climate](cards/ikio-climate-card/README.md) | Room readings, climate, humidifier and fan |
 | [Dehumidifier](cards/ikio-dehumidifier-card/README.md) | Target humidity, device modes and optional fan/tank readings |
-| [Appliances](cards/ikio-appliances-card/README.md) | Power, energy and optional backend timed runs |
 | [Media](cards/ikio-media-card/README.md) | Artwork background, compact playback/volume controls and repeatable extra entities |
 | [Vacuum](cards/ikio-vacuum-card/README.md) | State-aware vacuum actions and suction selection |
 | [Alarmo](cards/ikio-alarmo-card/README.md) | Alarm, contacts, presence and optional Alarmo override |
-| [Camera](cards/ikio-camera-card/README.md) | On-demand live view and optional snapshot controls |
 | [Electricity](cards/ikio-electricity-card/README.md) | Current power, billing-cycle totals/costs and device breakdown |
 | [Batteries](cards/ikio-battery-card/README.md) | Automatic battery discovery, low-first sorting and replacement summary |
 | [Entity](cards/ikio-entity-card/README.md) | One light, switch, helper, reading or press action |
@@ -42,7 +40,7 @@ Current collection version: see [`ikio/package.json`](ikio/package.json). The so
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All eighteen cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
+All sixteen cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 
@@ -119,17 +117,9 @@ Actual compiled cards with simulated Home Assistant data. Click an image to open
 
 [![Media](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/screenshots/media/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/index.html#media)
 
-### Camera
-
-[![Camera](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/screenshots/camera/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/index.html#camera)
-
 ### Vacuum
 
 [![Vacuum](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/screenshots/vacuum/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/index.html#vacuum)
-
-### Appliances
-
-[![Appliances](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/screenshots/appliances/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.24.0/index.html#appliances)
 
 ### Graph
 

@@ -44,7 +44,7 @@ export function installRefinement(card) {
     .ikio-refined .ikio-artwork{width:44px;height:44px;object-fit:cover;border-radius:8px}
     .ikio-refined .ikio-track{font-size:15px;line-height:1.35;overflow-wrap:anywhere}
     .ikio-refined .ikio-artist{margin-top:4px;font-size:12px;color:var(--ae-muted);overflow-wrap:anywhere}
-    .ikio-refined .ikio-camera-open,.ikio-refined .ikio-labelled-action{display:flex;align-items:center;justify-content:center;gap:8px}
+    .ikio-refined .ikio-labelled-action{display:flex;align-items:center;justify-content:center;gap:8px}
     .ikio-refined .ikio-transport{justify-content:center}
     .ikio-refined .ikio-transport>.ae-icon{flex:0 0 44px}
     .ikio-refined .ikio-transport .ikio-primary{border-radius:50%}
@@ -53,8 +53,6 @@ export function installRefinement(card) {
     .ikio-refined .ikio-resource>.ae-progress{grid-column:1/-1;height:3px}
     .ikio-refined .ikio-resource>.ae-note{grid-column:1/-1}
     .ikio-refined .ikio-service{border-top:1px solid var(--ae-border);padding-top:8px}
-    .ikio-refined .ikio-camera-placeholder{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;min-height:56px;background:var(--ae-well);border-radius:8px;padding:6px 8px}
-    .ikio-refined .ikio-camera-placeholder>ha-icon{--mdc-icon-size:28px;color:var(--ae-muted)}
     .ikio-refined .ikio-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
     .ikio-refined .ikio-legend-entry{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:6px}
     .ikio-refined .ikio-line-sample{width:22px;border-top:2px solid var(--ae-accent)}
@@ -78,8 +76,6 @@ export function installRefinement(card) {
     .ikio-refined .ikio-vacuum-controls>.ae-row,.ikio-refined .ikio-vacuum-controls>.ae-select{flex:1 1 150px}
     .ikio-refined .ikio-action-bar>.ae-row:first-child{flex:1 1 160px}
     .ikio-refined .ikio-action-bar>.ae-row:last-child{flex:0 1 auto}
-    .ikio-refined .ikio-camera-placeholder>.ae-note{flex:1 1 90px}
-    .ikio-refined .ikio-camera-open{flex:none}
     @container(max-width:310px){.ikio-refined>header>.summary{max-width:80px}}
   `,
     ),

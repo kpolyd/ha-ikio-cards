@@ -1,3 +1,4 @@
+import { demoGraphHistory } from "./fixtures/graph-history.js";
 import {
   electricityIds,
   demoPowerHistory,
@@ -8,9 +9,7 @@ const types = [
   "climate",
   "media",
   "vacuum",
-  "appliances",
   "server-monitor",
-  "camera",
   "graph",
 ];
 const descriptions = {
@@ -20,12 +19,8 @@ const descriptions = {
     "Compact track information, paired audio controls, and a quiet extras footer.",
   vacuum:
     "One obvious cleaning action, quieter battery status, and collapsible maintenance/missions.",
-  appliances:
-    "Direct timed-run choices, distinct manual control, and inline confirmation.",
   "server-monitor":
     "One resource strip, paired supporting readings, and services tucked away.",
-  camera:
-    "Explicit on-demand live view, a quiet control strip, and expandable automation settings.",
   graph:
     "Current readings with line-pattern samples matching the plotted series.",
 };
@@ -118,10 +113,6 @@ state("script.run_30", "off");
 state("script.run_60", "off");
 state("script.stop_run", "off");
 state("timer.appliance", "idle");
-state("camera.room", "idle");
-state("switch.camera", "on");
-state("automation.snapshots", "on");
-state("script.snapshot", "off");
 state("script.restart", "off");
 state("script.clean_kitchen", "off");
 state("switch.service", "on");
@@ -172,22 +163,6 @@ const configs = {
     maintenance: [{ entity: "sensor.brush", name: "Main brush remaining" }],
     missions: [{ entity: "script.clean_kitchen", label: "Clean kitchen" }],
   },
-  appliances: {
-    name: "Water heater",
-    entity: "switch.appliance",
-    power_entity: "sensor.appliance_power",
-    energy_entity: "sensor.energy",
-    confirm_manual_on: true,
-    timed_runs: [
-      {
-        label: "30 minutes",
-        start_script: "script.run_30",
-        timer_entity: "timer.appliance",
-      },
-      { label: "60 minutes", start_script: "script.run_60" },
-    ],
-    stop_script: "script.stop_run",
-  },
   "server-monitor": {
     name: "Home server",
     availability_entity: "binary_sensor.host",
@@ -210,13 +185,6 @@ const configs = {
         restart_action: "script.restart",
       },
     ],
-  },
-  camera: {
-    name: "Room camera",
-    entity: "camera.room",
-    power_switch: "switch.camera",
-    snapshot_automation: "automation.snapshots",
-    snapshot_script: "script.snapshot",
   },
   graph: {
     name: "Device power",
@@ -244,34 +212,7 @@ const hass = {
               Date.parse(msg.start_time),
               Date.parse(msg.end_time),
             )
-          : Array.from({ length: 50 }, (_, i) => ({
-              lu:
-                (Date.parse(msg.start_time) +
-                  ((Date.parse(msg.end_time) - Date.parse(msg.start_time)) *
-                    i) /
-                    49) /
-                1000,
-              s:
-                i === 20
-                  ? "unavailable"
-                  : String(
-                      id.startsWith("sensor.network_")
-                        ? Math.max(
-                            0,
-                            Number(states[id].state) *
-                              (1 + Math.sin(i * 0.4) * 0.8),
-                          )
-                        : Math.round(
-                            (id === "sensor.office" ? 28 : 135) +
-                              Math.sin(i * 0.4) * 15 +
-                              (i % 17 === 0 ? 80 : 0),
-                          ),
-                    ),
-              a: {
-                unit_of_measurement:
-                  states[id]?.attributes?.unit_of_measurement || "W",
-              },
-            })),
+          : demoGraphHistory(id, states[id], Date.parse(msg.start_time), Date.parse(msg.end_time)),
       ]),
     ),
   callService: async (domain, service, data) => {
@@ -337,15 +278,6 @@ const hass = {
     setTimeout(update, 80);
   },
 };
-window.loadCardHelpers = async () => ({
-  createCardElement: async () => {
-    const node = document.createElement("div");
-    node.style.cssText =
-      "min-height:170px;display:grid;place-items:center;background:#21353b;color:#a4adb2;border-radius:8px;font:12px system-ui";
-    node.textContent = "Simulated live view · no camera connected";
-    return node;
-  },
-});
 function update() {
   for (const card of cards) card.hass = { ...hass, states: { ...states } };
 }
@@ -354,10 +286,7 @@ for (const type of types) {
   section.id = type;
   section.dataset.card = type;
   const h = document.createElement("h2");
-  h.textContent =
-    type === "appliances"
-      ? "Appliances"
-      : type[0].toUpperCase() + type.slice(1);
+  h.textContent = type[0].toUpperCase() + type.slice(1);
   const card = document.createElement("ikio-" + type + "-card");
   const caption = document.createElement("p");
   caption.textContent = descriptions[type];
