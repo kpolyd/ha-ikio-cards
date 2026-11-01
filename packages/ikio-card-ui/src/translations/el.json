@@ -671,5 +671,11 @@
   "Show readings": "Εμφάνιση τιμών",
   "Minimum colour value (empty = Auto)": "Ελάχιστη τιμή χρώματος (κενό = Αυτόματα)",
   "Maximum colour value (empty = Auto)": "Μέγιστη τιμή χρώματος (κενό = Αυτόματα)",
-  "Colour range (optional)": "Εύρος χρωμάτων (προαιρετικό)"
+  "Colour range (optional)": "Εύρος χρωμάτων (προαιρετικό)",
+  "Primary numeric entity": "Κύρια αριθμητική οντότητα",
+  "Secondary entity (optional)": "Δευτερεύουσα οντότητα (προαιρετική)",
+  "Show minimum and maximum": "Εμφάνιση ελάχιστης και μέγιστης τιμής",
+  "Show time labels": "Εμφάνιση ενδείξεων ώρας",
+  "Display options must be toggles": "Οι επιλογές εμφάνισης πρέπει να είναι διακόπτες",
+  "Choose a primary numeric entity in the visual editor.": "Επιλέξτε μια κύρια αριθμητική οντότητα στον οπτικό επεξεργαστή."
 }

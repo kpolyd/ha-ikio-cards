@@ -12,6 +12,7 @@ export const cards = [
   "media",
   "vacuum",
   "graph",
+  "mini-graph",
   "chip",
   "router",
   "weather",

@@ -7,17 +7,13 @@
       "behavior": "light"
     },
     {
-      "object": "studio-screen",
-      "entity": "screen",
-      "behavior": "screen",
-      "activeStates": ["playing"],
-      "activeMaterial": {
-        "color": "#5599bb"
-      }
-    },
-    {
       "object": "studio-window",
       "entity": "window",
+      "behavior": "opening"
+    },
+    {
+      "object": "studio-door",
+      "entity": "door",
       "behavior": "opening"
     }
   ],
@@ -41,6 +37,16 @@
         "z": 1.5
       },
       "icon": "window"
+    },
+    {
+      "entity": "door",
+      "type": "contact",
+      "position": {
+        "x": 1.1,
+        "y": 2.2,
+        "z": 3
+      },
+      "icon": "door"
     }
   ],
   "groups": [],

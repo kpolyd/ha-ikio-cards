@@ -220,6 +220,7 @@ export function graph(
     sparkline = false,
     areaFill = false,
     timeLabels = false,
+    timeLabelCount = 4,
     colourStops = stops,
     graphId = ++graphSequence,
   } = {},
@@ -259,8 +260,8 @@ export function graph(
   const xMin = start ?? Math.min(...data.map((p) => p.time)),
     xMax = end ?? Math.max(...data.map((p) => p.time));
   const timeTicks = Array.from(
-    { length: 4 },
-    (_, index) => xMin + ((xMax - xMin) * index) / 3,
+    { length: timeLabelCount },
+    (_, index) => xMin + ((xMax - xMin) * index) / (timeLabelCount - 1),
   );
   const width = 360,
     height = 100,

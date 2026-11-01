@@ -1,5 +1,6 @@
 import { demoGraphHistory } from "./graph-history.js";
 import { addBatteryFixtures } from "./battery.js";
+import { completeDemo } from "./complete.js";
 import home3dModel from "../../../cards/ikio-home-3d-card/examples/home-model.json";
 import home3dEntities from "../../../cards/ikio-home-3d-card/examples/entities.json";
 import home3dBindings from "../../../cards/ikio-home-3d-card/examples/device-bindings.json";
@@ -21,6 +22,7 @@ window.fetch = async (input, options = {}) => {
   return originalFetch(input, options);
 };
 import mediaArtwork from "../media-artwork.png";
+import vehicleArtwork from "../vehicle.png";
 import {
   electricityIds,
   demoPowerHistory,
@@ -68,6 +70,8 @@ class FixtureStateIcon extends FixtureIcon {
       this._icon || value?.attributes?.icon ||
       (value?.attributes?.unit_of_measurement === "MB"
         ? "mdi:database"
+        : kind === "humidity"
+          ? "mdi:water-percent"
         : kind === "motion"
           ? "mdi:motion-sensor"
           : kind === "door"
@@ -97,6 +101,7 @@ const types = [
   "server-monitor",
   "vehicle",
   "graph",
+  "mini-graph",
   "chip",
   "router",
   "weather",
@@ -161,10 +166,25 @@ state("binary_sensor.demo_entrance", "on", {
   friendly_name: "Front door",
   device_class: "door",
 });
-state("lock.car", "locked");
-state("binary_sensor.car_door", "off");
-state("binary_sensor.car_window", "on");
-state("device_tracker.car", "home", { latitude: 0, longitude: 0 });
+// Fictional vehicle identity and readings; no personal vehicle data.
+state("image.demo_vehicle", "2026-10-26T11:48:00Z", {
+  friendly_name: "Demo vehicle image",
+  entity_picture: vehicleArtwork,
+});
+state("sensor.demo_vehicle_vin", "WVWZZZ1JZ3W000001", {
+  friendly_name: "Demo vehicle VIN",
+  icon: "mdi:identifier",
+});
+state("lock.car", "locked", { friendly_name: "Central locking" });
+state("binary_sensor.car_door", "off", {
+  friendly_name: "Driver door",
+  device_class: "door",
+});
+state("binary_sensor.car_window", "on", {
+  friendly_name: "Passenger window",
+  device_class: "window",
+});
+state("device_tracker.car", "home", { friendly_name: "Demo vehicle" });
 state("vacuum.robot", "docked", {
   friendly_name: "Robot vacuum",
   icon: "mdi:robot-vacuum",
@@ -225,7 +245,7 @@ state("media_player.tv", "playing", {
   is_volume_muted: false,
   media_position: 84,
   media_duration: 250,
-  media_position_updated_at: new Date().toISOString(),
+  media_position_updated_at: new Date(Date.now()).toISOString(),
   source: "Chromecast",
   source_list: ["Chromecast", "TV"],
 });
@@ -352,6 +372,10 @@ const configs = {
   },
   vehicle: {
     name: "Car",
+    image_entity: "image.demo_vehicle",
+    license_plate: "IOT - 6969",
+    plate_country: "GR",
+    vin_entity: "sensor.demo_vehicle_vin",
     range_entity: "sensor.range",
     fuel_entity: "sensor.fuel",
     odometer_entity: "sensor.odometer",
@@ -549,6 +573,8 @@ const hass = {
         attrs.is_volume_muted = data.is_volume_muted;
     }
     if (domain === "select" && data.option) value = data.option;
+    if (domain === "number" && data.value !== undefined) value = String(data.value);
+    if (domain === "button" && service === "press") value = new Date(Date.now()).toISOString();
     if (domain === "media_player" && service === "media_seek") {
       attrs.media_position = data.seek_position;
       attrs.media_position_updated_at = new Date(Date.now()).toISOString();
@@ -573,6 +599,7 @@ const hass = {
   },
 };
 addBatteryFixtures(hass);
+completeDemo(states, configs);
 // Provide simulated HA tokens for the Vacuum Follow Home Assistant preview.
 function applyVacuumTheme(card, theme) {
   if (card.localName !== "ikio-vacuum-card") return;
