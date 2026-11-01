@@ -1,5 +1,18 @@
 # Ikio changelog
 
+## [0.24.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.23.1...v0.24.0) (2026-11-01)
+
+
+### Features
+
+* **cards:** configure tap and hold actions for any entity ([51b034e](https://github.com/kpolyd/ha-ikio-cards/commit/51b034ee43054719a0349edd7e34452a73a95f4d))
+
+
+### Bug Fixes
+
+* **actions:** cancel trailing clicks after entity remapping ([b188b54](https://github.com/kpolyd/ha-ikio-cards/commit/b188b5487286e5c84d41627530f0f9ce01825e35))
+* **editor:** preserve focus while clearing configuration fields ([d488728](https://github.com/kpolyd/ha-ikio-cards/commit/d488728a0f6622b971a521f590f2e7a614043100))
+
 ## [0.23.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.23.0...v0.23.1) (2026-10-31)
 
 
