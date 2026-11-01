@@ -43,6 +43,7 @@ if (
         "review",
         "vehicle",
         "demo",
+        "mini-graph",
       ].includes(name),
   )
 )
@@ -55,6 +56,67 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader"],
 });
 try {
+  if (shouldRun("mini-graph")) {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    try {
+      await page.route("**/*", (r) =>
+        r.request().url().startsWith("file:") ? r.continue() : r.abort(),
+      );
+      await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
+      await page.waitForFunction(() => window.ikioPreview?.ready);
+      const card = page.locator("ikio-mini-graph-card");
+      for (const theme of ["dark", "light", "ha"])
+        for (const width of [176, 280, 390, 640]) {
+          await page.evaluate(
+            (options) => window.ikioPreview.configure(options),
+            { theme, width },
+          );
+          await card.scrollIntoViewIfNeeded();
+          await card.locator(".ae-time-axis span").first().waitFor();
+          assert.equal(await card.locator(".ae-time-axis span").count(), 3);
+          assert.equal(
+            await card.locator(".ae-y-axis [data-extremum]:visible").count(),
+            2,
+          );
+          assert.equal(
+            await card.evaluate(
+              (c) => c.shell.scrollWidth > c.shell.clientWidth + 1,
+            ),
+            false,
+          );
+          const fonts = await card.evaluate((c) =>
+            [".mini-primary .ae-value", ".mini-secondary .ae-value"].map(
+              (s) => getComputedStyle(c.content.querySelector(s)).fontSize,
+            ),
+          );
+          assert.deepEqual(fonts, ["14px", "12px"]);
+          assert.ok((await card.boundingBox()).height <= 104);
+          await card.screenshot({
+            path: `${out}/mini-graph-${theme}-${width}.png`,
+          });
+        }
+      await card.evaluate((c) => {
+        c.hass = {
+          ...c.hass,
+          states: {
+            ...c.hass.states,
+            [c.config.secondary_entity]: { state: "Connected", attributes: {} },
+          },
+        };
+      });
+      assert.match(
+        await card.locator(".mini-secondary").textContent(),
+        /Connected/,
+      );
+      assert.equal(await card.locator(".ae-time-axis span").count(), 3);
+      assert.deepEqual(errors, []);
+      results.push({ card: "mini-graph", passed: true });
+    } finally {
+      await page.close();
+    }
+  }
   if (shouldRun("demo")) {
     const page = await browser.newPage();
     try {

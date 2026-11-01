@@ -226,6 +226,17 @@ export function completeDemo(states, configs) {
     show_precipitation_probability: true,
     show_forecast_wind: true,
   });
+  configs["mini-graph"] = {
+    name: "Living room",
+    primary_entity: "sensor.temperature",
+    secondary_entity: "sensor.humidity",
+    hours: 6,
+    graph_height: 32,
+    expected_min: 18,
+    expected_max: 28,
+    show_extrema: true,
+    show_time_labels: true,
+  };
   for (const config of Object.values(configs))
     config.appearance = { theme: "dark" };
 }

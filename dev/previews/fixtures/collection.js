@@ -70,6 +70,8 @@ class FixtureStateIcon extends FixtureIcon {
       this._icon || value?.attributes?.icon ||
       (value?.attributes?.unit_of_measurement === "MB"
         ? "mdi:database"
+        : kind === "humidity"
+          ? "mdi:water-percent"
         : kind === "motion"
           ? "mdi:motion-sensor"
           : kind === "door"
@@ -99,6 +101,7 @@ const types = [
   "server-monitor",
   "vehicle",
   "graph",
+  "mini-graph",
   "chip",
   "router",
   "weather",

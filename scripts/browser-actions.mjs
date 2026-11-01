@@ -20,7 +20,7 @@ export async function checkActions(browser, out) {
           .map((n) => n.localName)
           .filter((n) => n.startsWith("ikio-") && n !== "ikio-home-3d-card"),
       );
-    assert.equal(types.length, 15);
+    assert.equal(types.length, 16);
     for (const type of types) {
       const card = page.locator(type);
       await card.scrollIntoViewIfNeeded();
