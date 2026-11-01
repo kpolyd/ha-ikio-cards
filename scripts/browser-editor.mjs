@@ -22,12 +22,28 @@ export async function checkEditor(browser, out) {
       customElements.define(
         "ha-form",
         class extends HTMLElement {
+          set data(value) {
+            this._data = value;
+            for (const input of this.querySelectorAll("input")) {
+              const key = input.getAttribute("aria-label");
+              if (input.type === "checkbox")
+                input.checked = Boolean(value[key]);
+              else input.value = value[key] ?? "";
+            }
+          }
+          get data() {
+            return this._data;
+          }
           set schema(value) {
             this._schema = value;
             this.replaceChildren();
             for (const field of value) {
               const input = document.createElement("input");
-              input.type = field.selector?.boolean ? "checkbox" : "text";
+              input.type = field.selector?.boolean
+                ? "checkbox"
+                : field.selector?.number
+                  ? "number"
+                  : "text";
               input.value = this.data[field.name] ?? "";
               input.checked = !!this.data[field.name];
               input.required = !!field.required;
@@ -43,7 +59,11 @@ export async function checkEditor(browser, out) {
                         [field.name]:
                           input.type === "checkbox"
                             ? input.checked
-                            : input.value,
+                            : input.type === "number"
+                              ? input.value === ""
+                                ? undefined
+                                : input.valueAsNumber
+                              : input.value,
                       },
                     },
                   }),
@@ -149,11 +169,65 @@ export async function checkEditor(browser, out) {
       e.hass = { states: {}, locale: { language: "el" } };
     });
     assert.match(await editor.locator("h3").first().textContent(), /Γενικά/);
+    // Real browser Backspace events on a phone-sized viewport, including the
+    // host's JSON roundtrip which drops undefined values and restores defaults.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(async () => {
+      const Card = customElements.get("ikio-climate-card");
+      const editor = await Card.getConfigElement();
+      editor.id = "focus-regression";
+      editor.style.cssText =
+        "display:block;width:340px;--primary-text-color:#17282e;--secondary-text-color:#50645f;--secondary-background-color:#e4eeeb;--divider-color:#bdcfca";
+      editor.setConfig({
+        name: "Office",
+        temperature_step: 1,
+        climate_entity: "climate.example",
+        view_layout: { column: 2 },
+      });
+      editor.hass = { states: {}, locale: { language: "en" } };
+      editor.addEventListener("config-changed", (e) => {
+        const config = JSON.parse(JSON.stringify(e.detail.config));
+        if (config.name === "") delete config.name;
+        editor.setConfig({ ...config, schema_version: 1 });
+      });
+      document.querySelector("#editor-preview").append(editor);
+    });
+    const focusEditor = page.locator("#focus-regression");
+    for (const [key, initial, replacement] of [
+      ["name", "Office", "Room"],
+      ["temperature_step", "1", "2"],
+    ]) {
+      const input = focusEditor.locator(`input[aria-label="${key}"]`);
+      await input.click();
+      await input.press("End");
+      for (let i = 0; i < initial.length; i++) {
+        await input.press("Backspace");
+        assert.equal(
+          await input.evaluate((e) => e.getRootNode().activeElement === e),
+          true,
+          `${key}: retain focus through backspace`,
+        );
+      }
+      assert.equal(await input.inputValue(), "");
+      await input.pressSequentially(replacement);
+      assert.equal(await input.inputValue(), replacement);
+      assert.equal(
+        await focusEditor.evaluate((e, key) => e.config[key], key),
+        key === "temperature_step" ? 2 : "Room",
+      );
+      await input.press("Tab");
+    }
+    assert.deepEqual(await focusEditor.evaluate((e) => e.config.view_layout), {
+      column: 2,
+    });
+    await focusEditor.screenshot({
+      path: resolve(out, "editor-mobile-backspace.png"),
+    });
     assert.deepEqual(errors, []);
     return {
       scenario: "editor",
       status: "passed",
-      note: "Simulated ha-form; shared layout, required markers, input focus, list addition, metadata and Greek labels",
+      note: "Simulated ha-form; shared layout, required markers, input focus, list addition, metadata, Greek labels and mobile-sized Backspace/normalized feedback",
     };
   } finally {
     await page.close();
