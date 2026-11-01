@@ -260,3 +260,34 @@ test("disconnect cancels an armed hold", async () => {
   await new Promise((r) => setTimeout(r, 570));
   assert.deepEqual(calls, []);
 });
+
+test("remapping during a hold cancels the gesture and its trailing click", async () => {
+  const { card, target, calls } = fixture({
+    hold_action: { action: "perform-action", perform_action: "script.old" },
+  });
+  target.dispatchEvent(
+    new dom.window.MouseEvent("pointerdown", { bubbles: true }),
+  );
+  card.setConfig({
+    entity: "switch.demo",
+    tap_action: { action: "perform-action", perform_action: "script.new" },
+  });
+  await new Promise((r) => setTimeout(r, 570));
+  target.dispatchEvent(
+    new dom.window.MouseEvent("pointerup", { bubbles: true }),
+  );
+  target.click();
+  await tick();
+  assert.deepEqual(calls, []);
+  target.dispatchEvent(
+    new dom.window.MouseEvent("pointerdown", { bubbles: true }),
+  );
+  target.dispatchEvent(
+    new dom.window.MouseEvent("pointerup", { bubbles: true }),
+  );
+  target.click();
+  await tick();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][1], "new");
+  card.remove();
+});

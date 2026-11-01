@@ -115,7 +115,7 @@ export function cancelCustomActions(card) {
   card._customActionRequest = null;
   card._customActionReview?.remove();
   card._customActionReview = null;
-  card._cardActionHold?.reset();
+  card._cardActionHold?.reset({ suppressClick: true });
 }
 function confirmation(card, action, run) {
   if (

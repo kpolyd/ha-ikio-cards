@@ -69,8 +69,8 @@ export function bindHold(
     get held() {
       return held;
     },
-    reset() {
-      held = false;
+    reset({ suppressClick = false } = {}) {
+      held = suppressClick && (held || Boolean(origin));
       cancel();
     },
     destroy() {
