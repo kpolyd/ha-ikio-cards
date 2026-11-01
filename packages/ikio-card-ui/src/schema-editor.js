@@ -1,3 +1,4 @@
+import { actionTypes, validateActions } from "./actions.js";
 import { t, language } from "./i18n.js";
 import { element } from "./card.js";
 import {
@@ -11,7 +12,10 @@ export const entity = (name, label, domain, required = false) => ({
   label,
   required,
   selector: {
-    entity: { filter: { domain: Array.isArray(domain) ? domain : [domain] } },
+    entity:
+      domain == null
+        ? {}
+        : { filter: { domain: Array.isArray(domain) ? domain : [domain] } },
   },
 });
 export const number = (name, label, min, max, step = 1) => ({
@@ -46,6 +50,7 @@ export const baseFields = [text("name", "Card name (optional)")];
 export function validateConfig(config, fields, lists = []) {
   if (!config || typeof config !== "object")
     throw Error("Choose entities using the visual editor.");
+  validateActions(config);
   if (config.schema_version && config.schema_version !== 1)
     throw Error("Unsupported configuration version");
   if (
@@ -59,8 +64,10 @@ export function validateConfig(config, fields, lists = []) {
       if (v === undefined || v === "") continue;
       const domains = f.selector?.entity?.filter?.domain;
       if (
-        domains &&
-        (!/^[a-z_]+\.[\w]+$/.test(v) || !domains.includes(v.split(".")[0]))
+        f.selector?.entity &&
+        (typeof v !== "string" ||
+          !/^[a-z_][a-z0-9_]*\.[\w]+$/.test(v) ||
+          (domains && !domains.includes(v.split(".")[0])))
       )
         throw Error(`${f.label}: choose a compatible entity`);
       const n = f.selector?.number;
@@ -370,6 +377,41 @@ export function defineEditor(
           added?.querySelector("summary")?.focus();
         };
         section.append(add);
+      }
+      if (tag !== "ikio-home-3d-card-editor") {
+        const actions = this.disclosure(
+          t(this._hass, "Actions"),
+          "card-actions",
+          this.shadowRoot,
+        );
+        actions.dataset.key = "card-actions";
+        actions.append(
+          element(
+            "p",
+            t(
+              this._hass,
+              "Defaults preserve current behaviour. Actions apply to the tile or card header; device controls keep their own actions. Shift+Enter runs the hold action.",
+            ),
+          ),
+        );
+        this.controls(
+          actions,
+          [
+            entity("action_entity", "Action entity (optional)", undefined),
+            {
+              name: "tap_action",
+              label: "Tap action",
+              selector: { ui_action: { actions: actionTypes } },
+            },
+            {
+              name: "hold_action",
+              label: "Hold action",
+              selector: { ui_action: { actions: actionTypes } },
+            },
+          ],
+          this.config,
+          (value) => this.change({ ...this.config, ...value }),
+        );
       }
       const appearance = this.section("Appearance");
       // Keep this dedicated native form last for the collection-wide contract.

@@ -221,6 +221,43 @@ export async function checkChip(browser, out) {
       assert.equal(light.native, "light.strip");
       assert.equal(light.calls, 0);
     }
+    for (const target of [card, badge]) {
+      await target.scrollIntoViewIfNeeded();
+      const selected = await target.evaluate(async (c) => {
+        const id = "select.chip_source",
+          calls = [];
+        c.setConfig({ ...c.config, entity: id });
+        const states = [];
+        c.hass = { ...c.hass, callService: async (...a) => calls.push(a) };
+        for (const state of ["Grid", "Solar", "unavailable"]) {
+          c.hass = {
+            ...c.hass,
+            states: {
+              ...c.hass.states,
+              [id]: {
+                entity_id: id,
+                state,
+                attributes: { options: ["Grid", "Solar"] },
+              },
+            },
+          };
+          await new Promise((r) =>
+            requestAnimationFrame(() => requestAnimationFrame(r)),
+          );
+          states.push(c.content.querySelector(".ikio-chip-value").textContent);
+        }
+        let opened;
+        c.addEventListener(
+          "hass-more-info",
+          (e) => (opened = e.detail.entityId),
+        );
+        c.content.querySelector("button").click();
+        return { states, opened, calls };
+      });
+      assert.deepEqual(selected.states, ["Grid", "Solar", "unavailable"]);
+      assert.equal(selected.opened, "select.chip_source");
+      assert.deepEqual(selected.calls, []);
+    }
     const server = page.locator("ikio-server-monitor-card");
     for (const theme of ["dark", "light", "ha"])
       for (const width of [280, 320, 390, 520]) {

@@ -170,9 +170,9 @@ test("remapping ignores stale failures and preserves sizing and configuration me
   assert.equal(c.getGridOptions().rows, 1);
   c.remove();
 });
-test("configuration rejects unsupported types and the editor preserves metadata", async () => {
+test("configuration rejects malformed IDs and the unrestricted editor preserves metadata", async () => {
   const { c } = fixture();
-  assert.throws(() => c.setConfig({ entity: "lock.demo" }));
+  assert.throws(() => c.setConfig({ entity: "malformed" }));
   const editor = await Card.getConfigElement();
   editor.setConfig({ entity: "switch.demo", view_layout: { column: 2 } });
   document.body.append(editor);
@@ -182,7 +182,7 @@ test("configuration rejects unsupported types and the editor preserves metadata"
   const f = [...editor.shadowRoot.querySelectorAll("ha-form")].find((f) =>
     f.schema.some((s) => s.name === "entity"),
   );
-  assert(f.schema[0].selector.entity.filter.domain.includes("switch"));
+  assert.deepEqual(f.schema[0].selector.entity, {});
   f.dispatchEvent(
     new CustomEvent("value-changed", {
       detail: { value: { ...f.data, entity: "sensor.demo", name: "New" } },
@@ -220,4 +220,40 @@ test("people display HA states and open details without invoking a service", () 
   };
   assert.match(c.value.textContent, /away|not.home/i);
   c.remove();
+});
+
+test("arbitrary entities show live states and open details without guessing actions", () => {
+  for (const id of [
+    "select.grid_source",
+    "input_select.mode",
+    "number.limit",
+    "input_number.limit",
+    "input_text.note",
+    "climate.room",
+    "cover.window",
+    "lock.door",
+    "script.example",
+    "timer.example",
+    "custom_domain2.example",
+  ]) {
+    const { c, calls } = fixture(id, "Example state");
+    let opened;
+    c.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+    assert.equal(c.value.textContent, "Example state");
+    assert.equal(c.icon.stateObj, c.hass.states[id]);
+    assert.equal(c.dot.hidden, true);
+    assert.equal(c.actionIcon.hidden, true);
+    c.control.click();
+    assert.equal(opened, id);
+    assert.deepEqual(calls, []);
+    for (const state of ["Another state", "unknown", "unavailable"]) {
+      c.hass = { ...c.hass, states: { [id]: { ...c.hass.states[id], state } } };
+      assert.equal(c.value.textContent, state);
+    }
+    c.hass = { ...c.hass, states: {} };
+    assert.match(c.value.textContent, /Entity not found/);
+    c.control.click();
+    assert.deepEqual(calls, []);
+    c.remove();
+  }
 });

@@ -653,5 +653,19 @@
   "light or switch": "φως ή διακόπτη",
   "Metrics": "Μετρήσεις",
   "IP address sensor (optional)": "Αισθητήρας διεύθυνσης IP (προαιρετικό)",
-  "Choose an entity in the visual editor.": "Επιλέξτε μια οντότητα στον οπτικό επεξεργαστή."
+  "Choose an entity in the visual editor.": "Επιλέξτε μια οντότητα στον οπτικό επεξεργαστή.",
+  "Actions": "Ενέργειες",
+  "Action entity (optional)": "Οντότητα ενέργειας (προαιρετική)",
+  "Tap action": "Ενέργεια πατήματος",
+  "Hold action": "Ενέργεια παρατεταμένου πατήματος",
+  "Defaults preserve current behaviour. Actions apply to the tile or card header; device controls keep their own actions. Shift+Enter runs the hold action.": "Οι προεπιλογές διατηρούν την τρέχουσα συμπεριφορά. Οι ενέργειες εφαρμόζονται στο πλακίδιο ή στην κεφαλίδα· τα χειριστήρια συσκευών διατηρούν τις ενέργειές τους. Shift+Enter εκτελεί την ενέργεια παρατεταμένου πατήματος.",
+  "Choose a valid action entity.": "Επιλέξτε έγκυρη οντότητα ενέργειας.",
+  "Choose a supported card action.": "Επιλέξτε υποστηριζόμενη ενέργεια κάρτας.",
+  "Choose an action to perform.": "Επιλέξτε ενέργεια για εκτέλεση.",
+  "Action data and target must be objects.": "Τα δεδομένα και ο στόχος της ενέργειας πρέπει να είναι αντικείμενα.",
+  "Choose a local navigation path.": "Επιλέξτε τοπική διαδρομή πλοήγησης.",
+  "Choose an HTTP or HTTPS URL.": "Επιλέξτε διεύθυνση HTTP ή HTTPS.",
+  "Choose an action entity for this card.": "Επιλέξτε οντότητα ενέργειας για αυτή την κάρτα.",
+  "This entity does not support toggle.": "Αυτή η οντότητα δεν υποστηρίζει εναλλαγή.",
+  "The action did not respond. Check Home Assistant before retrying.": "Η ενέργεια δεν ανταποκρίθηκε. Ελέγξτε το Home Assistant πριν δοκιμάσετε ξανά."
 }

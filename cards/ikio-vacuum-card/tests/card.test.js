@@ -48,7 +48,9 @@ test("editor exposes vacuum and appearance while preserving HA metadata", async 
   editor.hass = { states: {} };
   document.body.append(editor);
   await new Promise((r) => setTimeout(r, 0));
-  const forms = editor.shadowRoot.querySelectorAll("ha-form");
+  const forms = [...editor.shadowRoot.querySelectorAll("ha-form")].filter(
+    (f) => !f.closest('[data-key="card-actions"]'),
+  );
   assert.equal(forms.length, 2);
   assert.deepEqual(
     forms[0].schema.map((f) => f.name),

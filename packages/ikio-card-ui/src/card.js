@@ -1,5 +1,6 @@
 import { bindHaptics } from "./interactions.js";
 import { t, language } from "./i18n.js";
+import { installCardActions, cancelCustomActions } from "./actions.js";
 import { styles } from "./styles.js";
 export function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -43,6 +44,7 @@ export class IkioCard extends HTMLElement {
     this.shadowRoot.append(this.shell);
     this.pending = new Map();
     this.generation = 0;
+    installCardActions(this);
   }
   set hass(value) {
     const previous = this._hass;
@@ -85,6 +87,7 @@ export class IkioCard extends HTMLElement {
   }
   cancelActions() {
     this.generation++;
+    cancelCustomActions(this);
     for (const action of this.pending.values()) clearTimeout(action.timer);
     this.pending.clear();
     this.error.textContent = "";

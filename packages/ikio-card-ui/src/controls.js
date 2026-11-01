@@ -430,7 +430,8 @@ export class ControlCard extends IkioCard {
 export function collectEntities(value) {
   const out = new Set();
   function walk(v) {
-    if (typeof v === "string" && /^[a-z_]+\.[\w]+$/.test(v)) out.add(v);
+    if (typeof v === "string" && /^[a-z_][a-z0-9_]*\.[\w]+$/.test(v))
+      out.add(v);
     else if (Array.isArray(v)) v.forEach(walk);
     else if (v && typeof v === "object") Object.values(v).forEach(walk);
   }

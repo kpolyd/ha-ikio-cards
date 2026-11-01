@@ -1,3 +1,4 @@
+import { checkActions } from "./browser-actions.mjs";
 import { checkElectricity } from "./browser-electricity.mjs";
 import { checkEditor } from "./browser-editor.mjs";
 import { checkReview } from "./browser-review.mjs";
@@ -32,6 +33,7 @@ if (
         "entity",
         "battery",
         "chip",
+        "actions",
         "media",
         "climate",
         "dehumidifier",
@@ -43,7 +45,7 @@ if (
   )
 )
   throw Error(
-    "Choose electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
+    "Choose actions, electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({
@@ -268,6 +270,7 @@ try {
     results.push({ card: "lights", passed: true });
     await page.close();
   }
+  if (shouldRun("actions")) results.push(await checkActions(browser, out));
   if (shouldRun("chip")) results.push(await checkChip(browser, out));
   if (shouldRun("battery")) results.push(await checkBattery(browser, out));
   if (shouldRun("entity")) results.push(await checkEntity(browser, out));

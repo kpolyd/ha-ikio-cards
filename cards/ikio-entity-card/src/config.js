@@ -1,16 +1,6 @@
 import { entity, validateConfig } from "@ikio/card-ui/schema-editor";
-export const domains = [
-  "light",
-  "switch",
-  "input_boolean",
-  "sensor",
-  "person",
-  "binary_sensor",
-  "button",
-  "input_button",
-];
 export const fields = [
-  entity("entity", "Entity", domains, true),
+  entity("entity", "Entity", undefined, true),
   { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
 ];
 export function normalizeConfig(c) {

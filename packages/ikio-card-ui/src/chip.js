@@ -67,9 +67,10 @@ export function sensorChip(card, config, key = config.entity) {
     config.name?.trim() ||
     entityName(card.hass, card.state(config.entity)) ||
     config.entity;
-  const value = config.entity?.startsWith("person.")
-    ? stateText(card.hass, config.entity)
-    : valueText(card.hass, config.entity);
+  const domain = config.entity?.split(".")[0];
+  const value = ["sensor", "number", "input_number", "counter"].includes(domain)
+    ? valueText(card.hass, config.entity)
+    : stateText(card.hass, config.entity);
   const chip = button("", () => details(card, config.entity), {
     entity: config.entity,
     key,
