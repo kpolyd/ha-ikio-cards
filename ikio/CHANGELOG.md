@@ -1,5 +1,16 @@
 # Ikio changelog
 
+## [0.25.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.24.0...v0.25.0) (2026-11-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **graph:** Appliances and Camera cards are no longer registered. Remove or replace their dashboard entries before upgrading.
+
+### Features
+
+* **graph:** simplify charts and remove retired cards ([d24016d](https://github.com/kpolyd/ha-ikio-cards/commit/d24016dc222e00b40b0cf7217a6fa93cc0dad385))
+
 ## [0.24.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.23.1...v0.24.0) (2026-11-01)
 
 
