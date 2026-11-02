@@ -1,5 +1,17 @@
 # Ikio changelog
 
+## [0.26.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.25.0...v0.26.0) (2026-11-02)
+
+
+### Features
+
+* **mini-graph:** add compact primary and secondary readings card ([ce857d8](https://github.com/kpolyd/ha-ikio-cards/commit/ce857d8986202b0f794cdb244297496e07eea5d3))
+
+
+### Bug Fixes
+
+* **demo:** enclose the 3d room with a door and window ([e921619](https://github.com/kpolyd/ha-ikio-cards/commit/e92161953fb1207cc3b4ef92eaf68250b0bfdfd2))
+
 ## [0.25.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.24.0...v0.25.0) (2026-11-01)
 
 
