@@ -1,0 +1,1099 @@
+{
+  "schema": 1,
+  "version": "0.26.0",
+  "sha": "5db06e1ffb531886f21ddfde561987790bea9218",
+  "bundleHash": "19e9d3f98f33fb8e92b00edf88f840de2ef114c8f7f351cd41b63e71095bd611",
+  "galleryHash": "62db9e6504736f71327f99c3201d9616528109f3620d1df5f0a1f1ce63d28bd4",
+  "browser": "141.0.7390.37",
+  "clock": "2026-10-26T12:00:00Z",
+  "captures": [
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/lights/dark-360-normal.png",
+      "sha256": "35bf6787fae120577d1e5c946f1899d7b33a9fb20aa78b44af6efa82f7caf8e8"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/climate/dark-360-normal.png",
+      "sha256": "98fdac023d5dfb9b3db508586248e3a722e3ec7e9412ddf4ca4db61e24ee44db"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/dark-360-normal.png",
+      "sha256": "3db93fcdc320a92dccd33312ff751be26f6107b7724906d1e66291a3902e44cd"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/media/dark-360-normal.png",
+      "sha256": "35c5802c858fe564ca025d075d4c26963e3f0f21e1a68d50d200d4f203a1810f"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/dark-360-normal.png",
+      "sha256": "c478c0a6e05b5b7e15183b9eb82af666bce2cb7fa95ac4966a0cb211b2424c33"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/dark-360-normal.png",
+      "sha256": "1463e055dae9c99bdf1f0a0b95017fcf4d39f41f916fc9c50b521abc7076e74b"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/electricity/dark-360-normal.png",
+      "sha256": "f0b502cccdcc284d0a23716c5071b0e8c791ae16b6e9bbedf439f3d26cd340ae"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/dark-360-normal.png",
+      "sha256": "d18129d2de20087415988d2f5bbfacf47984ca12a5aab71de602279ba0bd9a57"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/dark-360-normal.png",
+      "sha256": "44dbd904722d5e5ed51baf7a2ba04a512c97eb7ac29220869d1d733c7c56334e"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/graph/dark-360-normal.png",
+      "sha256": "ffa7aa760ad64de61c5b0e7c05ab785b6a6cffc10fa8a9e779d588240f61efe5"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/mini-graph/dark-360-normal.png",
+      "sha256": "724a60e1f62aae1d03dbe19eda06dc162a3175da592916a7f3eb834277e6a3b3"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/chip/dark-360-normal.png",
+      "sha256": "a84207d3fc26a5851218a139f457882984b3c06d62866b4cb095906d1b267977"
+    },
+    {
+      "card": "router",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/router/dark-360-normal.png",
+      "sha256": "e1caa588ccf2c29b9ec9c32575f3180e7d3f5cf45704cf4eb7c89c10ce373fba"
+    },
+    {
+      "card": "weather",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/weather/dark-360-normal.png",
+      "sha256": "fa29d27e1ebd6cc1189fa8c8374e840601372ed9f3c3a1a0c7d1a2c98bc9cc34"
+    },
+    {
+      "card": "home-3d",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/home-3d/dark-360-normal.png",
+      "sha256": "e03650f3e648347e807ebd9d637266de63db43d0945a2f8b46ba95ae93306983"
+    },
+    {
+      "card": "entity",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/entity/dark-360-normal.png",
+      "sha256": "a2565db89d58ad4916d3a4d5cc779c724367dd87bdc3f272141c14d5e3fb73f3"
+    },
+    {
+      "card": "battery",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/battery/dark-360-normal.png",
+      "sha256": "71920af13f7ad65ed0259cd86652dc01964277e4901f7610927749cff3f57205"
+    },
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/dark-360-unavailable.png",
+      "sha256": "f358c6490747c850e60632a7766307f37171a12a7c65ba78a69574722b189f92"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/dark-360-unavailable.png",
+      "sha256": "6fe3fb0b5917165debba595ebf37a5d914ea3e3a57330c4a5549a13f6446277d"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/dark-360-unavailable.png",
+      "sha256": "cb49b071f79b262df3a78645f74a03313b951cfb3a08b44e6f643d2de540c391"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/media/dark-360-unavailable.png",
+      "sha256": "7f91f3452b170497aa43e4b491c8b4c0f6defaf6f28191be192affe20cc4418b"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/dark-360-unavailable.png",
+      "sha256": "973945ca267229509dba1887f286cdc993244e87e13182ea9abb22621d68e5d2"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/dark-360-unavailable.png",
+      "sha256": "11431b89a08cffb224b79d0e10b21fe7956e713a671394c9ccc942f3757f803b"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/dark-360-unavailable.png",
+      "sha256": "cdbd4d62810d36ce37d3c813d5da0546302f2f2da54f1c2a5bfd7bd444f59881"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/dark-360-unavailable.png",
+      "sha256": "2201018b88f481939e367d3a3f71c3c6fc10869aa8ad334043282421f8a4e0b7"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/dark-360-unavailable.png",
+      "sha256": "31ae0e1eee49fa0c1a59b192fd2625e894e9185d9028761f2e373600c29aae2d"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/dark-360-unavailable.png",
+      "sha256": "ff6addfeabcdeba9369c75ab90288d51c11db1988a077fb645c6f8c5f06bb4d7"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/mini-graph/dark-360-unavailable.png",
+      "sha256": "15fcba91936c68a3647e2ae132d97a79a6441b69c178b7537aa7fa20d763d482"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/dark-360-unavailable.png",
+      "sha256": "6f1e1c966e5cd43290370c9c7e80fbc5dd0ae7b91207e973f9dc720e9c6a5e39"
+    },
+    {
+      "card": "router",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/router/dark-360-unavailable.png",
+      "sha256": "afa0bf46d3bb206382f7baf07d6553454978afd881d956aaad06decdef84f231"
+    },
+    {
+      "card": "weather",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/weather/dark-360-unavailable.png",
+      "sha256": "f1f66c008273cdfd72ef6ec4af6e0e48b52c49fc85266fe46c468eff734ce2a1"
+    },
+    {
+      "card": "home-3d",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/home-3d/dark-360-unavailable.png",
+      "sha256": "ffac36bd1c5fcd6255e43ed136b54a1645f4ba84fb1b15f34be884d15450c7a9"
+    },
+    {
+      "card": "entity",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/entity/dark-360-unavailable.png",
+      "sha256": "28f3159192ff552f09016a799effdaf62e3c878d70edb19b5fdc4a671423d368"
+    },
+    {
+      "card": "battery",
+      "theme": "dark",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/battery/dark-360-unavailable.png",
+      "sha256": "39a88f310b916d65c5614a476c486cf9bb0ea38d08e63dd15abda051ae8eb8e7"
+    },
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/lights/dark-640-normal.png",
+      "sha256": "f857acc5af7cb2b568e600435b9c87adb9a19737b58cd8a429438055ad5ba842"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/climate/dark-640-normal.png",
+      "sha256": "04031639693c01b1a7d883845b1d6946b26191909b2c1a6a9addb5eaad071fa3"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/dark-640-normal.png",
+      "sha256": "b4bbb67414f5a183e3b17b0734a9f4c47c5ce31e0caa659ce001efdcd564eb74"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/media/dark-640-normal.png",
+      "sha256": "0c2fb8038804895b4b511a56c071d0c94a30811731e1aec964f44ce4b4bee461"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/dark-640-normal.png",
+      "sha256": "82992f9113ac58a76f3943c0ff657447003f3726725ea6babda5d1548112eac8"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/dark-640-normal.png",
+      "sha256": "e56d02955879ab549cc5f5508bfa673638a6656973c46913cefbff9ce98d8bf0"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/electricity/dark-640-normal.png",
+      "sha256": "05202f3fabdb1c09a86ec2c3b5d6952f5cabb8ceff87f3ebbc047e244ba25297"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/dark-640-normal.png",
+      "sha256": "78f3ead4ae4ccf73438f37acc30268840e3631ac87233132df0baf1f22bf638d"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/dark-640-normal.png",
+      "sha256": "acc1bcafcf17b86a02ffd83e16d8ee1a5a6048eb30b0650803aaeefe77519c00"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/graph/dark-640-normal.png",
+      "sha256": "7ef9756deff04397383a702f8d12bad6301bf310ead7ce86450552279159280e"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/mini-graph/dark-640-normal.png",
+      "sha256": "c2c9a77717a5933eeabe483a31aee230ab6a3762607cc84487735d3c9312f69f"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/chip/dark-640-normal.png",
+      "sha256": "c1b423a33a01edac2f9a078b099b0e761605ac24388446691c94b43562a359c0"
+    },
+    {
+      "card": "router",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/router/dark-640-normal.png",
+      "sha256": "d6fc411c63cf2eb3f13743470e00787d91827b2157b4ac2ca2e206e6e1d8db03"
+    },
+    {
+      "card": "weather",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/weather/dark-640-normal.png",
+      "sha256": "bdfe82c9cd2f08276e3e8c9f2d0f7237f484f8bd75c6d692f8dc9157eac09385"
+    },
+    {
+      "card": "home-3d",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/home-3d/dark-640-normal.png",
+      "sha256": "e09d589e149c7496baf0ca727fe2492761a73eb22a13a9793fc9f23da8e43017"
+    },
+    {
+      "card": "entity",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/entity/dark-640-normal.png",
+      "sha256": "2e97dd01cd718405b53fa3f00c3478e321f88526d48dd3e1c7d1d2ab4e2fe0f3"
+    },
+    {
+      "card": "battery",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/battery/dark-640-normal.png",
+      "sha256": "668315ca60788e0b653d1d6a95c66c66e5005a5a3a82cdb49ad0471757edbdb2"
+    },
+    {
+      "card": "lights",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/dark-640-unavailable.png",
+      "sha256": "9e2325efb415e43b1e868a0c189566356162153e3e22ee6ae82a3afce61bd129"
+    },
+    {
+      "card": "climate",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/dark-640-unavailable.png",
+      "sha256": "e2c509c33c8e8876ba28fd82beb0d9e4e13ec3adc76eb70d991e0778663d3868"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/dark-640-unavailable.png",
+      "sha256": "a32b89d88c1ecc4a30c75bd75705bc02232a50754d7bd44121a0e9c6ae958857"
+    },
+    {
+      "card": "media",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/media/dark-640-unavailable.png",
+      "sha256": "bba64c1307d624a9e3b59828ecff9337b8598746a7bd69a8ec5bb20e547d87b5"
+    },
+    {
+      "card": "vacuum",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/dark-640-unavailable.png",
+      "sha256": "eb24c17a276a09dfe90b03cee09926955c1c1b35c9c1740fe8c180dc9c52db8f"
+    },
+    {
+      "card": "alarmo",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/dark-640-unavailable.png",
+      "sha256": "dd1a106f5fb6659525b7546a724de053a9eeae998b1c605f9d66db439a5aea60"
+    },
+    {
+      "card": "electricity",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/dark-640-unavailable.png",
+      "sha256": "0606c590a0da35c66efaf9600bcd9090f05ce341677d2b9d8e6b84bd043fca8e"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/dark-640-unavailable.png",
+      "sha256": "0180960d4f89272328fc194f0a0298edebe32e3da1d1f25539a64df88bf8cc73"
+    },
+    {
+      "card": "vehicle",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/dark-640-unavailable.png",
+      "sha256": "1263b6f4d255a13c0c83df0eeae6ec7b586272d4c56261b5d5c40d3d84d72d3a"
+    },
+    {
+      "card": "graph",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/dark-640-unavailable.png",
+      "sha256": "be8e29c2792f007c97354d2c424db9512f55b0496543b3a5d1d47174cffc26f4"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/mini-graph/dark-640-unavailable.png",
+      "sha256": "dc96cf3471144df6783a0a44287d94cb55de9f6fe8beda84238205d7c7590b33"
+    },
+    {
+      "card": "chip",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/dark-640-unavailable.png",
+      "sha256": "b642623676b7bf1d86844f45af54b41c0b34d4103402f1fc3bb7ea2fd27c0308"
+    },
+    {
+      "card": "router",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/router/dark-640-unavailable.png",
+      "sha256": "b218981837cdf878fc0e08424099990ce4e08601f7858547f2ac3967c3e59c44"
+    },
+    {
+      "card": "weather",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/weather/dark-640-unavailable.png",
+      "sha256": "56c9dff7d409939f49ed552aa0a7510d702798f477702cdc77d6e9424f1c8142"
+    },
+    {
+      "card": "home-3d",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/home-3d/dark-640-unavailable.png",
+      "sha256": "176420b548a54379f0015cd30d75bab9f8fd306f7ba34fa7b023e621f2d31bce"
+    },
+    {
+      "card": "entity",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/entity/dark-640-unavailable.png",
+      "sha256": "28b48e571dd682ad84041111bd97ee02a93bc173a07929aa98b3ef2aed4000e1"
+    },
+    {
+      "card": "battery",
+      "theme": "dark",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/battery/dark-640-unavailable.png",
+      "sha256": "8f79cd12b4f80ec81411cae2ae6e034311055e4cf6246d6a3e82c49f8a22049f"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/lights/light-360-normal.png",
+      "sha256": "4b3625638d9991644d87affc2f22ba77fde1c4337ca6329c8bc7763071648ca9"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/climate/light-360-normal.png",
+      "sha256": "d2ff36ac0c18fdb9d0570d307277d0c51547493648f67cb5faa6be7ce1cefbf2"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/light-360-normal.png",
+      "sha256": "33fe85fe46916bb7cc3c1580680688ed07e5d54c2810d02dea531ab8e0ad54f3"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/media/light-360-normal.png",
+      "sha256": "205c5a1525a2ef67a14cc3665f2b032a6ae564271f2c4796b2f6103999b6166a"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/light-360-normal.png",
+      "sha256": "1727dc05fcbdf7f45d551b5671cc3d314c8bee964d858d5e891105a34326d7b8"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/light-360-normal.png",
+      "sha256": "88d913fb5681594bb786dec03b742f1e3d0f1a86cb664a36abfd4aa52a180c05"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/electricity/light-360-normal.png",
+      "sha256": "174510744d1241f2fd8c46a80254f075fefbd15edf45ccc14478c025542f6f2f"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/light-360-normal.png",
+      "sha256": "d28ddef36466dd1ee2558fbccf8efebd8c179295bf82d45e16d9d613aee018e4"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/light-360-normal.png",
+      "sha256": "28105e0ef4d7450aedd6eb7d7abc2205558071019092b4a0301a634c05df49e4"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/graph/light-360-normal.png",
+      "sha256": "ef5b6a4f71d9647878c2ea9eb49dd3653d95c77c7e4e80e471006c39fa752822"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/mini-graph/light-360-normal.png",
+      "sha256": "e3fa201fda4d05db72d624dd4285f6bab852b8d8080b3a322ab2022bc9e9934a"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/chip/light-360-normal.png",
+      "sha256": "0ae14d05558ca1f8af1ef7e4e71b6cceeb30baa783424579e9d89552fb40fb5f"
+    },
+    {
+      "card": "router",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/router/light-360-normal.png",
+      "sha256": "9ad36a8f862737a25e39d486a82e06937cd3a8970f20b53daa654e6dbdd5c26f"
+    },
+    {
+      "card": "weather",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/weather/light-360-normal.png",
+      "sha256": "a25fa4ce30fcdb6fcd9edc0d8af0fbd862e190fa4eb3f54810289c91c2d1d91d"
+    },
+    {
+      "card": "home-3d",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/home-3d/light-360-normal.png",
+      "sha256": "20d40b80587d36d4e229679515bc4662a3a0bc8b39e40df9abe7e99e5d6fe297"
+    },
+    {
+      "card": "entity",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/entity/light-360-normal.png",
+      "sha256": "4244c3fe918719eb57c057745d869a442f09820bc2b12288f96aac9464008bf6"
+    },
+    {
+      "card": "battery",
+      "theme": "light",
+      "width": 360,
+      "scenario": "normal",
+      "file": "screenshots/battery/light-360-normal.png",
+      "sha256": "6bcae8e8cce76370d7612bec5faaa942d22da13aa83c16e7f398550c2849d02b"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/light-360-unavailable.png",
+      "sha256": "6b02350f0d4f20334cd0ab4a2ab4f61a2511e5ea00514ae982337b489f0c8641"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/light-360-unavailable.png",
+      "sha256": "e0a1a38d04d282f5476a25f015717166e3fbc413e0a01df4f94492133f8edb09"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/light-360-unavailable.png",
+      "sha256": "53921324157caafdd6f7c194076cb64c218ca468b8fa3a2cb420e24251f9c8be"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/media/light-360-unavailable.png",
+      "sha256": "90a4d31889d21e4901221996465197db828449a47fe5e16d5bc01e311bd95554"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/light-360-unavailable.png",
+      "sha256": "8c26243dca58eb44764d741eb718caebbe39045511ef6fb7bd2b8ea662880a5d"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/light-360-unavailable.png",
+      "sha256": "e44ff90d0ee1230466b3c1441c19977ab31aae7e4fe97be6b0d8cab38a3d2ae7"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/light-360-unavailable.png",
+      "sha256": "e5e2159ac2b2d7bdae3584d35d139f2e7bd381cc0d1e2150e67a8d2ce390d75a"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/light-360-unavailable.png",
+      "sha256": "e22feab55149edc11a457e36e4b619fdf0ec161a15fbbd9ac8241ebc5aae22d2"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/light-360-unavailable.png",
+      "sha256": "e72083189cfbc3082665540844e67d74b512e4e712e69e551616c46b239c96b3"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/light-360-unavailable.png",
+      "sha256": "b27a512c345b666b306aa5c4e177016e82b79eed3ec3a59495541df5318d6e9f"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/mini-graph/light-360-unavailable.png",
+      "sha256": "bcf690ceb18bb5374cfad8e2d5376de23bcf1f42135baa7cd012d1bea4755a5b"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/light-360-unavailable.png",
+      "sha256": "e7581ab4a839ebc5591b9cbee18fdd225f24991e80539eced217e2c06e731023"
+    },
+    {
+      "card": "router",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/router/light-360-unavailable.png",
+      "sha256": "8055b4fba0e51f3d01747a48fb56b041889ccc128bc9e9c403fc973d5079cac1"
+    },
+    {
+      "card": "weather",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/weather/light-360-unavailable.png",
+      "sha256": "0d0897a0f424eb21f520d273515de80ce6ef49cdca74a66470839db7225e5a1a"
+    },
+    {
+      "card": "home-3d",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/home-3d/light-360-unavailable.png",
+      "sha256": "1c51807e1294783411c68cc4e7ee5424382aeb52e2f31ff2a12f9cdfdb5d46d0"
+    },
+    {
+      "card": "entity",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/entity/light-360-unavailable.png",
+      "sha256": "81fc5e4bfcba5ac150b0eb6c5ccdc14e5761c7c32b947dd0337d3a5fbfdbe0f0"
+    },
+    {
+      "card": "battery",
+      "theme": "light",
+      "width": 360,
+      "scenario": "unavailable",
+      "file": "screenshots/battery/light-360-unavailable.png",
+      "sha256": "da9b0a75403cdcdf21f38fa4ba7fcfe083fd6f8af45702f70de51e1ce647af58"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/lights/light-640-normal.png",
+      "sha256": "79262a5dfff50190431e4244289a03d8a1a782d45c2ae2439a2323b62971ff01"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/climate/light-640-normal.png",
+      "sha256": "ab6f6894299c38507ff9869e018871b290648f0ac182d91c40eb5bcfc71204bb"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/dehumidifier/light-640-normal.png",
+      "sha256": "939ff8053faba81a7ee64055874af493590368a9504de16c6f0665ec75f44bee"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/media/light-640-normal.png",
+      "sha256": "e2de7fcc5a1649314a0184862144a1261313cb21895436dba33c95ee4492b994"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vacuum/light-640-normal.png",
+      "sha256": "86467c899f87796ba71a57aac64e3f2f1d5a0c69e89b37d713dd2d94a7025846"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/alarmo/light-640-normal.png",
+      "sha256": "c05e7ef6f3b7d017a42dc96e8f5e1fd41110cd9ab4ac228bcbe8638455cbe32b"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/electricity/light-640-normal.png",
+      "sha256": "3a218a0967684802aeab5104d840e59e352ec8c4db310a4a91056bb406412001"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/server-monitor/light-640-normal.png",
+      "sha256": "7a8291157412d4ddbc7e438cb4339a13fc8ca80e7ab94affaff84bb97aac8747"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/vehicle/light-640-normal.png",
+      "sha256": "e1c520b1b828361d1e93c424fb6aa2731bd509efc12f7f701e337d56d78fc719"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/graph/light-640-normal.png",
+      "sha256": "41247e2a6d5181b88b45a9d8654a43aca993336e6dc9457f9007d41b48ec4836"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/mini-graph/light-640-normal.png",
+      "sha256": "dcb661bb853ceaea4d78d3bdc2f61afed39ca255f5778f1b3c5eaaa5404632ce"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/chip/light-640-normal.png",
+      "sha256": "2d307b3d23b4d5693eb79a5812874a2527b2ffee68aa9d3d70069d8b8d907feb"
+    },
+    {
+      "card": "router",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/router/light-640-normal.png",
+      "sha256": "7f47dc5901381160f61870fbda4ae5df1f1161e39fe1ebaabdb0ad5866d1b1ad"
+    },
+    {
+      "card": "weather",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/weather/light-640-normal.png",
+      "sha256": "7451567f82bc875703d2b25e2339804aca49dca3c5cc6333ff1436411d95aac9"
+    },
+    {
+      "card": "home-3d",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/home-3d/light-640-normal.png",
+      "sha256": "55e47c244705446de5503f67b1c35a6bbf72f402e5fbcc83f2fbfb3952c113bc"
+    },
+    {
+      "card": "entity",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/entity/light-640-normal.png",
+      "sha256": "0e79b727448bb49677d5fe41ea7a9ac42c40f6c4250ad51dc458c73a0ae30af5"
+    },
+    {
+      "card": "battery",
+      "theme": "light",
+      "width": 640,
+      "scenario": "normal",
+      "file": "screenshots/battery/light-640-normal.png",
+      "sha256": "8e46fb33ade448dfa77750a5575225d90fdc08bc49928ddb9439b9b013670429"
+    },
+    {
+      "card": "lights",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/lights/light-640-unavailable.png",
+      "sha256": "17f9c3f9faff14ed0376f591ff96fdc618e666fd7634ff64e5add4bc12f0d0c1"
+    },
+    {
+      "card": "climate",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/climate/light-640-unavailable.png",
+      "sha256": "0e4ac7076da6735e16462de2008d0192e293483374d0de57edd7436254ba5653"
+    },
+    {
+      "card": "dehumidifier",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/dehumidifier/light-640-unavailable.png",
+      "sha256": "e46107574204294e09eeed848f648011d68ca9de4b24a9f30f4e958218a8b370"
+    },
+    {
+      "card": "media",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/media/light-640-unavailable.png",
+      "sha256": "a32afe768f16ed892ea5efa9f88774896e01f3ca209627e2f21882f33d0cfeaf"
+    },
+    {
+      "card": "vacuum",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vacuum/light-640-unavailable.png",
+      "sha256": "a32cf6bcaa50f97d917334fbe399e5ac2e1111e742640a1b6d3dda9c285d3a4e"
+    },
+    {
+      "card": "alarmo",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/alarmo/light-640-unavailable.png",
+      "sha256": "1b4839d90e9c6367757e4a552a9fd73275e5aff85db15e9a5e40feb6ba3dd3db"
+    },
+    {
+      "card": "electricity",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/electricity/light-640-unavailable.png",
+      "sha256": "5a9eae3cc5aa87e7d05c32993a126610cbe0387c1ea33a002260ebd1e7cc7153"
+    },
+    {
+      "card": "server-monitor",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/server-monitor/light-640-unavailable.png",
+      "sha256": "fa12e0b825670b2fa9d42afe5a6380c2ef18ab20413e935d5454f299b0f0eaa7"
+    },
+    {
+      "card": "vehicle",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/vehicle/light-640-unavailable.png",
+      "sha256": "54b4461c4df65a20082b82376c1d51a5cbeb5e34d710044cbf1c2bf082c45a1b"
+    },
+    {
+      "card": "graph",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/graph/light-640-unavailable.png",
+      "sha256": "24dc75b0820d6efc093dd963b3ae124e462cdd74356a0a989ca68170834743a7"
+    },
+    {
+      "card": "mini-graph",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/mini-graph/light-640-unavailable.png",
+      "sha256": "4e6448f206bba9f2ffdf06b6895889893deccbcc59a9ff945b92292e8d3d1f48"
+    },
+    {
+      "card": "chip",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/chip/light-640-unavailable.png",
+      "sha256": "2744adf9d4b0c47be533b5ab369cfae2346e9b4c9fdecaacba0dfe634c691be1"
+    },
+    {
+      "card": "router",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/router/light-640-unavailable.png",
+      "sha256": "8318722ea7348ce47263e9377b5da2696885543c5d6f188646d1c2843c3da970"
+    },
+    {
+      "card": "weather",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/weather/light-640-unavailable.png",
+      "sha256": "283e5300e9dee0b1efa4af0617e9f7708c28161a786b37569009165a1c2ba32e"
+    },
+    {
+      "card": "home-3d",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/home-3d/light-640-unavailable.png",
+      "sha256": "dfa57f97e12ab12937b610c84a3102a289344ec7db2ffde9ab57f5187196bfff"
+    },
+    {
+      "card": "entity",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/entity/light-640-unavailable.png",
+      "sha256": "6fe311df7d20e57304dcd4a538fdfc94ecf16c525dc97f572053cb1a498c0c76"
+    },
+    {
+      "card": "battery",
+      "theme": "light",
+      "width": 640,
+      "scenario": "unavailable",
+      "file": "screenshots/battery/light-640-unavailable.png",
+      "sha256": "5aafcccb51072587ae37039b56b8773d6a12251813417c9415740f669e6be5ba"
+    }
+  ]
+}
