@@ -41,11 +41,14 @@ if (
         "graph-layout",
         "router",
         "review",
+        "vehicle",
+        "demo",
+        "mini-graph",
       ].includes(name),
   )
 )
   throw Error(
-    "Choose actions, electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, graph-layout, router or review browser scenarios",
+    "Choose actions, electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, vehicle, demo, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({
@@ -53,6 +56,183 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader"],
 });
 try {
+  if (shouldRun("mini-graph")) {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    try {
+      await page.route("**/*", (r) =>
+        r.request().url().startsWith("file:") ? r.continue() : r.abort(),
+      );
+      await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
+      await page.waitForFunction(() => window.ikioPreview?.ready);
+      const card = page.locator("ikio-mini-graph-card");
+      for (const theme of ["dark", "light", "ha"])
+        for (const width of [176, 280, 390, 640]) {
+          await page.evaluate(
+            (options) => window.ikioPreview.configure(options),
+            { theme, width },
+          );
+          await card.scrollIntoViewIfNeeded();
+          await card.locator(".ae-time-axis span").first().waitFor();
+          assert.equal(await card.locator(".ae-time-axis span").count(), 3);
+          assert.equal(
+            await card.locator(".ae-y-axis [data-extremum]:visible").count(),
+            2,
+          );
+          assert.equal(
+            await card.evaluate(
+              (c) => c.shell.scrollWidth > c.shell.clientWidth + 1,
+            ),
+            false,
+          );
+          const fonts = await card.evaluate((c) =>
+            [".mini-primary .ae-value", ".mini-secondary .ae-value"].map(
+              (s) => getComputedStyle(c.content.querySelector(s)).fontSize,
+            ),
+          );
+          assert.deepEqual(fonts, ["14px", "12px"]);
+          assert.ok((await card.boundingBox()).height <= 104);
+          await card.screenshot({
+            path: `${out}/mini-graph-${theme}-${width}.png`,
+          });
+        }
+      await card.evaluate((c) => {
+        c.hass = {
+          ...c.hass,
+          states: {
+            ...c.hass.states,
+            [c.config.secondary_entity]: { state: "Connected", attributes: {} },
+          },
+        };
+      });
+      assert.match(
+        await card.locator(".mini-secondary").textContent(),
+        /Connected/,
+      );
+      assert.equal(await card.locator(".ae-time-axis span").count(), 3);
+      assert.deepEqual(errors, []);
+      results.push({ card: "mini-graph", passed: true });
+    } finally {
+      await page.close();
+    }
+  }
+  if (shouldRun("demo")) {
+    const page = await browser.newPage();
+    try {
+      await page.route("**/*", (route) =>
+        route.request().url().startsWith("file:")
+          ? route.continue()
+          : route.abort(),
+      );
+      await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
+      await page.waitForFunction(() => window.ikioPreview?.ready);
+      for (const theme of ["dark", "light"])
+        for (const width of [280, 390]) {
+          await page.evaluate(
+            (options) => window.ikioPreview.configure(options),
+            { theme, width },
+          );
+          const overflow = await page.evaluate(() =>
+            window.ikioPreview.cards
+              .filter(
+                (c) => c.shell && c.shell.scrollWidth > c.shell.clientWidth + 2,
+              )
+              .map((c) => c.localName),
+          );
+          assert.deepEqual(
+            overflow,
+            [],
+            `Full demo ${theme}/${width} overflow`,
+          );
+        }
+      const { configs, states } = await page.evaluate(() => ({
+        configs: window.ikioPreview.configs,
+        states: window.ikioPreview.states,
+      }));
+      // Schema helpers share a module with the base custom-element class.
+      const { JSDOM } = await import("jsdom");
+      const dom = new JSDOM();
+      globalThis.HTMLElement = dom.window.HTMLElement;
+      const checkFields = (fields, config, label) => {
+        for (const field of fields) {
+          const value = config[field.name];
+          assert.notEqual(
+            value,
+            undefined,
+            `${label}.${field.name} is missing demo data`,
+          );
+          if (field.selector?.entity) {
+            assert.ok(
+              states[value],
+              `${label}.${field.name} needs a simulated entity`,
+            );
+            assert.ok(states[value].state.length > 0);
+          }
+        }
+      };
+      for (const [type, config] of Object.entries(configs)) {
+        const schema = await import(
+          pathToFileURL(resolve(`cards/ikio-${type}-card/src/config.js`))
+        );
+        checkFields(schema.fields, config, type);
+        for (const list of schema.lists || []) {
+          assert.ok(
+            config[list.name]?.length,
+            `${type}.${list.name} needs demo rows`,
+          );
+          for (const row of config[list.name])
+            checkFields(list.fields, row, `${type}.${list.name}`);
+        }
+      }
+      delete globalThis.HTMLElement;
+      dom.window.close();
+      results.push({ card: "complete-demo-fields", passed: true });
+    } finally {
+      await page.close();
+    }
+  }
+  if (shouldRun("vehicle")) {
+    const page = await browser.newPage();
+    try {
+      await page.route("**/*", (route) =>
+        route.request().url().startsWith("file:")
+          ? route.continue()
+          : route.abort(),
+      );
+      await page.goto(pathToFileURL(resolve("dist/previews/index.html")).href);
+      await page.waitForFunction(() => window.ikioPreview?.ready);
+      const card = page.locator("ikio-vehicle-card");
+      for (const theme of ["dark", "light"])
+        for (const width of [280, 360, 640]) {
+          await page.evaluate(
+            (options) => window.ikioPreview.configure(options),
+            { theme, width },
+          );
+          await card.scrollIntoViewIfNeeded();
+          const image = card.locator(".ae-drive-image");
+          await image.evaluate((img) => img.decode());
+          assert.ok(await image.evaluate((img) => img.naturalWidth > 0));
+          assert.equal(
+            await card.locator(".ae-drive-plate-number").textContent(),
+            "IOT - 6969",
+          );
+          assert.equal(
+            await card.locator(".ae-drive-vin .ae-value").textContent(),
+            "WVWZZZ1JZ3W000001",
+          );
+          assert.ok(
+            await card.evaluate((c) => c.scrollWidth <= c.clientWidth + 1),
+          );
+          await card.screenshot({
+            path: `${out}/vehicle-${theme}-${width}.png`,
+          });
+        }
+      results.push({ card: "vehicle", passed: true });
+    } finally {
+      await page.close();
+    }
+  }
   if (shouldRun("electricity"))
     results.push(await checkElectricity(browser, out));
   if (shouldRun("editor")) results.push(await checkEditor(browser, out));
@@ -500,15 +680,24 @@ try {
     );
     const name =
       type === "climate" ? "Increase target" : "Increase target humidity";
+    const expectedTarget = await card.evaluate((c) =>
+      c.localName === "ikio-climate-card"
+        ? Number(
+            c.hass.states[c.config.climate_entity].attributes.temperature,
+          ) + c.config.temperature_step
+        : Number(
+            c.hass.states[c.config.humidifier_entity].attributes.humidity,
+          ) + c.config.humidity_step,
+    );
     await card.getByRole("button", { name, exact: true }).click();
     await page.waitForFunction(
-      (type) =>
+      ({ type, expectedTarget }) =>
         type === "climate"
           ? window.ikioPreview.states["climate.room"].attributes.temperature ===
-            22.5
+            expectedTarget
           : window.ikioPreview.states["humidifier.room"].attributes.humidity ===
-            55,
-      type,
+            expectedTarget,
+      { type, expectedTarget },
     );
     // Wait for the rendered confirmation before the next action.
     await page.waitForFunction(
@@ -628,7 +817,8 @@ try {
           await page.waitForFunction(
             () =>
               window.ikioPreview.states["climate.room"].attributes
-                .target_temp_high === 25.5,
+                .target_temp_high ===
+              25 + window.ikioPreview.configs.climate.temperature_step,
           );
           assert.equal(
             await page.evaluate(

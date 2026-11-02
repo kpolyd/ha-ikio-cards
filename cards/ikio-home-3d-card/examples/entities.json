@@ -9,15 +9,6 @@
     }
   },
   {
-    "id": "screen",
-    "entity": "media_player.example_screen",
-    "name": "Screen",
-    "room": "Studio",
-    "demo": {
-      "state": "off"
-    }
-  },
-  {
     "id": "window",
     "entity": "binary_sensor.example_window",
     "name": "Window",
@@ -33,7 +24,7 @@
     "room": "Studio",
     "demo": {
       "state": "20",
-      "unit": "°C"
+      "unit": "\u00b0C"
     }
   },
   {
@@ -44,6 +35,15 @@
     "demo": {
       "state": "50",
       "unit": "%"
+    }
+  },
+  {
+    "id": "door",
+    "entity": "binary_sensor.example_door",
+    "name": "Door",
+    "room": "Studio",
+    "demo": {
+      "state": "off"
     }
   }
 ]

@@ -671,5 +671,11 @@
   "Show readings": "Show readings",
   "Minimum colour value (empty = Auto)": "Minimum colour value (empty = Auto)",
   "Maximum colour value (empty = Auto)": "Maximum colour value (empty = Auto)",
-  "Colour range (optional)": "Colour range (optional)"
+  "Colour range (optional)": "Colour range (optional)",
+  "Primary numeric entity": "Primary numeric entity",
+  "Secondary entity (optional)": "Secondary entity (optional)",
+  "Show minimum and maximum": "Show minimum and maximum",
+  "Show time labels": "Show time labels",
+  "Display options must be toggles": "Display options must be toggles",
+  "Choose a primary numeric entity in the visual editor.": "Choose a primary numeric entity in the visual editor."
 }

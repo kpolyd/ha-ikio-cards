@@ -19,7 +19,7 @@
   },
   "materials": {
     "wall": {
-      "color": "#ddddee"
+      "color": "#e4e5e2"
     },
     "white": {
       "color": "#ffffff"
@@ -28,7 +28,7 @@
       "color": "#222222"
     },
     "glass": {
-      "color": "#aabbcc",
+      "color": "#b8d4de",
       "transparent": true,
       "opacity": 0.3
     }
@@ -59,10 +59,100 @@
         "z": 0
       },
       "size": {
-        "width": 4,
+        "width": 4.2,
         "height": 2.75,
         "depth": 0.2
       }
+    },
+    {
+      "id": "studio-wall-left",
+      "kind": "wall",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 1.5
+      },
+      "size": {
+        "width": 0.2,
+        "height": 2.75,
+        "depth": 3
+      }
+    },
+    {
+      "id": "studio-wall-front",
+      "kind": "wallRun",
+      "axis": "x",
+      "coordinate": 3,
+      "start": 0,
+      "end": 4,
+      "height": 2.75,
+      "thickness": 0.2,
+      "openings": ["studio-door"]
+    },
+    {
+      "id": "studio-wall-right",
+      "kind": "wallRun",
+      "axis": "z",
+      "coordinate": 4,
+      "start": 0,
+      "end": 3,
+      "height": 2.75,
+      "thickness": 0.2,
+      "openings": ["studio-window"]
+    },
+    {
+      "id": "studio-window-sill",
+      "kind": "wall",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 1.5
+      },
+      "size": {
+        "width": 0.2,
+        "height": 1.05,
+        "depth": 1.2
+      }
+    },
+    {
+      "id": "studio-window-lintel",
+      "kind": "wall",
+      "position": {
+        "x": 4,
+        "y": 2.1,
+        "z": 1.5
+      },
+      "size": {
+        "width": 0.2,
+        "height": 0.65,
+        "depth": 1.2
+      }
+    },
+    {
+      "id": "studio-door",
+      "name": "Door",
+      "kind": "opening",
+      "openingType": "door",
+      "position": {
+        "x": 1.1,
+        "y": 0,
+        "z": 3
+      },
+      "width": 0.9,
+      "axis": "x"
+    },
+    {
+      "id": "studio-window",
+      "name": "Window",
+      "kind": "opening",
+      "openingType": "window",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 1.5
+      },
+      "width": 1.2,
+      "axis": "z"
     },
     {
       "id": "studio-lamp",
@@ -80,33 +170,6 @@
       },
       "power": 6,
       "color": "#ffeebb"
-    },
-    {
-      "id": "studio-screen",
-      "kind": "box",
-      "position": {
-        "x": 1,
-        "y": 0.8,
-        "z": 1
-      },
-      "size": {
-        "width": 0.7,
-        "height": 0.5,
-        "depth": 0.05
-      },
-      "material": "black"
-    },
-    {
-      "id": "studio-window",
-      "kind": "opening",
-      "openingType": "window",
-      "position": {
-        "x": 4,
-        "y": 0,
-        "z": 1.5
-      },
-      "width": 1,
-      "axis": "z"
     }
   ]
 }

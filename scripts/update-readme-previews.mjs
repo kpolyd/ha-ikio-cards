@@ -13,6 +13,7 @@ const names = {
   media: "Media",
   vacuum: "Vacuum",
   graph: "Graph",
+  "mini-graph": "Mini Graph",
   chip: "Chip",
   router: "Router",
   weather: "Weather",

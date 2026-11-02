@@ -4,7 +4,7 @@
 
 Compact, mobile-first Home Assistant cards with a consistent design and visual configuration editors.
 
-Sixteen independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
+Seventeen independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
 
 | Card | Purpose |
 |---|---|
@@ -22,6 +22,7 @@ Sixteen independent cards share colours, typography, controls and one synchroniz
 | [Router](cards/ikio-router-card/README.md) | Connection status, cellular signal and network traffic |
 | [Server Monitor](cards/ikio-server-monitor-card/README.md) | Host metrics, availability and service controls |
 | [Vehicle](cards/ikio-vehicle-card/README.md) | Vehicle readings, locks/doors/windows and map link |
+| [Mini Graph](cards/ikio-mini-graph-card/README.md) | Primary history with an optional secondary live reading |
 | [Graph](cards/ikio-graph-card/README.md) | History with value-based colours and expected min/max |
 | [Chip](cards/ikio-chip-card/README.md) | A single sensor chip, available as a card or dashboard badge |
 
@@ -40,7 +41,7 @@ Current collection version: see [`ikio/package.json`](ikio/package.json). The so
 
 HACS normally adds the JavaScript module resource automatically in storage mode. If it is missing, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` under Settings → Dashboards → Resources, type **JavaScript module**. Keep the HACS-generated `?hacstag=...` cache query when present.
 
-All sixteen cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
+All seventeen cards and editors are included in one file, with one HACS version/update. Starting with 0.5.4, HACS downloads the bundle from raw tagged repository content to avoid GitHub’s release-redirect header issue; no HACS patch is needed. Remove old manual Ikio resource entries when switching to HACS, then fully reload so the current code registers. Version 0.6.0 renames card identifiers; update YAML types using the [migration table](docs/ikio/MIGRATION.md#060-card-identifiers). Aethora configurations need the one-time namespace migration below.
 
 This is a HACS **custom repository**, not a default-catalog listing. The optional global theme is distributed separately in the source/ZIP; the cards include their own appearance settings.
 
@@ -66,7 +67,7 @@ npm run package:ikio
 
 Run a focused workspace command with, for example, `npm test --workspace @ikio/electricity-card`. Format changed workspaces with `npm run format --workspace @ikio/card-ui`. Shared packages are bundled locally, with no separate HA resources or runtime CDN dependencies.
 
-Serve the repository root after building and open `dev/previews/collection.html` for the simulated interactive gallery. It never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
+Run `npm run build && npm run preview:build`, then serve the repository root and open `dev/previews/collection.html` for the simulated interactive gallery. The standalone `dist/previews/index.html` works offline. Both use the same fully populated fixtures, including optional fields. The demo never operates real devices. Editable design SVGs are in `docs/ikio/design/`.
 
 The collection version is defined only in `ikio/package.json`. Private card and shared-library workspaces have no independent versions; internal dependencies use local `file:` workspace links. Release Please prepares version changes, the changelog, README preview links and the tracked HACS bundle in a release PR. `npm run check:ikio-version` rejects duplicate workspace versions and non-local internal dependencies.
 
@@ -124,6 +125,10 @@ Actual compiled cards with simulated Home Assistant data. Click an image to open
 ### Graph
 
 [![Graph](https://kpolyd.github.io/ha-ikio-cards/previews/0.25.0/screenshots/graph/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.25.0/index.html#graph)
+
+### Mini Graph
+
+[![Mini Graph](https://kpolyd.github.io/ha-ikio-cards/previews/0.25.0/screenshots/mini-graph/dark-360-normal.png)](https://kpolyd.github.io/ha-ikio-cards/previews/0.25.0/index.html#mini-graph)
 
 ### Chip
 

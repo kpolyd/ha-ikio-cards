@@ -166,6 +166,13 @@ export async function checkGraphLayout(browser, out) {
       assert.ok(await server.locator("[data-extremum]").count(), unit);
     }
     const generic = page.locator("ikio-graph-card");
+    // Keep the single-series size contract distinct from the populated
+    // multi-series gallery and the multi-series assertion below.
+    await page.evaluate(() => {
+      window.ikioPreview.configs.graph.entities = [
+        { entity: "sensor.demo_graph_power", name: "Power" },
+      ];
+    });
     for (const theme of ["dark", "light", "ha"])
       for (const width of [280, 390, 520]) {
         await page.evaluate(

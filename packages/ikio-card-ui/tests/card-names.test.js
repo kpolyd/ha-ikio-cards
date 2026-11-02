@@ -28,6 +28,7 @@ test("all renamed cards and editors register with current names and no legacy al
     media: "Media",
     vacuum: "Vacuum",
     graph: "Graph",
+    "mini-graph": "Mini Graph",
     chip: "Chip",
   };
   for (const [slug, name] of Object.entries(names)) {
@@ -48,7 +49,7 @@ test("all renamed cards and editors register with current names and no legacy al
     assert.ok(card.shadowRoot.textContent.length, id);
     card.remove();
   }
-  assert.equal(window.customCards.length, 16);
+  assert.equal(window.customCards.length, 17);
   for (const old of [
     "light",
     "energy",

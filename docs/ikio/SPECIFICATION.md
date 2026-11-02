@@ -912,3 +912,17 @@ The owner also requested a simple compact Graph redesign following Electricity's
 ## 100. Compact Graph implementation and native resizing
 
 On 1 November 2026 the owner approved the Graph mock and complete configuration proposal, asked for a slightly more compact layout and native Home Assistant card-size support, and authorized implementation and release together with the card removals and improved Pages demo histories. Use 8 px card padding, a compact header/current reading, thin 0.8 px gradient lines, subtle fill, Electricity-style dashed min/mid/max guides and quiet min/max/time labels. Multi-series readings stay compact with their line patterns and native details. Keep 44 px action targets. New configurations default to automatic colour ranges; old shared/per-sensor overrides and `show_legend` retain their saved keys. No separate graph height setting: advertise native Sections grid sizing and let the graph fill the assigned dimensions. Scope styles and range changes to Graph so Electricity retains its approved appearance.
+
+## 101. Separate Mini Graph card
+
+The owner approved implementation and push of the final compact mock on
+1 November 2026, explicitly keeping the existing Graph card. Add Mini Graph as
+a separate seventeenth card. Use a title above an inline primary/secondary pair
+at 14/12 px, a full-width shallow primary graph, overlaid left min/max and three
+start/middle/end times. Only two readings are supported: a required numeric
+primary sensor and an optional secondary entity of any type/unit. The secondary
+never changes history, plot bounds, min/max or colour scaling. Keep the visual
+editor, theme selector, native details and unavailable/history feedback. Expose
+history duration, optional colour bounds, plot height and extrema/time visibility.
+Shared graph changes must be opt-in, preserving existing Graph and Electricity.
+Implementation and push are authorized; merging and release are separate stages.

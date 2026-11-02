@@ -56,6 +56,14 @@ export async function checkHome3D(browser, out) {
         if (width === 390)
           await card.screenshot({ path: resolve(out, `home-3d-${theme}.png`) });
       }
+    await page.evaluate(() =>
+      window.ikioPreview.configure({ theme: "dark", width: 390 }),
+    );
+    await card.getByRole("button", { name: "Top view", exact: true }).click();
+    await card.screenshot({
+      path: resolve(out, "home-3d-room-perspective.png"),
+    });
+    await card.getByRole("button", { name: "Top view", exact: true }).click();
     const appearances = await card.evaluate((c) => {
       const results = [];
       for (const theme of ["dark", "light", "ha"]) {
