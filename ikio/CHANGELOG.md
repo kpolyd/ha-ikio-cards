@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [0.26.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.26.0...v0.26.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **editor:** keep invalid field drafts in the visual editor ([ec10026](https://github.com/kpolyd/ha-ikio-cards/commit/ec10026d7e986d98d883b15a79fab99bc349598c))
+
 ## [0.26.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.25.0...v0.26.0) (2026-11-02)
 
 
