@@ -223,11 +223,100 @@ export async function checkEditor(browser, out) {
     await focusEditor.screenshot({
       path: resolve(out, "editor-mobile-backspace.png"),
     });
+    // Reproduce temporary invalid values during real key events. Strict card
+    // validation must not turn an editable draft into a YAML-only editor.
+    const numericEditorStyle = await focusEditor.evaluate(
+      (e) => e.style.cssText,
+    );
+    for (const type of ["graph", "mini-graph"]) {
+      await page.evaluate(
+        async ({ type, style }) => {
+          const Card = customElements.get(`ikio-${type}-card`);
+          const editor = await Card.getConfigElement();
+          editor.id = "numeric-regression";
+          editor.style.cssText = style;
+          editor.setConfig({
+            entities: [{ entity: "sensor.example", opaque: 42 }],
+            primary_entity: "sensor.example",
+            hours: 6,
+            expected_min: 20,
+            expected_max: 30,
+            graph_height: 32,
+            grid_options: { rows: 2 },
+            visibility: [{ condition: "user", users: ["demo"] }],
+          });
+          editor.hass = { states: {}, locale: { language: "en" } };
+          editor.addEventListener("config-changed", (event) =>
+            editor.setConfig(JSON.parse(JSON.stringify(event.detail.config))),
+          );
+          document.querySelector("#editor-preview").replaceChildren(editor);
+        },
+        { type, style: numericEditorStyle },
+      );
+      const numericEditor = page.locator("#numeric-regression");
+      await numericEditor.locator("section").first().waitFor();
+      await numericEditor.locator("details").evaluateAll((nodes) =>
+        nodes.forEach((node) => {
+          node.open = true;
+        }),
+      );
+      const input = (key) =>
+        numericEditor.locator(`input[aria-label="${key}"]`).first();
+      const error = numericEditor.locator(".config-error");
+      for (const [key, partial, final] of [
+        ["hours", "0", "12"],
+        ["expected_min", "35", "25"],
+        ["expected_max", "2", "40"],
+        ...(type === "mini-graph" ? [["graph_height", "4", "40"]] : []),
+      ]) {
+        const control = input(key);
+        await control.fill("");
+        await control.pressSequentially(partial);
+        assert.equal(
+          await error.isVisible(),
+          true,
+          `${type}/${key}: invalid draft feedback`,
+        );
+        assert.equal(
+          await control.evaluate((e) => e.getRootNode().activeElement === e),
+          true,
+        );
+        await control.fill(final);
+        assert.equal(
+          await error.isVisible(),
+          false,
+          `${type}/${key}: corrected`,
+        );
+        assert.equal(await control.inputValue(), final);
+        assert.equal(
+          await numericEditor.evaluate((e, key) => e.config[key], key),
+          Number(final),
+        );
+      }
+      assert.deepEqual(
+        await numericEditor.evaluate((e) => e.config.grid_options),
+        { rows: 2 },
+      );
+      assert.deepEqual(
+        await numericEditor.evaluate((e) => e.config.visibility),
+        [{ condition: "user", users: ["demo"] }],
+      );
+      // Existing invalid saved configurations must also open for correction.
+      await numericEditor.evaluate((e) =>
+        e.setConfig({ ...e.config, expected_min: 50 }),
+      );
+      assert.equal(await error.isVisible(), true);
+      await numericEditor.screenshot({
+        path: resolve(out, `editor-${type}-invalid-range.png`),
+      });
+      await input("expected_min").fill("25");
+      assert.equal(await error.isVisible(), false);
+    }
     assert.deepEqual(errors, []);
     return {
       scenario: "editor",
       status: "passed",
-      note: "Simulated ha-form; shared layout, required markers, input focus, list addition, metadata, Greek labels and mobile-sized Backspace/normalized feedback",
+      note: "Simulated ha-form; shared layout, required markers, input focus, list addition, metadata, Greek labels, mobile-sized Backspace/normalized feedback and recoverable graph numeric drafts",
     };
   } finally {
     await page.close();

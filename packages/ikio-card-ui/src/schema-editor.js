@@ -1,5 +1,5 @@
 import { actionTypes, validateActions } from "./actions.js";
-import { t, language } from "./i18n.js";
+import { t, language, translateError } from "./i18n.js";
 import { element } from "./card.js";
 import {
   ensureEditorComponents,
@@ -93,6 +93,21 @@ export function defineEditor(
   normalizeConfig = (c) => c,
   options = {},
 ) {
+  // HA echoes each keystroke into setConfig, including incomplete numbers and
+  // temporarily reversed ranges. Card validation stays strict, but an editor
+  // must retain that draft so the user can finish correcting it.
+  function draft(config) {
+    let normalized = config;
+    try {
+      normalized = normalizeConfig(config);
+      validateConfig(normalized, fields, lists);
+      return { config: normalized };
+    } catch (error) {
+      if (!config || typeof config !== "object" || Array.isArray(config))
+        throw error;
+      return { config: normalized, error: error.message };
+    }
+  }
   class Editor extends HTMLElement {
     constructor() {
       super();
@@ -105,9 +120,14 @@ export function defineEditor(
       });
     }
     setConfig(config) {
-      config = normalizeConfig(config);
-      if (sameConfig(this.config, config)) return;
-      this.config = structuredClone(config);
+      const next = draft(config);
+      if (
+        sameConfig(this.config, next.config) &&
+        this.configError === next.error
+      )
+        return;
+      this.config = structuredClone(next.config);
+      this.configError = next.error;
       this.render();
     }
     set hass(hass) {
@@ -132,10 +152,13 @@ export function defineEditor(
         );
     }
     change(config) {
-      const previous = this.config;
+      const previous = this.config,
+        previousError = this.configError;
       this.config = config;
+      this.configError = draft(config).error;
       emitConfig(this, structuredClone(config));
       if (
+        previousError !== this.configError ||
         [...(options.sections || []), ...fields].some(
           (s) => s.visible && s.visible(previous) !== s.visible(config),
         )
@@ -231,8 +254,8 @@ export function defineEditor(
         :host{display:block;color:var(--primary-text-color);--ha-input-required-marker:"";--ha-textarea-required-marker:""}
         section{border:1px solid var(--divider-color,#888);border-radius:10px;margin:10px 0;padding:12px;min-width:0}
         h3{font-size:14px;font-weight:600;margin:0 0 12px}p{font-size:12px;color:var(--secondary-text-color);line-height:1.5;margin:6px 0}
-        .field{position:relative;margin:10px 0;min-width:0}.field-label{position:absolute;right:8px;top:0;font-size:13px;z-index:1;pointer-events:none}.field-name{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.required,.field-error{color:var(--error-color,#db4437)}
-        .field-error[hidden]{display:none}.legend{margin:0 0 8px}details{border-top:1px solid var(--divider-color,#888);margin-top:8px;padding-top:4px}
+        .field{position:relative;margin:10px 0;min-width:0}.field-label{position:absolute;right:8px;top:0;font-size:13px;z-index:1;pointer-events:none}.field-name{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.required,.field-error,.config-error{color:var(--error-color,#db4437)}
+        .field-error[hidden],.config-error[hidden]{display:none}.config-error{overflow-wrap:anywhere}.legend{margin:0 0 8px}details{border-top:1px solid var(--divider-color,#888);margin-top:8px;padding-top:4px}
         summary{cursor:pointer;min-height:44px;align-content:center;font-size:13px;overflow-wrap:anywhere}
         button{min-height:44px;min-width:44px;margin:4px 4px 0 0;padding:0 12px;color:var(--primary-text-color);background:var(--secondary-background-color);border:1px solid var(--divider-color,#888);border-radius:8px;cursor:pointer}
         button:disabled{opacity:.45;cursor:default}button:focus-visible,summary:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}
@@ -240,6 +263,15 @@ export function defineEditor(
       `,
         ),
       );
+      const error = element(
+        "p",
+        translateError(this._hass, this.configError || ""),
+        "config-error",
+      );
+      error.dataset.editorKey = "config-error";
+      error.setAttribute("role", "alert");
+      error.hidden = !this.configError;
+      this.renderRoot.append(error);
       const legend = element("p", undefined, "legend");
       const star = element("span", "* ", "required");
       star.setAttribute("aria-hidden", "true");
