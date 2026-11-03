@@ -31,6 +31,8 @@ test("every schema field and repeating list has a visual editor and preserves HA
   const editor = await Card.getConfigElement();
   const config = {
     ...Card.getStubConfig(),
+    show_people: false,
+    ignored_persons: [{ entity: "person.demo_ignored" }],
     grid_options: { columns: 6 },
     visibility: [{ condition: "user", users: ["owner"] }],
   };
@@ -40,6 +42,18 @@ test("every schema field and repeating list has a visual editor and preserves HA
   await new Promise((r) => setTimeout(r, 0));
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
   assert.ok(forms.length >= 2);
+  assert.equal(
+    editor.shadowRoot.querySelector('[data-key="card-actions"]'),
+    null,
+  );
+  assert.equal(
+    editor.shadowRoot.querySelector('[data-key="list:contacts"]'),
+    null,
+  );
+  assert.equal(
+    editor.shadowRoot.querySelector('[data-key="list:motion"]'),
+    null,
+  );
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
   forms[0].dispatchEvent(
@@ -48,6 +62,8 @@ test("every schema field and repeating list has a visual editor and preserves HA
     }),
   );
   assert.equal(saved.name, "Changed");
+  assert.equal(saved.show_people, false);
+  assert.deepEqual(saved.ignored_persons, config.ignored_persons);
   assert.deepEqual(saved.grid_options, config.grid_options);
   assert.deepEqual(saved.visibility, config.visibility);
   assert.equal(config.name, undefined);
@@ -1566,4 +1582,78 @@ test("rejected live streams use polling while a late subscription acknowledgemen
   await new Promise((r) => setTimeout(r, 0));
   assert.equal(late.subscriptions[0].closed, true);
   assert.equal(late.card.activity.liveState, "idle");
+});
+
+test("people auto-discover, follow arrivals/removals and respect hidden/ignored configuration", () => {
+  const person = (state, name = "Demo Resident") => ({
+    state,
+    attributes: { friendly_name: name },
+  });
+  const { card } = fixture(
+    "disarmed",
+    {},
+    { show_activity: false },
+    {
+      "person.home": person("home"),
+      "person.away": person("not_home"),
+      "person.unknown": person("unknown"),
+      "person.unavailable": person("unavailable"),
+    },
+  );
+  const avatars = () => [
+    ...card.shadowRoot.querySelectorAll(".security-person"),
+  ];
+  assert.equal(avatars().length, 1);
+  assert.equal(avatars()[0].textContent, "DR");
+  let opened;
+  card.addEventListener("hass-more-info", (e) => (opened = e.detail.entityId));
+  avatars()[0].click();
+  assert.equal(opened, "person.home");
+  card.hass = {
+    ...card.hass,
+    states: {
+      ...card.hass.states,
+      "person.away": person("home", "Alex Demo"),
+      "person.new": person("home", "New Resident"),
+    },
+  };
+  assert.equal(avatars().length, 3);
+  const states = { ...card.hass.states, "person.away": person("not_home") };
+  delete states["person.home"];
+  card.hass = { ...card.hass, states };
+  assert.equal(avatars().length, 1);
+  card.setConfig({
+    ...card.config,
+    ignored_persons: [{ entity: "person.new" }],
+  });
+  assert.equal(card.shadowRoot.querySelector(".security-people"), null);
+  card.setConfig({ ...card.config, ignored_persons: [], show_people: false });
+  assert.equal(card.shadowRoot.querySelector(".security-people"), null);
+  card.setConfig({ ...card.config, show_people: true });
+  assert.equal(avatars().length, 1);
+  card.remove();
+});
+
+test("person pictures fall back to initials on loading errors", () => {
+  const { card } = fixture(
+    "disarmed",
+    {},
+    {},
+    {
+      "person.demo": {
+        state: "home",
+        attributes: {
+          friendly_name: "Photo Demo",
+          entity_picture: "/local/demo.png",
+        },
+      },
+    },
+  );
+  const avatar = card.shadowRoot.querySelector(".security-person");
+  const image = avatar.querySelector("img");
+  assert.equal(image.getAttribute("src"), "/local/demo.png");
+  image.dispatchEvent(new dom.window.Event("error"));
+  assert.equal(avatar.querySelector("img"), null);
+  assert.equal(avatar.textContent, "PD");
+  card.remove();
 });

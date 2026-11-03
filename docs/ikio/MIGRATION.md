@@ -43,3 +43,15 @@ Replace the fixed `backlight_entity` and `shortcuts` with the new repeatable `mo
 ## Removal of Appliances and Camera
 
 The collection now contains sixteen cards. Remove or replace any dashboard uses of `custom:ikio-appliances-card` and `custom:ikio-camera-card` before upgrading to a release containing this removal. Those card/editor registrations are no longer included. Other card identifiers are unchanged. Graph keeps existing entity lists, names, colour ranges, `show_legend`, history duration, actions and native layout metadata. New Graph configurations use automatic colour ranges unless overridden.
+
+## 1.0.0 stable configuration
+
+Card types and the collection resource URL remain unchanged. Fully reload browsers after updating. Future breaking changes increment the major version; features increment minor and fixes increment patch.
+
+- Electricity migrates saved Day/Night energy bindings to ordered `energy_readings` entries with labels and optional colours. Its settings are grouped into Power, Billing cycle, Power history, Device power and Power distribution. Configure `billing_cycle_cron` for cycle dates or use `billing_period_label` for a manual caption. `cycle_start_entity`, `cycle_end_entity` and `forecast_minimum_hours` are retired and ignored/removed when configurations are normalized. Forecast values come from the selected sensor; any saved forecast-validity binding remains supported.
+- Actions has Tap/Hold only. Supported actions use the pressed light or the card's primary entity; alternate entity/service targets cannot redirect commands. Use a compatible service for that entity. Missing primary bindings block commands. Dedicated controls retain their native behaviour.
+- Electricity, Router, Server Monitor, Batteries, Graph, Vehicle, Alarmo and Home 3D have no configurable card-wide Actions section; old custom header action keys are inert. Recreate a separate Entity/Chip card if you need an independent action target.
+- Lights location overrides, Vehicle parking-label/timestamp bindings, Alarmo extra opening/motion rows and Electricity validity/untracked-sensor bindings are no longer offered in their editors. Saved sensor bindings remain supported; Alarmo normally discovers its sensors automatically.
+- Mini Graph has numeric secondary history, configurable sampling and optional static colour. Alarmo can display people at home with an ignored-person list. Both retain their existing primary entity bindings.
+
+Use the visual editor to review and save migrated configurations. No Home Assistant devices are operated as part of the update itself.

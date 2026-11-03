@@ -295,6 +295,7 @@ export function defineEditor(
         typeof options.defaults === "function"
           ? options.defaults()
           : options.defaults;
+      const groupParents = new Map();
       for (const group of groups) {
         if (group.visible && !group.visible(this.config)) continue;
         const parent = group.label
@@ -305,6 +306,7 @@ export function defineEditor(
             )
           : settings;
         if (group.label) parent.dataset.key = `group:${group.label}`;
+        groupParents.set(group.label, parent);
         this.controls(
           parent,
           group.fields,
@@ -318,7 +320,7 @@ export function defineEditor(
         const section = this.disclosure(
           `${t(this._hass, list.label)} (${rows.length})`,
           key,
-          settings,
+          groupParents.get(list.section) || settings,
         );
         section.dataset.key = key;
         if (list.helper)
@@ -425,7 +427,17 @@ export function defineEditor(
         };
         section.append(add);
       }
-      if (tag !== "ikio-home-3d-card-editor") {
+      for (const group of groups) {
+        const parent = groupParents.get(group.label);
+        if (parent && group.footerFields)
+          this.controls(
+            parent,
+            group.footerFields,
+            { ...defaults, ...this.config },
+            (value) => this.change({ ...this.config, ...value }),
+          );
+      }
+      if (tag !== "ikio-home-3d-card-editor" && options.actions !== false) {
         const actions = this.disclosure(
           t(this._hass, "Actions"),
           "card-actions",
@@ -437,14 +449,14 @@ export function defineEditor(
             "p",
             t(
               this._hass,
-              "Defaults preserve current behaviour. Actions apply to the tile or card header; device controls keep their own actions. Shift+Enter runs the hold action.",
+              options.actionHelper ||
+                "Actions apply to this card’s primary entity. Dedicated device controls keep their own actions. Shift+Enter runs the hold action.",
             ),
           ),
         );
         this.controls(
           actions,
           [
-            entity("action_entity", "Action entity (optional)", undefined),
             {
               name: "tap_action",
               label: "Tap action",

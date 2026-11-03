@@ -78,7 +78,7 @@ test("energy math distinguishes missing sensors, overlaps and bill-cycle periods
       { "sensor.start": { state: new Date(0).toISOString() } },
       3600000,
     ),
-    "Gathering enough data",
+    null,
   );
 });
 test("device grid includes Untracked as an identical entity reading", () => {
@@ -524,4 +524,156 @@ test("tariff chart preserves readings and only draws reconciled, available share
     );
   }
   card.remove();
+});
+
+test("billing energy migration preserves metadata and respects an explicit empty list", async () => {
+  const { normalizeConfig, validate } = await import("../src/config.js");
+  const input = {
+    day_entity: "sensor.day",
+    night_entity: "sensor.night",
+    same_cycle: true,
+    grid_options: { columns: 6 },
+  };
+  const migrated = normalizeConfig(input);
+  assert.deepEqual(migrated.energy_readings, [
+    { label: "Day", entity: "sensor.day" },
+    { label: "Night", entity: "sensor.night" },
+  ]);
+  assert.equal(migrated.day_entity, undefined);
+  assert.deepEqual(migrated.grid_options, input.grid_options);
+  assert.equal(input.day_entity, "sensor.day");
+  assert.deepEqual(
+    normalizeConfig({ ...input, energy_readings: [] }).energy_readings,
+    [],
+  );
+  validate(migrated);
+  assert.throws(() => validate({ ...migrated, same_cycle: "false" }), /toggle/);
+  assert.throws(
+    () =>
+      validate({
+        energy_readings: [{ label: "Peak", entity: "sensor.a", colour: false }],
+      }),
+    /hex/,
+  );
+  assert.throws(
+    () =>
+      validate({
+        energy_readings: [{ label: "Peak", entity: "sensor.a", colour: "red" }],
+      }),
+    /hex/,
+  );
+  assert.throws(
+    () => validate({ energy_readings: [{ entity: "sensor.a" }] }),
+    /label/,
+  );
+  assert.throws(
+    () =>
+      validate({
+        energy_readings: [
+          { label: "A", entity: "sensor.a" },
+          { label: "B", entity: "sensor.a" },
+        ],
+      }),
+    /distinct/,
+  );
+  const Card = customElements.get("ikio-electricity-card");
+  const editor = await Card.getConfigElement();
+  editor.setConfig(input);
+  editor.hass = { states: {} };
+  assert.deepEqual(editor.config.energy_readings, migrated.energy_readings);
+});
+
+test("multiple energy readings normalize units, keep order and colours, and refuse unknown shares", () => {
+  const config = {
+    power_entity: "sensor.power",
+    same_cycle: true,
+    energy_readings: [
+      { label: "Peak", entity: "sensor.peak" },
+      { label: "Off-peak", entity: "sensor.off" },
+      { label: "Weekend", entity: "sensor.weekend", colour: "#90CAF9" },
+    ],
+  };
+  const states = {
+    "sensor.power": energySensor(10, "W"),
+    "sensor.peak": energySensor(1000, "Wh"),
+    "sensor.off": energySensor(2, "kWh"),
+    "sensor.weekend": energySensor(1, "kWh"),
+  };
+  const card = energyFixture(config, states);
+  const bar = () => card.shadowRoot.querySelector(".ae-tariff-bar");
+  assert.deepEqual(
+    [...bar().children].map((n) => n.style.width),
+    ["25%", "50%", "25%"],
+  );
+  const markers = [...card.shadowRoot.querySelectorAll(".ae-tariff-marker")];
+  assert.deepEqual(
+    markers.map((n) => n.style.backgroundColor),
+    ["rgb(164, 228, 184)", "rgb(196, 125, 212)", "rgb(144, 202, 249)"],
+  );
+  assert.match(
+    card.shadowRoot.querySelector(".ae-tariff-legend").textContent,
+    /Peak1.0kWhOff-peak2.0kWhWeekend1.0kWh/,
+  );
+  assert.ok(card.entityIds.includes("sensor.weekend"));
+  card.hass = {
+    states: { ...states, "sensor.weekend": energySensor("unavailable", "kWh") },
+  };
+  assert.equal(bar().children.length, 0);
+  card.setConfig({ ...config, same_cycle: false });
+  assert.equal(bar().children.length, 0);
+  card.setConfig({
+    ...config,
+    energy_readings: [
+      config.energy_readings[2],
+      config.energy_readings[0],
+      config.energy_readings[1],
+    ],
+  });
+  assert.match(
+    card.shadowRoot.querySelector(".ae-tariff-legend").textContent,
+    /^Weekend/,
+  );
+  card.remove();
+});
+
+test("energy editor saves labels/colours, reorders entries and keeps an empty list after removing legacy readings", async () => {
+  const Card = customElements.get("ikio-electricity-card");
+  const editor = await Card.getConfigElement();
+  editor.setConfig({
+    day_entity: "sensor.day",
+    night_entity: "sensor.night",
+    grid_options: { columns: 6 },
+  });
+  editor.hass = { states: {} };
+  document.body.append(editor);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  let saved;
+  editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
+  const row = () =>
+    editor.shadowRoot.querySelector('[data-key="list:energy_readings:0"]');
+  const colour = [...row().querySelectorAll("ha-form")].find(
+    (f) => f.schema[0].name === "colour",
+  );
+  colour.dispatchEvent(
+    new CustomEvent("value-changed", {
+      detail: { value: { colour: "#90CAF9" } },
+    }),
+  );
+  assert.equal(saved.energy_readings[0].colour, "#90CAF9");
+  const down = [...row().querySelectorAll("button")].find(
+    (b) => b.textContent === "Move down",
+  );
+  down.click();
+  assert.equal(saved.energy_readings[1].label, "Day");
+  assert.equal(saved.energy_readings[1].colour, "#90CAF9");
+  for (let i = 0; i < 2; i++)
+    [...row().querySelectorAll("button")]
+      .find((b) => b.textContent === "Remove")
+      .click();
+  assert.deepEqual(saved.energy_readings, []);
+  assert.equal(saved.day_entity, undefined);
+  assert.deepEqual(saved.grid_options, { columns: 6 });
+  editor.setConfig(saved);
+  assert.deepEqual(editor.config.energy_readings, []);
+  editor.remove();
 });

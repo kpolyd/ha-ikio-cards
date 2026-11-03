@@ -6,6 +6,8 @@ Add Ikio Graph through the visual card picker after installing the collection th
 
 Use Home Assistant's native **Layout** settings in a Sections dashboard to resize the card. Graph advertises a six-column, three-row default and three-column/three-row minimum. The chart fills the assigned width and height while text and line thickness remain readable. Other dashboard layouts control their own sizing. No separate Ikio height/width field is needed. Existing `grid_options`, `view_layout`, visibility and other HA metadata survive visual edits.
 
-The shared **Actions** section and dark/light/Home Assistant **Appearance** selector remain available. Defaults keep native entity details on the single-sensor title and readings; custom header tap/hold actions do not replace the individual reading controls. Tap or hold a legend reading to open its native details.
+The dark/light/Home Assistant **Appearance** selector remains available. The single-sensor title and individual readings keep native entity details. Tap or hold a legend reading to open its native details.
 
 Collection version: [ikio/package.json](../../ikio/package.json). Build/package from the root with the standard repository checks. Automated unit/browser fixtures use simulated data and do not establish native Home Assistant or device outcomes.
+
+The visual editor has no Actions section. Each sensor or dedicated control retains its native interaction; saved card-wide action settings do not override the header. See [tap and hold actions](../../docs/ikio/ACTIONS.md).

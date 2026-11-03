@@ -926,3 +926,27 @@ editor, theme selector, native details and unavailable/history feedback. Expose
 history duration, optional colour bounds, plot height and extrema/time visibility.
 Shared graph changes must be opt-in, preserving existing Graph and Electricity.
 Implementation and push are authorized; merging and release are separate stages.
+
+
+## Alarmo: compact people at home
+
+Owner-approved addition: show auto-discovered `person.*` entities only when home, in the existing top-right header space. Three columns of tiny photos/initials, 4 px gaps, up to three visible rows with scrolling for overflow. Neutral avatar borders/text, soft semantic house icon and muted Home label. Four people home in demos. Visual editor adds Show people at home (default true) and repeatable Ignored people selectors. Empty presence hides itself; tap/hold retains native details. This supersedes the previous exclusion of person presence from Alarmo. The bypass open-sensors label must not stretch its clickable area into unused row space.
+
+
+## Mini Graph: secondary history and density
+
+Owner approved: numeric secondary history appears behind the primary as a neutral grey filled area without an outline, independently scaled. Left extrema remain primary-only and there are still three time labels. Text secondary states retain live readings only. Both live readings include native 11 px faint grey entity icons with 3 px gaps. Points per hour is a visual-editor integer setting (1–60, default 12), with time-weighted bucket means, unchanged-state carry and unavailable gaps. Use static colour defaults off; enabled uses the current theme accent for primary line/fill, without a picker. Existing range, sizing and display settings remain available.
+
+## 76. Dynamic billing-cycle energy (unreleased)
+
+Owner approved the visual mock and configuration on 3 November 2026. Electricity replaces fixed Day/Night settings with an ordered Billing-cycle energy list: required label and sensor entity, optional six-digit hex colour. The first two automatic colours preserve the current mint/orchid palette and light-mode equivalents. More readings receive complementary colours; the main power-history chart remains value-coloured. Keep a separate optional total sensor and require same-cycle/non-overlap confirmation before summing entries. Draw shares only for available, compatible, nonnegative readings that reconcile with the total. Automatically migrate saved day/night bindings; an explicit empty list takes precedence. Add/remove/reorder controls belong in the visual editor. No merge or release is authorized.
+
+## 77. Simpler configuration and entity-scoped actions (unreleased)
+
+Owner requested removing the Connectivity card entirely while retaining the other branch changes. Remove Forecast validity and Existing untracked-power sensor from Electricity's editor, location override from Lights, parking label/timestamp selectors from Vehicle, and extra opening/motion lists from Alarmo. Retain saved sensor bindings through ordinary editor edits.
+
+Actions have no separate entity selector. Offer Tap/Hold on Lights, Entity, Chip/badges, Climate, Dehumidifier, Media, Vacuum, Weather and Mini Graph. Use the pressed light or the card's primary entity (Mini Graph: primary_entity); retain secondary reading details and dedicated device controls. Services keep parameters but target that entity instead of static alternate targets. Electricity, Router, Server Monitor, Batteries, Graph, Vehicle, Alarmo and Home 3D have no Actions section and no custom header actions. Preserve inert old action keys during editing. No merge or release until local testing and owner authorization.
+
+## 78. Electricity configuration sections and cron-only cycle dates (unreleased)
+
+Owner approved grouping Electricity settings into Power, Billing cycle, Power history, Device power and Power distribution, retaining General and Appearance. Nest energy readings within Billing cycle and device readings within Device power. Put same-cycle confirmation after the energy list and calculated-untracked settings after the device list. Remove cycle_start_entity, cycle_end_entity and forecast_minimum_hours from the editor and normalized saved configurations. Cycle labels use cron or an explicit label override only; forecasts no longer use a minimum-age gate, even for older saved configurations. Other bindings and HA metadata remain preserved.

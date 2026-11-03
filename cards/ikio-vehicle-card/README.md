@@ -25,8 +25,6 @@ Add card → Ikio Vehicle. Configure all fields through the visual editor. No YA
 | range_entity | Remaining range |
 | odometer_entity | Odometer |
 | tracker_entity | Car location |
-| location_entity | Parking label (optional) |
-| location_timestamp_entity | Location update timestamp |
 | locks_active_state | Lock indicator means unlocked when state is |
 | doors_active_state | Door indicator means open when state is |
 | windows_active_state | Window indicator means open when state is |
@@ -96,3 +94,7 @@ Version 0.5.4 reduces metric/status icons further to 24 px, or 20 px on narrow c
 
 
 The next visual refinement uses softer palette mint (`#A4E4B8`) for locked/closed text and icons, with `#28613E` in light mode and HA’s success colour in HA appearance. Metric/status icons are 22 px (18 px on narrow cards); metric values are 18 px (15 px narrow), units 11 px and status values 13 px. Supporting labels stay 11 px and entity targets remain 44 px.
+
+Parking label and Location update timestamp are no longer offered in the visual editor. Car location remains available. Previously saved `location_entity` and `location_timestamp_entity` bindings remain supported and are preserved through editor changes.
+
+The visual editor no longer offers an Actions section. Native sensor-details and maps interactions remain available; previously saved custom action settings are preserved but no longer override the header.

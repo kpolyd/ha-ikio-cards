@@ -45,6 +45,13 @@ export class Card extends ControlCard {
       :host([appearance=light]) .ae-security{--security-green:#247147;--security-selected:#367a56;--security-coral:#b7473b}
       :host([appearance=ha]) .ae-security{--security-green:var(--success-color,#247147)}
       .security-header{display:flex;align-items:center;gap:15px;padding:5px 2px 8px}
+      .security-heading{flex:1;min-width:0}
+      .security-people{margin-left:auto;align-self:flex-start;flex:none;display:grid;gap:4px;width:68px}
+      .security-people-label{display:flex;justify-content:center;align-items:center;gap:4px;font-size:11px;color:var(--ae-muted)}
+      .security-people-label ha-icon{--mdc-icon-size:13px;color:var(--ae-temperature)}
+      .security-people-grid{display:grid;grid-template-columns:repeat(3,20px);gap:4px;max-height:68px;overflow-y:auto;scrollbar-width:thin}
+      .security-person.ae-button{display:grid;place-items:center;width:20px;height:20px;min-width:0;min-height:0;padding:0;border:1px solid var(--ae-muted);border-radius:50%;background:var(--ae-well);color:var(--ae-text);font-size:9px;line-height:1}
+      .security-person img{width:100%;height:100%;object-fit:cover;border-radius:50%}
       .security-emblem{display:grid;place-items:center;width:58px;height:58px;flex:none;border:2px solid var(--ae-muted);border-radius:50%;color:var(--ae-muted);background:transparent;padding:0;font:inherit}
       .security-emblem ha-icon{--mdc-icon-size:32px}
       .security-header h2{font-size:20px;font-weight:500;margin:0 0 7px;overflow-wrap:anywhere}
@@ -116,6 +123,76 @@ export class Card extends ControlCard {
     `,
       ),
     );
+  }
+  // Include every discovered person before shared state reconciliation so arrivals,
+  // departures, new people and removal update even with activity disabled.
+  set hass(value) {
+    if (this.config?.show_people !== false)
+      this.entityIds = [
+        ...new Set([
+          ...(this.entityIds || []),
+          ...Object.keys(value?.states || {}).filter((id) =>
+            id.startsWith("person."),
+          ),
+        ]),
+      ];
+    super.hass = value;
+  }
+  get hass() {
+    return super.hass;
+  }
+  renderPeople() {
+    if (this.config.show_people === false) return null;
+    const ignored = new Set(
+      (this.config.ignored_persons || []).map((p) => p.entity),
+    );
+    const people = Object.entries(this.hass?.states || {})
+      .filter(
+        ([id, state]) =>
+          id.startsWith("person.") &&
+          state.state === "home" &&
+          !ignored.has(id),
+      )
+      .sort(([a], [b]) => a.localeCompare(b));
+    if (!people.length) return null;
+    const section = el("section", undefined, "security-people", "people-home");
+    section.setAttribute("aria-label", t(this.hass, "People at home"));
+    const label = el("div", undefined, "security-people-label");
+    label.append(icon("mdi:home-outline"), el("span", t(this.hass, "Home")));
+    const grid = el("div", undefined, "security-people-grid");
+    for (const [id, state] of people) {
+      const name =
+        state.attributes?.friendly_name || id.slice(7).replaceAll("_", " ");
+      const avatar = button(name, () => details(this, id), {
+        entity: id,
+        key: `person-${id}`,
+      });
+      avatar.className = "ae-button security-person";
+      const initials = name
+        .trim()
+        .split(/\s+/u)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => [...part][0])
+        .join("")
+        .toLocaleUpperCase();
+      avatar.textContent = initials;
+      if (state.attributes?.entity_picture) {
+        const image = el("img");
+        image.src = state.attributes.entity_picture;
+        image.alt = "";
+        event(image, "error", (e) => e.currentTarget.remove());
+        avatar.append(image);
+        // Keep initials underneath a picture as a fallback if it fails to load.
+        image.style.gridArea = "1 / 1";
+        const fallback = el("span", initials);
+        fallback.style.gridArea = "1 / 1";
+        avatar.replaceChildren(fallback, image);
+      }
+      grid.append(avatar);
+    }
+    section.append(label, grid);
+    return section;
   }
   static getStubConfig() {
     return {
@@ -809,7 +886,7 @@ export class Card extends ControlCard {
       }
       emblem.append(ring);
     }
-    const heading = el("div");
+    const heading = el("div", undefined, "security-heading");
     const status =
       (s && this.hass?.formatEntityState?.(s)) ||
       {
@@ -831,11 +908,16 @@ export class Card extends ControlCard {
       );
     heading.append(el("h2", c.name || t(this.hass, "Alarmo")), statusNode);
     header.append(emblem, heading);
+    const people = this.renderPeople();
+    if (people) header.append(people);
     result.append(header);
     const sensors = el("div", undefined, "security-sensors", "sensors");
     if (this.canBypass()) {
-      const label = el("label", undefined, "security-bypass");
+      const bypassRow = el("div", undefined, "security-bypass");
+      const label = el("label");
+      label.htmlFor = "bypass-open";
       const check = el("input", undefined, undefined, "bypass-open");
+      check.id = "bypass-open";
       check.type = "checkbox";
       check.checked = this.bypass;
       check.disabled = this.blocked(c.entity);
@@ -843,8 +925,9 @@ export class Card extends ControlCard {
         this.bypass = e.currentTarget.checked;
         this.update();
       });
-      label.append(check, el("span", t(this.hass, "Bypass open sensors")));
-      sensors.append(label);
+      label.append(el("span", t(this.hass, "Bypass open sensors")));
+      bypassRow.append(check, label);
+      sensors.append(bypassRow);
     }
     const bypassed = new Set(ids(s?.attributes?.bypassed_sensors));
     const reported = new Set(

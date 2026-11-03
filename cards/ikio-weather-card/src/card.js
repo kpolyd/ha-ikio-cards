@@ -632,6 +632,18 @@ export class Card extends IkioCard {
         this.chart.append(label);
         if (label.getComputedTextLength?.() > width / rows.length - 2) {
           label.remove();
+        } else if (label.getBBox) {
+          // Font metrics vary across HA/webview platforms. Keep the full glyph
+          // bounds (and their outline) inside the fixed-height chart.
+          const bounds = label.getBBox();
+          const shift =
+            bounds.y < 2
+              ? 2 - bounds.y
+              : bounds.y + bounds.height > 82
+                ? 82 - bounds.y - bounds.height
+                : 0;
+          if (shift)
+            label.setAttribute("y", Number(label.getAttribute("y")) + shift);
         }
       });
     }

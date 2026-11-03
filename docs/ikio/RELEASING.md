@@ -2,15 +2,15 @@
 
 Use meaningful Conventional Commits on feature branches. CI checks every individual non-merge commit because this repository preserves merge commits on main. A conventional PR title alone does not fix unclear commit messages.
 
-| Commit | Before 1.0 | Changelog |
+| Commit | Version impact | Changelog |
 |---|---|---|
 | `fix(media): hide source while off` | Patch | Bug Fixes |
 | `perf(graph): reuse history samples` | Patch | Performance Improvements |
 | `feat(media): add artwork` | Minor | Features |
-| `feat(media)!: replace configuration` | Minor | Features and breaking-change notes |
+| `feat(media)!: replace configuration` | Major | Features and breaking-change notes |
 | `ci: improve validation`, `docs: clarify setup`, `chore: update tooling` | No release by themselves | Omitted |
 
-Breaking changes can also use a `BREAKING CHANGE:` footer. During 0.x they do not trigger 1.0; promoting to 1.0 must be deliberate. From 1.x onward, breaking changes bump major. Describe the visible behaviour and include a migration note in the commit body when useful. Do not manually edit the collection version or changelog in ordinary feature/fix PRs.
+Breaking changes can also use a `BREAKING CHANGE:` footer. The owner approved 1.0.0 as the stable baseline on 3 November 2026. Breaking changes now always bump major; features bump minor and fixes bump patch. The pre-1.0 minor-bump exception is disabled, so the approved breaking changes select 1.0.0 from 0.26.1. Thereafter a breaking change from 1.x selects 2.0.0. Describe the visible behaviour and include a migration note in the commit body when useful. Do not manually edit the collection version or changelog in ordinary feature/fix PRs.
 
 ## Automatic preparation
 

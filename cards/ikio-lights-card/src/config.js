@@ -59,18 +59,16 @@ export const lists = [
       },
       { name: "name", label: "Name (optional)", selector: { text: {} } },
       { name: "icon", label: "Icon (optional)", selector: { icon: {} } },
-      {
-        name: "location",
-        label: "Location (optional override)",
-        selector: { text: {} },
-      },
     ],
   },
 ];
 export const editorOptions = {
+  perEntityActions: true,
+  actionHelper:
+    "Tap and hold actions apply to the light or switch you press. Defaults toggle on tap and open native details on hold. Shift+Enter runs the hold action.",
   defaults: { group_by_location: false },
   helper:
-    "Tap to toggle. Hold for native Home Assistant details, including brightness and colour. Location comes from the entity or device area; an optional location label overrides it.",
+    "Tap to toggle. Hold for native Home Assistant details, including brightness and colour. Location comes from the entity or device area.",
 };
 export function normalizeEditor(config) {
   return {

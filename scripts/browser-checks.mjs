@@ -1,3 +1,4 @@
+import { checkAlarmo } from "./browser-alarmo.mjs";
 import { checkActions } from "./browser-actions.mjs";
 import { checkElectricity } from "./browser-electricity.mjs";
 import { checkEditor } from "./browser-editor.mjs";
@@ -25,6 +26,7 @@ if (
   selected.some(
     (name) =>
       ![
+        "alarmo",
         "electricity",
         "editor",
         "lights",
@@ -48,7 +50,7 @@ if (
   )
 )
   throw Error(
-    "Choose actions, electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, vehicle, demo, graph-layout, router or review browser scenarios",
+    "Choose alarmo, actions, electricity, chip, battery, entity, home-3d, weather, lights, media, climate, dehumidifier, vacuum, vehicle, demo, graph-layout, router or review browser scenarios",
   );
 const shouldRun = (name) => !selected.length || selected.includes(name);
 const browser = await chromium.launch({
@@ -56,6 +58,7 @@ const browser = await chromium.launch({
   args: ["--enable-unsafe-swiftshader"],
 });
 try {
+  if (shouldRun("alarmo")) results.push(await checkAlarmo(browser, out));
   if (shouldRun("mini-graph")) {
     const page = await browser.newPage();
     const errors = [];
@@ -92,6 +95,43 @@ try {
             ),
           );
           assert.deepEqual(fonts, ["14px", "12px"]);
+          assert.equal(await card.locator(".mini-secondary-area").count(), 1);
+          assert.equal(
+            await card.locator(".mini-readings ha-state-icon").count(),
+            2,
+          );
+          const iconStyles = await card
+            .locator(".mini-readings ha-state-icon")
+            .evaluateAll((icons) =>
+              icons.map((icon) => ({
+                size: getComputedStyle(icon)
+                  .getPropertyValue("--mdc-icon-size")
+                  .trim(),
+                gap: getComputedStyle(icon).marginRight,
+                opacity: getComputedStyle(icon).opacity,
+              })),
+            );
+          assert(
+            iconStyles.every(
+              (s) =>
+                s.size === "11px" && s.gap === "3px" && s.opacity === "0.65",
+            ),
+          );
+          await card.evaluate((c) => {
+            c.config.static_colour = true;
+            c.update();
+          });
+          assert.equal(
+            await card
+              .locator(".ae-graph > path:not(.ae-area-fill)")
+              .getAttribute("stroke"),
+            "var(--ae-accent)",
+          );
+          await card.evaluate((c) => {
+            c.config.static_colour = false;
+            c.update();
+          });
+
           assert.ok((await card.boundingBox()).height <= 104);
           await card.screenshot({
             path: `${out}/mini-graph-${theme}-${width}.png`,
@@ -111,6 +151,7 @@ try {
         /Connected/,
       );
       assert.equal(await card.locator(".ae-time-axis span").count(), 3);
+      assert.equal(await card.locator(".mini-secondary-area").count(), 0);
       assert.deepEqual(errors, []);
       results.push({ card: "mini-graph", passed: true });
     } finally {

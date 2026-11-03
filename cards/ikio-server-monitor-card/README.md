@@ -83,3 +83,5 @@ Add sensor/name rows with optional **Show name** and **Icon** settings in the vi
 Existing database_entity bindings migrate into a Database extra reading when the new list is absent. New-list configurations take precedence, including an explicitly empty list. The editor exposes and saves the migrated entry; removing it does not restore the old DB binding. Database readings no longer appear below services.
 
 Select an optional IP address sensor to show its current IPv4 or IPv6 value beside the server name. Values update with Home Assistant; unavailable or missing sensors remain explicit. Legacy manual IP text remains visible until a sensor is selected. Extra reading names are shown by default; explicit `show_name: false` still hides them.
+
+The visual editor has no Actions section. Each sensor or dedicated control retains its native interaction; saved card-wide action settings do not override the header. See [tap and hold actions](../../docs/ikio/ACTIONS.md).

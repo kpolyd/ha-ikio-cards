@@ -48,11 +48,11 @@ function fixture(secondary = "54.3", unit = "%") {
   c.update();
   return c;
 }
-test("only primary supplies history and bounds; different-unit and text secondary readings render", (ctx) => {
+test("primary-only bounds remain independent of different-unit and text secondary readings", (ctx) => {
   const now = Date.now();
   ctx.mock.method(Date, "now", () => now);
   const c = fixture();
-  assert.deepEqual(c.historyEntities(), ["sensor.temp"]);
+  assert.deepEqual(c.historyEntities(), ["sensor.temp", "sensor.secondary"]);
   assert.equal(c.content.querySelectorAll(".ae-time-axis span").length, 3);
   assert.equal(
     c.content.querySelectorAll(".mini-readings .ae-reading").length,
@@ -128,6 +128,8 @@ test("visual editor includes both entity selectors and preserves HA sizing and v
   const fields = forms.flatMap((f) => f.schema.map((s) => s.name));
   assert.ok(fields.includes("primary_entity"));
   assert.ok(fields.includes("secondary_entity"));
+  assert.ok(fields.includes("points_per_hour"));
+  assert.ok(fields.includes("static_colour"));
   assert.ok(
     fields.includes("appearance") ||
       editor.shadowRoot.textContent.includes("Appearance"),
@@ -142,4 +144,111 @@ test("visual editor includes both entity selectors and preserves HA sizing and v
   assert.deepEqual(saved.grid_options, config.grid_options);
   assert.deepEqual(saved.visibility, config.visibility);
   editor.remove();
+});
+
+test("secondary uses a grey area without a stroke and cannot alter primary geometry or labels", (ctx) => {
+  const nowMs = Date.now();
+  ctx.mock.method(Date, "now", () => nowMs);
+  const c = fixture();
+  const primaryPath = () =>
+    c.content.querySelector("path:not(.ae-area-fill)").getAttribute("d");
+  const before = primaryPath();
+  const bounds = c.content.querySelector(".ae-y-axis").textContent;
+  const now = Date.now() / 1000;
+  c.history["sensor.secondary"] = [
+    { lu: now - 21600, s: "1000", a: { unit_of_measurement: "%" } },
+    { lu: now - 10800, s: "5000" },
+    { lu: now, s: "2000" },
+  ];
+  c.update();
+  const area = c.content.querySelector(".mini-secondary-area");
+  assert.ok(area);
+  assert.equal(area.getAttribute("stroke"), "none");
+  assert.equal(area.getAttribute("fill"), "var(--ae-muted)");
+  assert.equal(primaryPath(), before);
+  assert.equal(c.content.querySelector(".ae-y-axis").textContent, bounds);
+  assert.equal(c.content.querySelectorAll("path:not(.ae-area-fill)").length, 1);
+  assert.equal(
+    c.content.querySelectorAll(".mini-readings ha-state-icon").length,
+    2,
+  );
+  c.hass = {
+    ...c.hass,
+    states: {
+      ...c.hass.states,
+      "sensor.secondary": { state: "Connected", attributes: {} },
+    },
+  };
+  assert.equal(c.content.querySelector(".mini-secondary-area"), null);
+  assert.deepEqual(c.historyEntities(), ["sensor.temp"]);
+  c.remove();
+});
+
+test("sampling settings validate, preserve editor drafts and static colour follows the theme token", async () => {
+  const { normalizeConfig } = await import("../src/config.js");
+  assert.equal(normalizeConfig({}).points_per_hour, 12);
+  assert.equal(normalizeConfig({}).static_colour, false);
+  for (const value of [0, 61, 1.5, "12", Infinity])
+    assert.throws(() => normalizeConfig({ points_per_hour: value }));
+  assert.throws(() => normalizeConfig({ static_colour: "true" }));
+  const c = fixture();
+  c.config.static_colour = true;
+  c.update();
+  assert.equal(
+    c.content.querySelector("path:not(.ae-area-fill)").getAttribute("stroke"),
+    "var(--ae-accent)",
+  );
+  c.config.static_colour = false;
+  c.update();
+  assert.match(
+    c.content.querySelector("path:not(.ae-area-fill)").getAttribute("stroke"),
+    /^url/,
+  );
+  c.remove();
+});
+
+test("time buckets weight duration, carry unchanged states, preserve gaps and density above 240 points", async () => {
+  const { bucketHistory } = await import("../src/history.js");
+  const points = [
+    { time: 0, value: 10 },
+    { time: 900000, value: 30 },
+    { time: 3600000, value: 30 },
+  ];
+  const averaged = bucketHistory(points, 0, 3600000, 1);
+  assert.equal(averaged[1].value, 25);
+  const gap = bucketHistory(
+    [
+      { time: 0, value: 10 },
+      { time: 300000, value: null },
+      { time: 600000, value: 20 },
+      { time: 3600000, value: 20 },
+    ],
+    0,
+    3600000,
+    2,
+  );
+  assert.equal(gap[1].value, null);
+  assert.equal(gap[2].value, 20);
+  const late = bucketHistory(
+    [
+      { time: 1800000, value: 10 },
+      { time: 3600000, value: 10 },
+    ],
+    0,
+    3600000,
+    2,
+  );
+  assert.equal(late[0].value, null);
+  assert.equal(late[1].value, null);
+  assert(late.every((p, i) => i === 0 || p.time >= late[i - 1].time));
+  const c = fixture();
+  c.config.points_per_hour = 60;
+  c.update();
+  assert(
+    c.content
+      .querySelector("path:not(.ae-area-fill)")
+      .getAttribute("d")
+      .split(/[ML]/).length > 240,
+  );
+  c.remove();
 });

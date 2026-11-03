@@ -36,12 +36,20 @@ async function candidate(messages, previous = "0.12.0") {
 for (const [message, expected, previous] of [
   ["fix(media): hide the source while off", "0.12.1"],
   ["feat(media): add artwork", "0.13.0"],
-  ["feat(media)!: replace backlight configuration", "0.13.0"],
+  ["feat(media)!: replace backlight configuration", "1.0.0"],
   [
     "fix(media): migrate controls\n\nBREAKING CHANGE: remove old slots",
-    "0.13.0",
+    "1.0.0",
   ],
   ["feat(media)!: replace configuration", "2.0.0", "1.2.3"],
+  ["fix(media): preserve volume", "1.0.1", "1.0.0"],
+  ["feat(media): add a reading", "1.1.0", "1.0.0"],
+  ["feat(media)!: scope actions to the card entity", "1.0.0", "0.26.1"],
+  [
+    "fix(media): migrate keys\n\nBREAKING CHANGE: retire old bindings",
+    "2.0.0",
+    "1.0.0",
+  ],
 ])
   test(`Release Please versions ${message.split("\n")[0]} as ${expected}`, async () => {
     const pr = await candidate([message], previous);

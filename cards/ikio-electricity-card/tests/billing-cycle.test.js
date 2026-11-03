@@ -211,7 +211,7 @@ test("only the inclusive label rolls over while idle; sensor readings stay uncha
   t.mock.timers.tick(32 * 86400000);
   assert.equal(card.billingCycle, detached);
 });
-test("cron changes the label only, retaining legacy forecast gates, sensor values and label overrides", (t) => {
+test("cron and overrides supply the label; retired timestamps and forecast age no longer affect readings", (t) => {
   t.mock.timers.enable({
     apis: ["Date", "setTimeout"],
     now: Date.parse("2026-10-20T00:00:00Z"),
@@ -241,9 +241,9 @@ test("cron changes the label only, retaining legacy forecast gates, sensor value
     billing_cycle_cron: "",
     billing_period_label: "",
   });
-  assert.match(
-    card.shadowRoot.querySelector(".ae-energy-header .ae-note").textContent,
-    /2020/,
+  assert.equal(
+    card.shadowRoot.querySelector(".ae-energy-header .ae-note"),
+    null,
   );
   assert.match(
     card.shadowRoot.querySelector(".ae-energy-bills").textContent,
@@ -262,13 +262,15 @@ test("timezone-only HA configuration changes recalculate the cycle", (t) => {
   assert.equal(iso(card.billingCycle.start), "2026-10-19T21:00:00.000Z");
   card.remove();
 });
-test("billing cron is editable without losing legacy sensor bindings or HA metadata", async () => {
+test("billing cron is editable in its section; retired timestamp fields are removed while HA metadata survives", async () => {
   const Card = customElements.get("ikio-electricity-card"),
     editor = await Card.getConfigElement();
   const config = {
     power_entity: "sensor.power",
     cycle_start_entity: "sensor.start",
     cycle_end_entity: "sensor.end",
+    forecast_minimum_hours: 24,
+    energy_readings: [{ label: "Peak", entity: "sensor.peak" }],
     visibility: [{ condition: "user", users: ["simulated-user"] }],
   };
   editor.setConfig(config);
@@ -294,7 +296,52 @@ test("billing cron is editable without losing legacy sensor bindings or HA metad
     }),
   );
   assert.equal(saved.billing_cycle_cron, "0 0 20 * *");
-  assert.equal(saved.cycle_start_entity, "sensor.start");
+  assert.equal(saved.cycle_start_entity, undefined);
+  assert.equal(saved.cycle_end_entity, undefined);
+  assert.equal(saved.forecast_minimum_hours, undefined);
+  assert.equal(config.forecast_minimum_hours, 24);
+  const root = editor.shadowRoot;
+  assert.deepEqual(
+    [...root.querySelectorAll('[data-key^="group:"]')].map(
+      (g) => g.dataset.key,
+    ),
+    [
+      "group:Power",
+      "group:Billing cycle",
+      "group:Power history",
+      "group:Device power",
+      "group:Power distribution",
+    ],
+  );
+  assert.equal(
+    root
+      .querySelector('[data-key="group:Billing cycle"]')
+      .contains(root.querySelector('[data-key="list:energy_readings"]')),
+    true,
+  );
+  assert.equal(
+    root
+      .querySelector('[data-key="group:Device power"]')
+      .contains(root.querySelector('[data-key="list:circuits"]')),
+    true,
+  );
+  for (const key of [
+    "cycle_start_entity",
+    "cycle_end_entity",
+    "forecast_minimum_hours",
+  ])
+    assert.equal(
+      [...root.querySelectorAll("ha-form")].some((f) =>
+        f.schema.some((field) => field.name === key),
+      ),
+      false,
+    );
+  assert.equal(
+    editor.shadowRoot
+      .querySelector('[data-key="group:Billing cycle"]')
+      .contains(form),
+    true,
+  );
   assert.deepEqual(saved.visibility, config.visibility);
   editor.remove();
 });

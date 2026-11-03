@@ -116,6 +116,74 @@ export async function checkElectricity(browser, out) {
       assert.equal(size.sparkFill, true);
       sizes.push({ theme, width, ...size });
     }
+  // Multiple energy readings retain labels, exact shares and matching colours.
+  for (const theme of ["dark", "light", "ha"])
+    for (const width of [280, 390, 520]) {
+      await page.evaluate(
+        ({ theme, width }) => {
+          window.ikioPreview.configure({ theme, width });
+          const c = document.querySelector("ikio-electricity-card");
+          c.hass = {
+            ...c.hass,
+            states: {
+              ...c.hass.states,
+              "sensor.test_peak": {
+                state: "1000",
+                attributes: { unit_of_measurement: "Wh" },
+              },
+              "sensor.test_offpeak": {
+                state: "2",
+                attributes: { unit_of_measurement: "kWh" },
+              },
+              "sensor.test_weekend": {
+                state: "1",
+                attributes: { unit_of_measurement: "kWh" },
+              },
+            },
+          };
+          c.setConfig({
+            ...c.config,
+            total_energy_entity: undefined,
+            same_cycle: true,
+            energy_readings: [
+              { label: "Peak", entity: "sensor.test_peak" },
+              { label: "Off-peak", entity: "sensor.test_offpeak" },
+              {
+                label: "Weekend",
+                entity: "sensor.test_weekend",
+                colour: "#90CAF9",
+              },
+            ],
+          });
+        },
+        { theme, width },
+      );
+      const c = page.locator("ikio-electricity-card");
+      await c.scrollIntoViewIfNeeded();
+      assert.deepEqual(
+        await c
+          .locator(".ae-tariff-bar > span")
+          .evaluateAll((ns) => ns.map((n) => n.style.width)),
+        ["25%", "50%", "25%"],
+      );
+      assert.equal(await c.locator(".ae-tariff-marker").count(), 3);
+      assert.equal(
+        await c.evaluate((c) => c.shell.scrollWidth > c.shell.clientWidth + 1),
+        false,
+      );
+      const colours = await c.evaluate((c) =>
+        [".ae-tariff-bar > span", ".ae-tariff-marker"].map((selector) =>
+          [...c.shadowRoot.querySelectorAll(selector)].map(
+            (n) => getComputedStyle(n).backgroundColor,
+          ),
+        ),
+      );
+      assert.deepEqual(colours[0], colours[1]);
+      if (theme === "dark" && width === 390)
+        await c.screenshot({
+          path: resolve(out, "electricity-multiple-energy.png"),
+        });
+    }
   assert.deepEqual(errors, []);
   if (process.env.ELECTRICITY_PREVIEW) {
     await page.goto(
