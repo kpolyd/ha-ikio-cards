@@ -1,5 +1,25 @@
 # Ikio changelog
 
+## [1.0.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.26.1...v1.0.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **config:** composite cards no longer support custom header actions. Supported card actions ignore alternate entity targets and use their own configured entity.
+* **electricity:** cycle_start_entity, cycle_end_entity and forecast_minimum_hours are retired. Cycle dates now require cron or a label override.
+
+### Features
+
+* **alarmo:** show people at home and refine bypass interaction ([78acf00](https://github.com/kpolyd/ha-ikio-cards/commit/78acf00d824a32e5203dee8ca6bbb8a49f0dfd92))
+* **config:** simplify editors and bind actions to card entities ([6f62a92](https://github.com/kpolyd/ha-ikio-cards/commit/6f62a9257385434f540fafd71c6720caed52bb52))
+* **electricity:** add dynamic energy readings and organised billing settings ([d7cc314](https://github.com/kpolyd/ha-ikio-cards/commit/d7cc31416da39947c4f16c347315d2258d25e278))
+* **mini-graph:** add secondary history, sampling and static colour ([dbc3fd4](https://github.com/kpolyd/ha-ikio-cards/commit/dbc3fd496c31f68c99c1fe16fa692699f71edfe4))
+
+
+### Bug Fixes
+
+* **weather:** keep forecast labels inside chart bounds ([f004ba7](https://github.com/kpolyd/ha-ikio-cards/commit/f004ba7d434a38ac4e339caf82ac6b809998ba28))
+
 ## [0.26.1](https://github.com/kpolyd/ha-ikio-cards/compare/v0.26.0...v0.26.1) (2026-11-02)
 
 
