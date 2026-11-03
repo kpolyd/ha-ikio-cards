@@ -312,6 +312,78 @@ export async function checkEditor(browser, out) {
       await input("expected_min").fill("25");
       assert.equal(await error.isVisible(), false);
     }
+    await page.evaluate(async () => {
+      const Card = customElements.get("ikio-electricity-card");
+      const editor = await Card.getConfigElement();
+      editor.setConfig({
+        power_entity: "sensor.total",
+        billing_cycle_cron: "0 0 20 * *",
+        cycle_start_entity: "sensor.old_start",
+        cycle_end_entity: "sensor.old_end",
+        forecast_minimum_hours: 24,
+        energy_readings: [
+          { label: "Day", entity: "sensor.day" },
+          { label: "Night", entity: "sensor.night" },
+        ],
+        grid_options: { columns: 6 },
+      });
+      editor.hass = { states: {}, locale: { language: "en" } };
+      editor.style.cssText = "display:block;width:390px;max-width:100%";
+      editor.addEventListener("config-changed", (e) =>
+        editor.setConfig(e.detail.config),
+      );
+      document.querySelector("main").replaceChildren(editor);
+    });
+    const energyEditor = page.locator("ikio-electricity-card-editor");
+    const billing = energyEditor.locator('[data-key="group:Billing cycle"]');
+    await billing.locator(":scope > summary").click();
+    const energyList = billing.locator('[data-key="list:energy_readings"]');
+    await energyList.locator(":scope > summary").click();
+    const first = energyList.locator('[data-key="list:energy_readings:0"]');
+    await first.locator(":scope > summary").click();
+    await first.locator('input[aria-label="label"]').fill("Peak");
+    await first.locator('input[aria-label="colour"]').fill("#90CAF9");
+    await first.getByRole("button", { name: "Move down", exact: true }).click();
+    assert.deepEqual(
+      await energyEditor.evaluate((e) =>
+        e.config.energy_readings.map((r) => r.label),
+      ),
+      ["Night", "Peak"],
+    );
+    assert.equal(
+      await energyEditor.evaluate((e) => e.config.energy_readings[1].colour),
+      "#90CAF9",
+    );
+    assert.deepEqual(
+      await energyEditor.evaluate((e) =>
+        [
+          e.config.cycle_start_entity,
+          e.config.cycle_end_entity,
+          e.config.forecast_minimum_hours,
+        ].map((v) => v === undefined),
+      ),
+      [true, true, true],
+    );
+    assert.deepEqual(
+      await energyEditor.evaluate((e) => e.config.grid_options),
+      { columns: 6 },
+    );
+    assert.equal(
+      await energyEditor
+        .locator('[data-key="group:Device power"] [data-key="list:circuits"]')
+        .count(),
+      1,
+    );
+    for (const width of [280, 390, 520]) {
+      await energyEditor.evaluate((e, w) => (e.style.width = `${w}px`), width);
+      assert.equal(
+        await energyEditor.evaluate((e) => e.scrollWidth > e.clientWidth + 2),
+        false,
+      );
+    }
+    await energyEditor.screenshot({
+      path: resolve(out, "editor-electricity-billing-cycle.png"),
+    });
     assert.deepEqual(errors, []);
     return {
       scenario: "editor",

@@ -15,19 +15,13 @@ Add card → Ikio Electricity. Configure all fields through the visual editor. N
 | Field | Setting |
 |---|---|
 | power_entity | Total power (required to operate) |
-| day_entity | Billing-cycle day energy |
-| night_entity | Billing-cycle night energy |
+| energy_readings | Ordered billing-cycle energy readings: required label and sensor entity, optional six-digit hex colour |
 | total_energy_entity | Billing-cycle total energy (optional) |
 | billing_period_label | Billing-cycle dates/label |
 | billing_cycle_cron | Optional five-field numeric reset schedule, evaluated in Home Assistant's timezone; calculated dates are inclusive |
-| same_cycle | Day and night entities cover the same billing cycle |
-| cycle_start_entity | Billing-cycle start timestamp |
-| cycle_end_entity | Billing-cycle end timestamp |
+| same_cycle | Energy readings cover the same billing cycle and do not overlap |
 | accrued_bill_entity | Estimated/accrued bill |
 | forecast_bill_entity | Forecast bill |
-| forecast_valid_entity | Forecast validity |
-| forecast_minimum_hours | Minimum forecast age (hours) |
-| untracked_entity | Existing untracked-power sensor |
 | show_untracked | Show calculated untracked power |
 | non_overlapping | Selected circuits do not overlap |
 | show_power_distribution | Show the optional labelled double-ring power diagram (default off) |
@@ -50,7 +44,7 @@ No external runtime CDN dependencies. esbuild MIT license is copied into the bui
 
 ## Pending compact summary layout
 
-On the feature branch, current power is the primary reading on the left. Day/Night/Total energy are stacked in the middle, with estimated bill and forecast stacked on the right in a quieter colour. Optional columns disappear when not configured. Tariff energy is normalized to kWh for the shared column heading; billing-period and forecast-validity safeguards remain in place.
+On the feature branch, current power is the primary reading on the left. Configured energy readings and their total are stacked in the middle, with estimated bill and forecast stacked on the right in a quieter colour. Optional columns disappear when not configured. Tariff energy is normalized to kWh for the shared column heading; billing-period reconciliation and saved forecast-validity bindings remain supported.
 
 Power readings display whole watts, including values supplied by kW/MW sensors. Only presentation is rounded: untracked calculations and plotted history retain full precision. The energy graph has faint dashed horizontal guides aligned with observed minimum, midpoint and maximum labels. A constant series has one guide; duplicate rounded midpoint labels are omitted. Expected min/max still control only the colour gradient. The standalone Graph card does not gain these guides.
 
@@ -60,7 +54,7 @@ These changes ship in collection version 0.5.4.
 
 Device power readings include compact sparklines beside their watt values without adding row height. They use the main graph's history window and automatically scale each device's visible minimum/maximum vertically. Colours use the main graph's expected min/max and full palette, so identical watts have identical colours; no per-device range configuration is needed. Sparkline strokes are 0.8 px, independent of the main graph line width. Untracked also has a sparkline, using either its configured sensor or total minus confirmed non-overlapping circuits. Missing history stays blank and unavailable samples create gaps.
 
-In 0.5.4 the estimated bill and forecast labels/values align to the right edge of their column. Day/Night/Total each display exactly one decimal and a smaller kWh suffix. Compatible source units are converted before display; totals use unrounded inputs. Missing/incompatible data and billing-cycle safeguards remain.
+In 0.5.4 the estimated bill and forecast labels/values align to the right edge of their column. Energy readings and their total each display exactly one decimal and a smaller kWh suffix. Compatible source units are converted before display; totals use unrounded inputs. Missing/incompatible data and billing-cycle safeguards remain.
 
 Device sparklines hold each recorded value until its next update, then step to the new reading. This avoids a false diagonal ramp when a sensor stays unchanged for a long time. Missing data still breaks the line; no initial zero is invented.
 
@@ -76,10 +70,36 @@ The diagram is normally 184 px tall plus a compact divider; it has no repeated h
 
 ## Billing cycle from cron
 
-Copy your Utility Meter reset expression into **Billing cycle cron** in the visual editor. For example, `0 0 20 * *` resets at midnight on the 20th each month. Timestamp entities are optional when cron is supplied. The card uses `hass.config.time_zone`, never the phone/browser timezone. The most recent reset is included in the current cycle; the next reset starts the following one.
+Copy your Utility Meter reset expression into **Billing cycle cron** in the visual editor. For example, `0 0 20 * *` resets at midnight on the 20th each month. Cycle dates come from this schedule; no timestamp entities are configured. The card uses `hass.config.time_zone`, never the phone/browser timezone. The most recent reset is included in the current cycle; the next reset starts the following one.
 
-Displayed bounds are **inclusive**: a midnight reset on the 20th shows **20 October–19 November**, not 20 October–20 November. Non-midnight cycles include times and end on the last covered minute. Cross-year labels include years. The cron value is used only for this label. Energy, bill and forecast values continue to come from the configured Home Assistant sensors. Cron does not change forecast-validity/age gates, reset meters, create sensors or recalculate bills.
+Displayed bounds are **inclusive**: a midnight reset on the 20th shows **20 October–19 November**, not 20 October–20 November. Non-midnight cycles include times and end on the last covered minute. Cross-year labels include years. The cron value is used only for this label. Energy, bill and forecast values continue to come from the configured Home Assistant sensors. Cron does not reset meters, create sensors or recalculate bills. Forecast minimum-age gating is removed; any saved forecast-validity binding remains supported.
 
 Supported syntax is five numeric fields (`minute hour day month weekday`) with `*`, comma-separated lists, ascending ranges and steps. Sunday is 0 or 7. Day/weekday restrictions and fixed-time DST catch-up/repeated-hour behaviour follow current Home Assistant's CronSim scheduler. Month-end days are not clamped: day 31 skips months without a 31st. Special expressions (`L`, `#`, aliases/named days, seconds or year fields) are rejected clearly. Impossible dates and unavailable/invalid HA timezones produce an explanatory message instead of guessed dates. No external cron library or CDN is loaded.
 
-Cron takes precedence over timestamp bindings only when choosing the displayed cycle label. Clearing it restores existing timestamp label behaviour. An optional label override still controls the caption. The header updates at the next reset even without a sensor change, pauses while hidden or disconnected, and recalculates on return and HA timezone changes. Existing forecast validity and minimum-age gates continue to use their original entity bindings. The existing card layout is preserved.
+The cron schedule supplies the displayed cycle dates. Clearing it omits the dates unless a label override is supplied. An optional label override still controls the caption. The header updates at the next reset even without a sensor change, pauses while hidden or disconnected, and recalculates on return and HA timezone changes. Retired start/end timestamp and minimum-forecast-age keys are removed during normalization and no longer affect the card. The existing card layout is preserved.
+
+The visual editor no longer offers Forecast validity or Existing untracked-power sensor. Previously saved `forecast_valid_entity` and `untracked_entity` bindings remain supported and preserved when editing the card.
+
+### Billing-cycle energy
+
+Add, remove and reorder any number of readings. Each entry has a required **Label**, required **Energy entity**, and optional **Colour** (`#RRGGBB`). Blank colours use a theme-aware palette: the first two keep the existing mint/orchid colours, followed by complementary colours. Colours identify segments and markers in the energy-share bar; the main power-history chart keeps its value-based palette.
+
+Saved `day_entity` and `night_entity` settings migrate to Day and Night entries automatically, preserving HA layout metadata. An explicit `energy_readings: []` takes precedence and stays empty. A separate total-energy sensor remains optional. Without it, total energy requires confirmation that readings cover the same cycle without overlap. Missing, incompatible or negative inputs never become zero; shares appear only when all readings reconcile with the total. Duplicate sensor bindings are rejected.
+
+```yaml
+energy_readings:
+  - label: Peak
+    entity: sensor.example_peak_energy
+  - label: Off-peak
+    entity: sensor.example_off_peak_energy
+  - label: Weekend
+    entity: sensor.example_weekend_energy
+    colour: "#90CAF9"
+same_cycle: true
+```
+
+The visual editor has no Actions section. Each sensor or dedicated control retains its native interaction; saved card-wide action settings do not override the header. See [tap and hold actions](../../docs/ikio/ACTIONS.md).
+
+## Configuration sections
+
+General contains the optional card name. Card settings are grouped into Power, Billing cycle, Power history, Device power and Power distribution, with Appearance last. Billing cycle contains the cron schedule, optional caption/total energy sensor, bill/forecast sensors, the nested Billing-cycle energy list and the same-cycle/non-overlap confirmation. Device readings and calculated-untracked controls live together under Device power. No start/end timestamp or minimum forecast age controls remain. Existing energy lists, colours, other sensor bindings and HA layout metadata are retained.

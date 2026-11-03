@@ -23,18 +23,18 @@ export function cycleTotal(day, night, confirmed) {
     b = unitValue(night, "energy");
   return a === null || b === null ? null : a + b;
 }
-export function forecastStatus(config, states, now = Date.now()) {
+export function energyTotal(states, confirmed) {
+  if (!confirmed || !states.length) return null;
+  const values = states.map((state) => unitValue(state, "energy"));
+  return values.some((value) => value === null || value < 0)
+    ? null
+    : values.reduce((sum, value) => sum + value, 0);
+}
+export function forecastStatus(config, states) {
   if (config.forecast_valid_entity) {
     const s = states[config.forecast_valid_entity];
     if (!available(s)) return "Forecast validity unknown";
     if (s.state !== "on") return "Gathering enough data";
-  }
-  if (config.forecast_minimum_hours !== undefined) {
-    const start = Date.parse(states[config.cycle_start_entity]?.state);
-    if (!Number.isFinite(start) || start > now)
-      return "Forecast validity unknown";
-    if (now - start < config.forecast_minimum_hours * 3600000)
-      return "Gathering enough data";
   }
   return null;
 }

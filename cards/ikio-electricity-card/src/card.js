@@ -14,7 +14,7 @@ import {
   formatNumber,
   unitValue,
 } from "@ikio/card-ui";
-import { validate } from "./config.js";
+import { validate, normalizeConfig } from "./config.js";
 import { cronBillingCycle, billingCycleLabel } from "./billing-cycle.js";
 import {
   distributionModel,
@@ -24,7 +24,7 @@ import {
 import {
   untracked,
   untrackedHistory,
-  cycleTotal,
+  energyTotal,
   forecastStatus,
   powerText,
   powerNumber,
@@ -32,6 +32,9 @@ import {
 } from "./adapter.js";
 export class Card extends HistoryCard {
   validate = validate;
+  setConfig(config) {
+    super.setConfig(normalizeConfig(config));
+  }
   constructor() {
     super();
     this.shadowRoot.prepend(
@@ -185,6 +188,21 @@ export class Card extends HistoryCard {
     }
     return this.untrackedPointsCache;
   }
+  energyColour(index) {
+    if (index === 0) return this.graphStops[0][1];
+    if (index === 1) return this.graphStops.at(-1)[1];
+    const light =
+      this.config.appearance?.theme === "light" ||
+      (this.config.appearance?.theme === "ha" &&
+        this.hass?.themes?.darkMode === false);
+    const extra = light
+      ? ["#36597f", "#937323", "#b25e3b", "#50645f"]
+      : ["#90caf9", "#f2d487", "#ed9c6e", "#adcfff"];
+    return (
+      extra[index - 2] ||
+      `hsl(${(index * 137.508) % 360} 45% ${light ? 36 : 72}%)`
+    );
+  }
   tariffReading(label, entity, calculated) {
     const value =
       calculated === undefined
@@ -255,9 +273,7 @@ export class Card extends HistoryCard {
       c.billing_period_label ||
       (this.billingCycle
         ? billingCycleLabel(this.billingCycle, this.hass)
-        : c.cycle_start_entity
-          ? `${valueText(this.hass, c.cycle_start_entity)} – ${valueText(this.hass, c.cycle_end_entity)}`
-          : "");
+        : "");
     if (dates) header.append(note(dates));
     const summary = el("div", undefined, "ae-energy-summary");
     const power = reading(
@@ -278,7 +294,8 @@ export class Card extends HistoryCard {
     const widths = ["1.05fr"];
     const result = group(header, summary);
     result.classList.add("ae-energy");
-    if (c.day_entity || c.night_entity || c.total_energy_entity) {
+    const energy = c.energy_readings || [];
+    if (energy.length || c.total_energy_entity) {
       const tariffs = el(
         "div",
         undefined,
@@ -299,9 +316,8 @@ export class Card extends HistoryCard {
       );
       const total = c.total_energy_entity
         ? unitValue(this.state(c.total_energy_entity), "energy")
-        : cycleTotal(
-            this.state(c.day_entity),
-            this.state(c.night_entity),
+        : energyTotal(
+            energy.map((row) => this.state(row.entity)),
             c.same_cycle,
           );
       tariffs.append(
@@ -311,47 +327,39 @@ export class Card extends HistoryCard {
           c.total_energy_entity ? undefined : total,
         ),
       );
-      const day = unitValue(this.state(c.day_entity), "energy");
-      const night = unitValue(this.state(c.night_entity), "energy");
-      if (c.day_entity || c.night_entity) {
+      if (energy.length) {
+        const colours = energy.map(
+          (row, i) => row.colour || this.energyColour(i),
+        );
+        const values = energy.map((row) =>
+          unitValue(this.state(row.entity), "energy"),
+        );
+        const sum = values.reduce((a, b) => a + (b ?? 0), 0);
         const bar = el("div", undefined, "ae-tariff-bar");
         bar.setAttribute("aria-hidden", "true");
-        // Only show a contribution when both sensors reconcile with the total.
         if (
-          day !== null &&
-          night !== null &&
-          day >= 0 &&
-          night >= 0 &&
-          day + night > 0 &&
+          values.every((v) => v !== null && v >= 0) &&
+          sum > 0 &&
           Number.isFinite(total) &&
-          Math.abs(total - day - night) <= Math.max(0.05, total * 0.001)
+          Math.abs(total - sum) <= Math.max(0.05, total * 0.001)
         ) {
-          for (const [name, value] of [
-            ["day", day],
-            ["night", night],
-          ]) {
-            const segment = el("span", undefined, `ae-tariff-${name}`);
-            segment.style.width = `${(100 * value) / (day + night)}%`;
+          values.forEach((value, i) => {
+            const segment = el("span", undefined, "ae-tariff-segment");
+            segment.style.width = `${(100 * value) / sum}%`;
+            segment.style.backgroundColor = colours[i];
             bar.append(segment);
-          }
+          });
         }
         tariffs.append(bar);
         const legend = el("div", undefined, "ae-tariff-legend");
-        for (const [name, label, entity] of [
-          ["day", "Day", c.day_entity],
-          ["night", "Night", c.night_entity],
-        ]) {
-          if (!entity) continue;
-          const item = this.tariffReading(t(this.hass, label), entity);
-          const marker = el(
-            "span",
-            undefined,
-            `ae-tariff-marker ae-tariff-${name}`,
-          );
+        energy.forEach((row, i) => {
+          const item = this.tariffReading(row.label, row.entity);
+          const marker = el("span", undefined, "ae-tariff-marker");
+          marker.style.backgroundColor = colours[i];
           marker.setAttribute("aria-hidden", "true");
           item.querySelector(".ae-label").prepend(marker);
           legend.append(item);
-        }
+        });
         tariffs.append(legend);
       }
       summary.append(tariffs);
@@ -361,7 +369,7 @@ export class Card extends HistoryCard {
           note(
             t(
               this.hass,
-              "Confirm matching day/night billing periods in the editor to calculate their total.",
+              "Confirm matching, non-overlapping billing periods in the editor to calculate the total.",
             ),
           ),
         );
