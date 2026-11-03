@@ -1,6 +1,5 @@
 import {
   entity,
-  text,
   bool,
   number,
   choice,
@@ -15,25 +14,15 @@ export const fields = [
     true,
   ),
   bool("allow_override", "Show Alarmo open-sensor override"),
+  { ...bool("show_people", "Show people at home"), default: true },
   bool("show_activity", "Show activity"),
   number("activity_hours", "Activity hours to show", 1, 168),
 ];
 export const lists = [
   {
-    name: "contacts",
-    label: "Extra openings (optional; Alarmo sensors are automatic)",
-    fields: [
-      entity("entity", "Contact", "binary_sensor", true),
-      text("name", "Name"),
-    ],
-  },
-  {
-    name: "motion",
-    label: "Extra motion (optional; Alarmo sensors are automatic)",
-    fields: [
-      entity("entity", "Motion / occupancy", "binary_sensor", true),
-      text("name", "Name"),
-    ],
+    name: "ignored_persons",
+    label: "Ignored people",
+    fields: [entity("entity", "Person", "person", true)],
   },
 ];
 export const validate = (c) => validateConfig(c, fields, lists);

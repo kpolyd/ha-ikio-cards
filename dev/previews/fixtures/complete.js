@@ -100,13 +100,11 @@ export function completeDemo(states, configs) {
     0,
   );
   sensor("demo_untracked", Number(states["sensor.total"].state) - metered, "W");
+  for (const row of configs.electricity.energy_readings) row.colour = "";
   Object.assign(configs.electricity, {
     total_energy_entity: "sensor.demo_total_energy",
     billing_cycle_cron: "0 0 1 * *",
-    cycle_start_entity: "sensor.demo_cycle_start",
-    cycle_end_entity: "sensor.demo_cycle_end",
     forecast_valid_entity: "binary_sensor.demo_forecast_valid",
-    forecast_minimum_hours: 24,
     untracked_entity: "sensor.demo_untracked",
     distribution_max_devices: 8,
     expected_min: 0,
@@ -226,8 +224,12 @@ export function completeDemo(states, configs) {
     show_precipitation_probability: true,
     show_forecast_wind: true,
   });
+  states["sensor.temperature"].attributes.icon = "mdi:thermometer";
+  states["sensor.humidity"].attributes.icon = "mdi:water-percent";
   configs["mini-graph"] = {
     name: "Living room",
+    points_per_hour: 12,
+    static_colour: false,
     primary_entity: "sensor.temperature",
     secondary_entity: "sensor.humidity",
     hours: 6,

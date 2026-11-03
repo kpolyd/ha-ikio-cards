@@ -22,7 +22,7 @@ Seventeen independent cards share colours, typography, controls and one synchron
 | [Router](cards/ikio-router-card/README.md) | Connection status, cellular signal and network traffic |
 | [Server Monitor](cards/ikio-server-monitor-card/README.md) | Host metrics, availability and service controls |
 | [Vehicle](cards/ikio-vehicle-card/README.md) | Vehicle readings, locks/doors/windows and map link |
-| [Mini Graph](cards/ikio-mini-graph-card/README.md) | Primary history with an optional secondary live reading |
+| [Mini Graph](cards/ikio-mini-graph-card/README.md) | Primary history with an optional secondary area graph |
 | [Graph](cards/ikio-graph-card/README.md) | History with value-based colours and expected min/max |
 | [Chip](cards/ikio-chip-card/README.md) | A single sensor chip, available as a card or dashboard badge |
 

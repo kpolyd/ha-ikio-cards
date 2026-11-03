@@ -26,6 +26,7 @@ test("native form edits preserve full config and unknown HA-owned keys", async (
         name: "Strip",
         control_mode: "power-only",
         extra: "retained",
+        location: "Balcony",
       },
     ],
     appearance: { theme: "ha" },
@@ -55,7 +56,6 @@ test("native form edits preserve full config and unknown HA-owned keys", async (
     );
   for (const [name, value] of Object.entries({
     name: "New name",
-    location: "Balcony",
   })) {
     const control = [
       ...editor.shadowRoot.querySelectorAll("details ha-form"),
@@ -68,6 +68,12 @@ test("native form edits preserve full config and unknown HA-owned keys", async (
   }
   assert.equal(saved.lights[0].name, "New name");
   assert.equal(saved.lights[0].location, "Balcony");
+  assert.equal(
+    [...editor.shadowRoot.querySelectorAll("ha-form")].some((f) =>
+      f.schema.some((s) => s.name === "location"),
+    ),
+    false,
+  );
   assert.equal(saved.lights[0].extra, "retained");
   assert.deepEqual(saved.grid_options, input.grid_options);
   assert.deepEqual(saved.visibility, input.visibility);

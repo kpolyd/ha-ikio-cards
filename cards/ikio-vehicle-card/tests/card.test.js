@@ -43,6 +43,10 @@ test("every schema field and repeating list has a visual editor and preserves HA
   await new Promise((r) => setTimeout(r, 0));
   const forms = editor.shadowRoot.querySelectorAll("ha-form");
   assert.ok(forms.length >= 2);
+  assert.equal(
+    editor.shadowRoot.querySelector('[data-key="card-actions"]'),
+    null,
+  );
   let saved;
   editor.addEventListener("config-changed", (e) => (saved = e.detail.config));
   forms[0].dispatchEvent(

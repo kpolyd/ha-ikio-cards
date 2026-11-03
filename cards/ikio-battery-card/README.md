@@ -29,3 +29,5 @@ ignored_devices: []
 appearance:
   theme: dark
 ```
+
+The visual editor has no Actions section. Each sensor or dedicated control retains its native interaction; saved card-wide action settings do not override the header. See [tap and hold actions](../../docs/ikio/ACTIONS.md).

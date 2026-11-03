@@ -478,3 +478,78 @@ test("colour dots appear only for reported on states and return without rebuildi
   }
   card.remove();
 });
+
+test("custom taps target each pressed light, ignore saved overrides and leave the header inert", async () => {
+  const { card, calls } = fixture(
+    {
+      "light.strip": light(),
+      "light.other": { ...light(), entity_id: "light.other" },
+    },
+    {
+      lights: ["light.strip", "light.other"],
+      action_entity: "light.wrong",
+      tap_action: {
+        action: "perform-action",
+        perform_action: "light.turn_on",
+        entity: "light.wrong",
+        data: { brightness: 100, entity_id: "light.wrong", area_id: "wrong" },
+        target: { entity_id: "light.wrong" },
+      },
+    },
+  );
+  card.rows[0].toggle.click();
+  await new Promise((r) => setTimeout(r, 0));
+  card.rows[1].toggle.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(
+    calls.map((c) => c[3]),
+    [{ entity_id: "light.strip" }, { entity_id: "light.other" }],
+  );
+  assert.deepEqual(
+    calls.map((c) => c[2]),
+    [{ brightness: 100 }, { brightness: 100 }],
+  );
+  card.shadowRoot.querySelector("h2").click();
+  assert.equal(calls.length, 2);
+  card.preview = true;
+  card.rows[0].toggle.click();
+  assert.equal(calls.length, 2);
+  card.remove();
+});
+
+test("custom hold and keyboard hold open the pressed light and suppress the following tap", async () => {
+  const { card, calls } = fixture(
+    {
+      "light.strip": light(),
+      "light.other": { ...light(), entity_id: "light.other" },
+    },
+    {
+      lights: ["light.strip", "light.other"],
+      tap_action: { action: "toggle" },
+      hold_action: { action: "more-info", entity: "light.wrong" },
+      action_entity: "light.wrong",
+    },
+  );
+  const seen = [];
+  card.addEventListener("hass-more-info", (e) => seen.push(e.detail.entityId));
+  const button = card.rows[1].toggle;
+  button.dispatchEvent(
+    new dom.window.MouseEvent("pointerdown", { bubbles: true }),
+  );
+  await new Promise((r) => setTimeout(r, 580));
+  button.dispatchEvent(
+    new dom.window.MouseEvent("pointerup", { bubbles: true }),
+  );
+  button.click();
+  assert.deepEqual(seen, ["light.other"]);
+  assert.equal(calls.length, 0);
+  card.rows[0].toggle.dispatchEvent(
+    new dom.window.KeyboardEvent("keydown", {
+      key: "Enter",
+      shiftKey: true,
+      bubbles: true,
+    }),
+  );
+  assert.deepEqual(seen, ["light.other", "light.strip"]);
+  card.remove();
+});

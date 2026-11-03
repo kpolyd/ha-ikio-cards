@@ -29,3 +29,5 @@ Bounds clamp the arc only; the actual measurement stays visible. Radio sensors a
 Validation uses simulated DOM/browser fixtures and does not claim native Home Assistant or live-router verification. No device actions or service calls are provided.
 
 Extra reading chips show names by default. Turn off Show name on an individual reading to hide its label.
+
+The visual editor has no Actions section. Each sensor or dedicated control retains its native interaction; saved card-wide action settings do not override the header. See [tap and hold actions](../../docs/ikio/ACTIONS.md).

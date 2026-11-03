@@ -96,19 +96,14 @@ test("custom holds run once, suppress the following tap, and preserve default ho
     tap_action: { action: "more-info" },
     hold_action: {
       action: "perform-action",
-      perform_action: "select.select_option",
-      data: { option: "Grid" },
-      target: { entity_id: "select.example" },
+      perform_action: "switch.turn_on",
+      data: {},
+      target: { entity_id: "switch.other" },
     },
   });
   await hold(target);
   assert.deepEqual(calls, [
-    [
-      "select",
-      "select_option",
-      { option: "Grid" },
-      { entity_id: "select.example" },
-    ],
+    ["switch", "turn_on", {}, { entity_id: "switch.demo" }],
   ]);
   assert.deepEqual(opened, []);
   card.setConfig({ entity: "switch.demo", tap_action: { action: "none" } });
@@ -199,7 +194,7 @@ test("navigation uses the HA event; URL actions only allow HTTP(S); unsupported 
   assert.match(card.error.textContent, /does not support toggle/);
   card.remove();
 });
-test("perform-action preserves targets and data, prevents duplicate requests and ignores stale failures", async () => {
+test("perform-action uses the card entity and preserves data, prevents duplicate requests and ignores stale failures", async () => {
   const { card, target, calls } = fixture({
     tap_action: {
       action: "perform-action",
@@ -216,7 +211,7 @@ test("perform-action preserves targets and data, prevents duplicate requests and
   target.click();
   target.click();
   assert.deepEqual(calls, [
-    ["light", "turn_on", { brightness: 100 }, { area_id: "test_area" }],
+    ["light", "turn_on", { brightness: 100 }, { entity_id: "switch.demo" }],
   ]);
   card.setConfig({ entity: "sensor.other" });
   reject(Error("stale failure"));
@@ -289,5 +284,26 @@ test("remapping during a hold cancels the gesture and its trailing click", async
   await tick();
   assert.equal(calls.length, 1);
   assert.equal(calls[0][1], "new");
+  card.remove();
+});
+
+test("missing primary entity never falls back to a retired action target or sends an untargeted command", async () => {
+  const { card, target, calls, opened } = fixture();
+  for (const action of ["more-info", "toggle", "perform-action"]) {
+    card.setConfig({
+      action_entity: "light.unrelated",
+      tap_action: {
+        action,
+        entity: "light.unrelated",
+        perform_action: "light.turn_on",
+        target: { entity_id: "light.unrelated" },
+      },
+    });
+    target.click();
+    await tick();
+    assert.deepEqual(calls, []);
+    assert.deepEqual(opened, []);
+    assert.match(card.error.textContent, /primary entity/);
+  }
   card.remove();
 });

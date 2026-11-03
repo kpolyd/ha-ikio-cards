@@ -32,11 +32,6 @@ export const fields = [
   entity("range_entity", "Remaining range", "sensor"),
   entity("odometer_entity", "Odometer", "sensor"),
   entity("tracker_entity", "Car location", "device_tracker"),
-  entity("location_entity", "Parking label (optional)", [
-    "sensor",
-    "device_tracker",
-  ]),
-  entity("location_timestamp_entity", "Location update timestamp", "sensor"),
   choice("locks_active_state", "Lock state interpretation", [
     { value: "auto", label: "Automatic (recommended)" },
     { value: "unlocked", label: "Locked/unlocked (legacy automatic)" },

@@ -117,6 +117,7 @@ export class IkioLightsCard extends IkioCard {
         name = element("span", "", "name"),
         location = element("span", "", "location");
       toggle.type = "button";
+      toggle.dataset.entity = row.entity;
       labels.append(name, location);
       const dot = element("span", undefined, "state-dot"),
         level = element("span", undefined, "level");

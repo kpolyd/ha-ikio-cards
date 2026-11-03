@@ -149,6 +149,14 @@ state("person.owner", "home", {
   user_id: "demo-user",
   friendly_name: "Demo resident",
 });
+for (const [id, name] of [
+  ["alex", "Alex Morgan"],
+  ["maria", "Maria Taylor"],
+  ["elena", "Elena Reed"],
+])
+  state(`person.demo_${id}`, "home", { friendly_name: name });
+state("person.demo_ignored", "home", { friendly_name: "Ignored demo resident" });
+state("person.demo_away", "not_home", { friendly_name: "Sam Away" });
 state("alarm_control_panel.home", "disarmed", {
   supported_features: 3,
   code_arm_required: false,
@@ -315,15 +323,15 @@ const configs = {
     show_activity: true,
     name: "Home security",
     entity: "alarm_control_panel.home",
-    persons: [{ entity: "person.owner", name: "Resident" }],
+    show_people: true,
+    ignored_persons: [{ entity: "person.demo_ignored" }],
     contacts: [{ entity: "binary_sensor.window", name: "Kitchen window" }],
   },
   electricity: {
     name: "Electricity",
     show_power_distribution: true,
     power_entity: "sensor.total",
-    day_entity: "sensor.day",
-    night_entity: "sensor.night",
+    energy_readings: [{label:"Day",entity:"sensor.day"},{label:"Night",entity:"sensor.night"}],
     same_cycle: true,
     billing_period_label: "1–31 October · fixture",
     accrued_bill_entity: "sensor.bill",

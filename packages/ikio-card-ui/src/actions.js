@@ -71,7 +71,34 @@ function info(card, entity) {
       }),
     );
 }
+const disabledActions = new Set([
+  "ikio-electricity-card",
+  "ikio-router-card",
+  "ikio-server-monitor-card",
+  "ikio-battery-card",
+  "ikio-graph-card",
+  "ikio-vehicle-card",
+  "ikio-alarmo-card",
+  "ikio-home-3d-card",
+]);
+const entityActions = new Set([
+  "ikio-lights-card",
+  "ikio-entity-card",
+  "ikio-chip-card",
+  "ikio-chip-badge",
+  "ikio-climate-card",
+  "ikio-dehumidifier-card",
+  "ikio-media-card",
+  "ikio-vacuum-card",
+  "ikio-weather-card",
+  "ikio-mini-graph-card",
+]);
 export function mainActionArea(card) {
+  if (
+    card.localName === "ikio-lights-card" ||
+    disabledActions.has(card.localName)
+  )
+    return null;
   if (card.localName === "ikio-entity-card") return card.control;
   if (["ikio-chip-card", "ikio-chip-badge"].includes(card.localName))
     return card.content.querySelector(".chip-only .ikio-sensor-chip");
@@ -80,6 +107,12 @@ export function mainActionArea(card) {
   );
 }
 function context(card, event) {
+  if (card.localName === "ikio-lights-card") {
+    const tile = event
+      .composedPath()
+      .find((node) => node.matches?.("button.toggle[data-entity]"));
+    return tile ? { area: tile, entity: tile.dataset.entity } : null;
+  }
   const area = mainActionArea(card),
     path = event.composedPath();
   if (!area || !path.includes(area)) return null;
@@ -97,6 +130,7 @@ function context(card, event) {
   const c = card.config || {};
   const entity =
     path.find((n) => n.dataset?.entity)?.dataset.entity ||
+    c.primary_entity ||
     c.entity ||
     c.climate_entity ||
     c.humidifier_entity ||
@@ -161,7 +195,20 @@ export async function executeCardAction(card, action, fallbackEntity) {
   const run = async () => {
     try {
       if (card.preview || generation !== card.generation) return;
-      const id = action.entity || card.config?.action_entity || fallbackEntity;
+      const boundEntity = entityActions.has(card.localName);
+      const id = boundEntity
+        ? fallbackEntity
+        : action.entity || card.config?.action_entity || fallbackEntity;
+      if (
+        boundEntity &&
+        !id &&
+        ["more-info", "toggle", "perform-action", "call-service"].includes(
+          action.action,
+        )
+      )
+        throw Error(
+          "Configure the card's primary entity before using this action.",
+        );
       if (action.action === "more-info") {
         if (!id) throw Error("Choose an action entity for this card.");
         info(card, id);
@@ -227,11 +274,28 @@ export async function executeCardAction(card, action, fallbackEntity) {
           card.hass.callService(
             domain,
             service,
-            action.data || action.service_data || {},
-            action.target ||
-              (card.config?.action_entity
-                ? { entity_id: card.config.action_entity }
-                : undefined),
+            boundEntity
+              ? Object.fromEntries(
+                  Object.entries(
+                    action.data || action.service_data || {},
+                  ).filter(
+                    ([key]) =>
+                      ![
+                        "entity_id",
+                        "device_id",
+                        "area_id",
+                        "floor_id",
+                        "label_id",
+                      ].includes(key),
+                  ),
+                )
+              : action.data || action.service_data || {},
+            boundEntity
+              ? { entity_id: id }
+              : action.target ||
+                  (card.config?.action_entity
+                    ? { entity_id: card.config.action_entity }
+                    : undefined),
           ),
           new Promise((_, reject) => {
             request.timer = setTimeout(

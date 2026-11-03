@@ -18,9 +18,21 @@ export async function checkActions(browser, out) {
       .evaluate((root) =>
         [...root.querySelectorAll(":scope > section > *")]
           .map((n) => n.localName)
-          .filter((n) => n.startsWith("ikio-") && n !== "ikio-home-3d-card"),
+          .filter((n) =>
+            [
+              "ikio-lights-card",
+              "ikio-chip-card",
+              "ikio-entity-card",
+              "ikio-climate-card",
+              "ikio-dehumidifier-card",
+              "ikio-media-card",
+              "ikio-vacuum-card",
+              "ikio-weather-card",
+              "ikio-mini-graph-card",
+            ].includes(n),
+          ),
       );
-    assert.equal(types.length, 16);
+    assert.equal(types.length, 9);
     for (const type of types) {
       const card = page.locator(type);
       await card.scrollIntoViewIfNeeded();
@@ -48,13 +60,15 @@ export async function checkActions(browser, out) {
           },
         });
         const area =
-          c.localName === "ikio-entity-card"
-            ? c.control
-            : c.localName === "ikio-chip-card"
-              ? c.content.querySelector(".ikio-sensor-chip")
-              : c.content.querySelector(
-                  ".weather-name, .ae-energy-header, .ae-drive-header, header",
-                );
+          c.localName === "ikio-lights-card"
+            ? c.content.querySelector("button.toggle[data-entity]")
+            : c.localName === "ikio-entity-card"
+              ? c.control
+              : c.localName === "ikio-chip-card"
+                ? c.content.querySelector(".ikio-sensor-chip")
+                : c.content.querySelector(
+                    ".weather-name, .ae-energy-header, .ae-drive-header, header",
+                  );
         const target = area.matches("button")
           ? area
           : area.querySelector(".ae-title, .security-emblem, h2");
@@ -69,6 +83,12 @@ export async function checkActions(browser, out) {
         );
         await Promise.resolve();
         const result = {
+          entity:
+            target.dataset.entity ||
+            c.config.primary_entity ||
+            c.config.entity ||
+            c.config.climate_entity ||
+            c.config.humidifier_entity,
           opened: [...opened],
           calls: [...calls],
           accessible:
@@ -81,13 +101,82 @@ export async function checkActions(browser, out) {
         c.removeEventListener("hass-more-info", listen);
         return result;
       });
-      assert.deepEqual(result.opened, ["sensor.action_test"], type);
+      assert.deepEqual(result.opened, [result.entity], type);
       assert.deepEqual(
         result.calls,
-        [["script", "turn_on", {}, { entity_id: "script.action_test" }]],
+        [
+          [
+            "script",
+            "turn_on",
+            {},
+            {
+              entity_id: result.entity,
+            },
+          ],
+        ],
         type,
       );
       assert(result.accessible, type);
+    }
+    for (const type of [
+      "electricity",
+      "router",
+      "server-monitor",
+      "battery",
+      "graph",
+      "vehicle",
+      "alarmo",
+    ]) {
+      const c = page.locator(`ikio-${type}-card`);
+      const result = await c.evaluate((card) => {
+        const original = structuredClone(card.config),
+          opened = [],
+          calls = [];
+        const listen = (e) => opened.push(e.detail.entityId);
+        const originalHass = card.hass,
+          originalPreview = card.preview;
+        card.preview = false;
+        card.hass = {
+          ...card.hass,
+          callService: async (...args) => calls.push(args),
+        };
+        card.addEventListener("hass-more-info", listen);
+        card.setConfig({
+          ...original,
+          action_entity: "sensor.ignored_action",
+          tap_action: { action: "more-info", entity: "sensor.ignored_action" },
+          hold_action: {
+            action: "perform-action",
+            perform_action: "script.ignored_action",
+          },
+        });
+        const header = card.shadowRoot.querySelector(
+          "header, .weather-name, .ae-drive-header, .ae-energy-header",
+        );
+        if (header) {
+          const target = header.querySelector("h2,.ae-title") || header;
+          target.click();
+          target.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "Enter",
+              shiftKey: true,
+              bubbles: true,
+            }),
+          );
+        }
+        card.setConfig(original);
+        card.hass = originalHass;
+        card.preview = originalPreview;
+        card.removeEventListener("hass-more-info", listen);
+        return { opened, calls };
+      });
+      assert(!result.opened.includes("sensor.ignored_action"), type);
+      assert(
+        !result.calls.some(
+          (call) => call[0] === "script" && call[1] === "ignored_action",
+        ),
+        type,
+      );
     }
     const entity = page.locator("ikio-entity-card");
     await entity.scrollIntoViewIfNeeded();

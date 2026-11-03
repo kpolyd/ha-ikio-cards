@@ -18,17 +18,7 @@ Add card → Ikio Alarmo. Configure all fields through the visual editor. No YAM
 | modes | Arming modes |
 | allow_override | Show Alarmo open-sensor override |
 
-### Monitored openings
-Add, remove and reorder rows in the editor.
-
-- **Contact** (entity)
-- **Name** (name)
-
-### Current motion
-Add, remove and reorder rows in the editor.
-
-- **Motion / occupancy** (entity)
-- **Name** (name)
+Openings and motion sensors are discovered automatically from Alarmo. The visual editor no longer offers Extra openings, Extra motion or an Actions section. Previously saved manual sensor rows remain supported. Saved custom action keys are preserved through editor changes but no longer override the header.
 
 ## Shared behaviour
 
@@ -46,7 +36,7 @@ The masked PIN field and numeric keypad remain visible while armed, including ar
 
 ## Automatic Alarmo sensors and direct arming (0.5.4)
 
-Select the Alarmo panel; no sensor list is required in this card. Read-only `alarmo/entities` and `alarmo/sensors` requests discover its enabled sensors, scoped to the selected area or all areas for the master panel. HA state changes keep their status and native icons current. Alarmo configuration updates refresh the list, with a periodic fallback and lifecycle cleanup. Sensor labels include full friendly/device names so multiple devices are not all called Opening. Optional manual rows remain as extra/fallback bindings.
+Select the Alarmo panel; no sensor list is required in this card. Read-only `alarmo/entities` and `alarmo/sensors` requests discover its enabled sensors, scoped to the selected area or all areas for the master panel. HA state changes keep their status and native icons current. Alarmo configuration updates refresh the list, with a periodic fallback and lifecycle cleanup. Sensor labels include full friendly/device names so multiple devices are not all called Opening. Previously saved manual rows remain supported as extra/fallback bindings.
 
 Home/Away now arm immediately when no code is required. Checking **Bypass open sensors** is the explicit bypass choice; tapping a mode submits that choice without an additional confirmation screen. A required code still opens the inline PIN pad and needs submission; normal exit delays remain. Legacy `confirm_arm` settings are accepted but no longer add a review step. Alarmo failure events display the rejection reason and cancel the pending timeout immediately. Fresh blocking-sensor attributes provide fallback feedback if events are unavailable. Discovery failures and an empty configuration never show a green all-clear.
 
@@ -70,3 +60,9 @@ The existing expandable alert list groups sensor chips by Home Assistant area (e
 Enable **Show activity** in the visual editor to show an always-visible timeline below the alarm controls. **Activity hours to show** defaults to 24 (1–168 hours). The panel, automatically discovered Alarmo sensors and optional extra sensors are included without a second entity list. Events show recorded state, area, date and time with seconds, newest first in Home Assistant's timezone. User actions show a name and linked person picture when available; otherwise a person icon is shown. User names come from linked person entities, the current user, or the user directory when the viewer has permission; unresolved actors display Unknown user. Sensor events without user attribution have no user badge.
 
 The timeline uses HA's Logbook API and requires recorded activity and access to it. New events arrive through an entity-filtered HA Logbook live subscription while the card is visible. Incoming events render in short 100 ms batches, and replay duplicates do not cause extra renders. The subscription stops when hidden/disconnected/disabled, reconnects with a small overlap to replay missed events, and falls back to one-minute polling if streaming is unavailable. Requests have timeouts, and loading/empty/error states remain explicit. The activity list has a 288 px maximum height (roughly 5–6 normal entries, fewer for long labels/date headings), with a thin scrollbar. Initially display up to 20 events; approaching the bottom adds the next 20. Home Assistant does not offer event-count pagination: requests search successively older time ranges, starting with five minutes and widening for sparse history, rather than downloading the complete configured history upfront. Extra events in a returned range are cached for the next batch. Stop at the configured time limit; there is no 200-event cutoff. Fallback refreshes fetch only new time ranges. Both live events and history loading preserve a scrolled reader’s visible entry. Loaded history remains cached when temporarily hidden. An unavailable activity service does not disable alarm controls. This is a recent-activity view, not a separately preserved incident archive.
+
+### People at home
+
+The header automatically shows people whose `person.*` state is exactly `home`. Away, unknown and unavailable people are hidden. **Show people at home** defaults on; **Ignored people** is an optional repeatable list of person selectors. No trackers need to be configured in the card. Photos fall back to initials, with the full name available to assistive technology and on hover. Tap or hold an avatar for native entity details. The compact grid has three columns and 4 px gaps, with space for three rows; larger households can scroll the grid. When no eligible people are home the section disappears. Demo fixtures include four people at home and one away.
+
+The bypass checkbox toggles only from its checkbox or text label; the unused row space is inert.

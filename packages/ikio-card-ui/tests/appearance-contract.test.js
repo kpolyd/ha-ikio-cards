@@ -45,7 +45,19 @@ test("every card ends its editor with the standard theme selector and defaults t
       const actionSection = editor.shadowRoot.querySelector(
         '[data-key="card-actions"]',
       );
-      if (id === "ikio-home-3d-card") assert.equal(actionSection, null);
+      if (
+        [
+          "ikio-home-3d-card",
+          "ikio-vehicle-card",
+          "ikio-alarmo-card",
+          "ikio-electricity-card",
+          "ikio-router-card",
+          "ikio-server-monitor-card",
+          "ikio-battery-card",
+          "ikio-graph-card",
+        ].includes(id)
+      )
+        assert.equal(actionSection, null);
       else {
         assert(actionSection, `${id}: shared Actions section`);
         assert.equal(
@@ -56,9 +68,11 @@ test("every card ends its editor with the standard theme selector and defaults t
         const forms = [...actionSection.querySelectorAll("ha-form")];
         assert.deepEqual(
           forms.map((f) => f.schema[0].name),
-          ["action_entity", "tap_action", "hold_action"],
+          ["tap_action", "hold_action"],
         );
-        for (const f of forms.slice(1)) {
+        for (const f of forms.filter(
+          (f) => f.schema[0].name !== "action_entity",
+        )) {
           assert(
             f.schema[0].selector.ui_action.actions.includes("perform-action"),
           );
