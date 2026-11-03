@@ -37,7 +37,7 @@ The reference baseline is release 0.5.6 plus committed Drive refinement `7544f5e
 | Use the configured HA icon | Especially for individual sensor states, preserve native `ha-state-icon` rendering and user icon overrides. Never substitute emoji. |
 | Make identifiers quiet and exact | Centre plate and VIN together; retain the minimal plate outline and raw VIN value. Do not use numeric formatting for identifiers. |
 | Make history honest | Shared wattage means shared colour; missing data means a gap. Sparse device power changes use held samples and steps rather than fabricated ramps. |
-| Avoid adding irrelevant information | Security no longer tracks people's locations. Give each card a clear purpose instead of accumulating unrelated household information. |
+| Avoid adding irrelevant information | Alarmo shows only people currently home in an optional compact header cluster, following the owner-approved presence addition. Give each card a clear purpose instead of accumulating unrelated household information. |
 
 These are transferable principles. Device-specific choices (PIN pad, plate layout, tariff precision) stay in their own card; do not copy them everywhere.
 
