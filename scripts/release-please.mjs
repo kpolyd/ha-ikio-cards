@@ -27,7 +27,7 @@ registerReleaseType("ikio", (options) => new IkioStrategy(options));
 
 export const releaseConfig = {
   releaseType: "ikio",
-  bumpMinorPreMajor: true,
+  bumpMinorPreMajor: false,
   bumpPatchForMinorPreMajor: false,
   includeComponentInTag: false,
   includeVInTag: true,
