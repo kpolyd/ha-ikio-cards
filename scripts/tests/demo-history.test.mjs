@@ -50,3 +50,28 @@ test("preview histories remain continuous, deterministic, unit-correct and align
     "upload/download bursts should occur at different times",
   );
 });
+
+test("mini graph demo humidity remains visually distinct from the temperature curve", () => {
+  const normalized = (id, value) => {
+    const values = demoGraphHistory(
+      id,
+      { state: String(value) },
+      0,
+      21600000,
+    ).map((p) => Number(p.s));
+    const min = Math.min(...values),
+      range = Math.max(...values) - min;
+    return values.map((v) => (v - min) / range);
+  };
+  const temperature = normalized("sensor.temperature", 23.4);
+  const humidity = normalized("sensor.humidity", 62);
+  const difference =
+    humidity.reduce(
+      (sum, value, i) => sum + Math.abs(value - temperature[i]),
+      0,
+    ) / humidity.length;
+  assert(
+    difference > 0.2,
+    "secondary area must not disappear under an identical primary curve",
+  );
+});

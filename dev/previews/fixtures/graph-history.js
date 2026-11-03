@@ -60,6 +60,22 @@ export function demoGraphValue(id, state, progress) {
   if (id.includes("network_rx")) value = sample(download, p) * live;
   else if (id.includes("network_tx")) value = sample(upload, p) * live;
   else if (id === "sensor.demo_graph_power") value = sample(power, p);
+  else if (id === "sensor.humidity")
+    value = sample(
+      [
+        [0, 58],
+        [0.1, 72],
+        [0.22, 66],
+        [0.35, 48],
+        [0.48, 55],
+        [0.6, 70],
+        [0.72, 59],
+        [0.84, 46],
+        [0.93, 57],
+        [1, live],
+      ],
+      p,
+    );
   else if (id.includes("cpu"))
     value = sample(
       [

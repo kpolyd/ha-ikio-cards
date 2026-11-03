@@ -222,6 +222,7 @@ export function graph(
     timeLabels = false,
     timeLabelCount = 4,
     colourStops = stops,
+    pointLimit = 240,
     graphId = ++graphSequence,
   } = {},
 ) {
@@ -230,7 +231,7 @@ export function graph(
     points: windowPoints(s.points, start, end),
   }));
   const data = series
-    .flatMap((s) => downsample(s.points))
+    .flatMap((s) => downsample(s.points, pointLimit))
     .filter((p) => p.value !== null);
   if (!data.length && sparkline) return el("span");
   if (!data.length)
@@ -357,7 +358,7 @@ export function graph(
     defs.append(gradient);
     let d = "",
       previous = false;
-    for (const point of downsample(s.points)) {
+    for (const point of downsample(s.points, pointLimit)) {
       if (point.value === null) {
         if (previous && sparkline) d += `H${x(point.time)} `;
         previous = false;
