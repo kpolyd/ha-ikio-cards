@@ -2,7 +2,7 @@
 
 A compact card for one Home Assistant `humidifier.*` dehumidifier per instance. Its target-humidity semicircle, secondary readings and segmented modes follow Ikio Climate. Install through the [collection instructions](../../docs/ikio/INSTALLATION.md).
 
-Drag the arc to preview a humidity target and release to submit one command, use minus/plus, or focus the dial and use arrow keys. Follow the integration's min/max humidity and target humidity step (fallback 1). Off preserves measurements and disables the target dial. Target/mode selection waits for backend confirmation; pending, failure and timeout feedback remain visible. Hold entity controls for native HA details.
+Drag the arc to preview a humidity target and release to submit one command, use minus/plus, or focus the dial and use arrow keys. The dial follows the integration's min/max humidity. Off preserves measurements and disables the target dial. Target/mode selection waits for backend confirmation; pending, failure and timeout feedback remain visible. Hold entity controls for native HA details.
 
 ## Visual configuration
 
@@ -14,7 +14,7 @@ Drag the arc to preview a humidity target and release to submit one command, use
 | Power sensor | Optional; converts supported power units to whole watts |
 | Tank-full sensor | Optional `binary_sensor.*`; warnings remain visible outside device settings |
 | Tank-full state | On by default; choose Off for inverse polarity |
-| Humidity step | Empty = Auto; an override requests a larger whole multiple of the integration step |
+| Humidity step | Auto uses the reported step, or 5 percentage points if none is reported. A configured step is rounded up to a multiple of the reported step when available. |
 | Show mode | Enabled by default; modes require the native feature and actual available options |
 | Fan-speed entity | Optional `select.*` or `fan.*`; controls follow its options or supported speed/preset capabilities |
 | Appearance | Ikio dark (default), Ikio light or Home Assistant |

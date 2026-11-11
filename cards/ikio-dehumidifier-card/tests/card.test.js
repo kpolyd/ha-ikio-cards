@@ -129,6 +129,39 @@ test("target commands respect native bounds and step, retain confirmed values, a
   assert.equal(card.content.querySelector("output").textContent, "59%");
   card.remove();
 });
+test("target buttons use the configured step, the reported step, or five percentage points when both are missing", async () => {
+  for (const [config, attributes, step] of [
+    [{}, {}, 5],
+    [{ humidity_step: "" }, { target_humidity_step: null }, 5],
+    [{}, { target_humidity_step: 1 }, 1],
+    [{}, { target_humidity_step: 0.5 }, 0.5],
+    [{ humidity_step: 1 }, {}, 1],
+  ]) {
+    const { card, calls } = setup(config, attributes);
+    assert.equal(card.content.querySelector("input").step, String(step));
+    for (const [direction, target] of [
+      ["Increase", 50 + step],
+      ["Decrease", 50],
+    ]) {
+      card.content
+        .querySelector(`[aria-label="${direction} target humidity"]`)
+        .click();
+      await tick();
+      assert.deepEqual(calls.at(-1), [
+        "humidifier",
+        "set_humidity",
+        { humidity: target, entity_id: "humidifier.test" },
+      ]);
+      updateDevice(card, "on", { humidity: target });
+      assert.equal(
+        card.content.querySelector("output").textContent,
+        `${target}%`,
+      );
+    }
+    assert.equal(calls.length, 2);
+    card.remove();
+  }
+});
 test("keyboard previews send one command on commit; off devices preserve readings and disable targets", async () => {
   const { card, calls } = setup({}, { target_humidity_step: 5 });
   const input = card.content.querySelector("input");
