@@ -10,17 +10,13 @@ const home3dFiles = new Map([
   ["/local/ikio-demo/entities.json", home3dEntities],
   ["/local/ikio-demo/device-bindings.json", home3dBindings],
 ]);
-const originalFetch = window.fetch.bind(window);
 window.ikioHomeFileRequests = 0;
-window.fetch = async (input, options = {}) => {
-  const path = new URL(typeof input === "string" ? input : input.url, location.href).pathname;
-  if (path.startsWith("/local/ikio-demo/")) {
-    window.ikioHomeFileRequests++;
-    if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
-    return new Response(JSON.stringify(home3dFiles.get(path) ?? {}), { status: home3dFiles.has(path) ? 200 : 404, headers: {"Content-Type":"application/json"} });
-  }
-  return originalFetch(input, options);
-};
+async function fetchHome3dFixture(url, { signal } = {}) {
+  window.ikioHomeFileRequests++;
+  if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+  const data = home3dFiles.get(new URL(url).pathname);
+  return Response.json(data ?? {}, { status: data ? 200 : 404 });
+}
 import mediaArtwork from "../media-artwork.png";
 import vehicleArtwork from "../vehicle.png";
 import {
@@ -448,7 +444,12 @@ configs["home-3d"] = {
   device_bindings: "/local/ikio-demo/device-bindings.json",
 };
 for (const item of home3dEntities) state(item.entity, item.demo?.state || "off", { unit_of_measurement: item.demo?.unit || "" });
-state("sun.sun", "above_horizon", { azimuth:180,elevation:30 });
+state("sun.sun", "above_horizon", {
+  azimuth: 225,
+  elevation: 18,
+  next_setting: new Date(Date.now() + 2 * 3600000).toISOString(),
+  next_rising: new Date(Date.now() + 12 * 3600000).toISOString(),
+});
 const connection = {
   subscribeMessage: async (callback,message) => {
     if (message.type !== "weather/subscribe_forecast") throw Error("Unsupported fixture subscription");
@@ -631,6 +632,16 @@ for (const type of types) {
   const section = document.createElement("section"),
     caption = document.createElement("p"),
     card = document.createElement("ikio-" + type + "-card");
+  if (type === "home-3d") {
+    // An embedded gallery may live at about:srcdoc and have no usable URL base.
+    const loadConfiguration = card.loadConfiguration;
+    card.loadConfiguration = (config, options) =>
+      loadConfiguration(config, {
+        ...options,
+        base: "https://ikio-preview.invalid/",
+        fetcher: fetchHome3dFixture,
+      });
+  }
   caption.className = "caption";
   caption.textContent = type;
   section.dataset.card = type;

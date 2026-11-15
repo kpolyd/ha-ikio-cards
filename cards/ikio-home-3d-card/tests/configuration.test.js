@@ -179,13 +179,76 @@ test("mounting preserves view controls, uses file inventory, and details never i
   assert.equal(c.top, true);
   assert.equal(c.room, "Overview");
   c.hass = { states: {}, locale: { language: "el-GR" } };
-  assert.match(c.topButton.textContent, /Κάτοψη/);
+  assert.equal(c.topButton.getAttribute("aria-label"), "Κάτοψη");
+  assert.equal(c.topButton.textContent, "");
+  assert.equal(
+    c.topButton.querySelector("ha-icon").getAttribute("icon"),
+    "mdi:floor-plan",
+  );
   assert.equal(c.roomSelect.options[1].textContent, "Studio");
   c.remove();
   assert.equal(model.disposed, true);
   document.body.append(c);
   assert.ok(c.model);
   assert.notEqual(c.model, model);
+  c.remove();
+});
+test("the read-only sun graph moves from daylight to night and handles missing data", () => {
+  const c = fixture();
+  c.configuration = resolveConfiguration(...copy(definitions));
+  c.createModel = fakeFactory;
+  c.mount();
+  const graph = c.shadowRoot.querySelector(".sun-graph");
+  const curve = graph.querySelector("svg");
+  const marker = curve.querySelector(".sun-marker");
+  const sunset = curve.querySelector(".sunset-line");
+  const controls = c.shadowRoot.querySelector(".view-controls");
+  const scene = c.model;
+  assert.equal(graph.previousElementSibling, controls);
+  assert.equal(controls.querySelectorAll("button, select").length, 4);
+  assert.equal(graph.querySelectorAll("button, select, [tabindex]").length, 0);
+  assert.equal(graph.hidden, true);
+  const now = Date.now();
+  const hoursFromNow = (hours) => new Date(now + hours * 3600000).toISOString();
+  function updateSun(state, attributes, language = "en") {
+    c.hass = {
+      states: { "sun.sun": { state, attributes } },
+      locale: { language },
+    };
+  }
+  const daylight = {
+    azimuth: 225,
+    elevation: 18,
+    next_rising: hoursFromNow(12),
+    next_setting: hoursFromNow(2),
+  };
+  updateSun("above_horizon", daylight);
+  assert.equal(graph.hidden, false);
+  assert.equal(curve.hasAttribute("hidden"), false);
+  assert.equal(graph.textContent.trim(), "SW 18°");
+  assert.match(graph.getAttribute("aria-label"), /daylight remains/);
+  assert(+marker.getAttribute("cx") < +sunset.getAttribute("x1"));
+  assert(+marker.getAttribute("cy") < 16);
+
+  updateSun(
+    "below_horizon",
+    {
+      next_rising: hoursFromNow(7),
+      next_setting: hoursFromNow(21),
+    },
+    "el-GR",
+  );
+  assert.equal(graph.textContent.trim(), "Νύχτα");
+  assert(graph.hasAttribute("data-night"));
+  assert(+marker.getAttribute("cx") > +sunset.getAttribute("x1"));
+  assert(+marker.getAttribute("cy") > 16);
+  assert.equal(c.model, scene);
+
+  updateSun("above_horizon", { ...daylight, next_setting: undefined });
+  assert.equal(graph.textContent.trim(), "SW 18°");
+  assert(curve.hasAttribute("hidden"));
+  updateSun("unavailable", daylight);
+  assert.equal(graph.hidden, true);
   c.remove();
 });
 test("remapping or disconnect aborts all requests and late results cannot create a scene", async () => {

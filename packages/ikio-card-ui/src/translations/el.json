@@ -691,5 +691,16 @@
   "Billing cycle": "Κύκλος χρέωσης",
   "Power history": "Ιστορικό ισχύος",
   "Device readings": "Ενδείξεις συσκευών",
-  "Power distribution": "Κατανομή ισχύος"
+  "Power distribution": "Κατανομή ισχύος",
+  "N": "Β",
+  "NE": "ΒΑ",
+  "E": "Α",
+  "SE": "ΝΑ",
+  "S": "Ν",
+  "SW": "ΝΔ",
+  "W": "Δ",
+  "NW": "ΒΔ",
+  "Sun position: {reading}": "Θέση ήλιου: {reading}",
+  "Night. About {percent}% of the night remains.": "Νύχτα. Απομένει περίπου το {percent}% της νύχτας.",
+  "{reading}. About {percent}% of daylight remains.": "{reading}. Απομένει περίπου το {percent}% της ημέρας."
 }

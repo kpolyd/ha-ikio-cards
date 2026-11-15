@@ -691,5 +691,16 @@
   "Billing cycle": "Billing cycle",
   "Power history": "Power history",
   "Device readings": "Device readings",
-  "Power distribution": "Power distribution"
+  "Power distribution": "Power distribution",
+  "N": "N",
+  "NE": "NE",
+  "E": "E",
+  "SE": "SE",
+  "S": "S",
+  "SW": "SW",
+  "W": "W",
+  "NW": "NW",
+  "Sun position: {reading}": "Sun position: {reading}",
+  "Night. About {percent}% of the night remains.": "Night. About {percent}% of the night remains.",
+  "{reading}. About {percent}% of daylight remains.": "{reading}. About {percent}% of daylight remains."
 }
