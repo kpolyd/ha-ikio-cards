@@ -1,5 +1,17 @@
 # Ikio changelog
 
+## [1.1.0](https://github.com/kpolyd/ha-ikio-cards/compare/v1.0.0...v1.1.0) (2026-11-15)
+
+
+### Features
+
+* **home-3d:** add a compact sun graph and one-row controls ([4f0dd33](https://github.com/kpolyd/ha-ikio-cards/commit/4f0dd338a71021887a0b1137715005c68334cc02))
+
+
+### Bug Fixes
+
+* **dehumidifier:** use a five-point fallback humidity step ([2dda9ef](https://github.com/kpolyd/ha-ikio-cards/commit/2dda9eff1fffec071d155a43d226747fb4afd604))
+
 ## [1.0.0](https://github.com/kpolyd/ha-ikio-cards/compare/v0.26.1...v1.0.0) (2026-11-03)
 
 
