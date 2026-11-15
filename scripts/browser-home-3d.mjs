@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 export async function checkHome3D(browser, out) {
@@ -31,6 +32,45 @@ export async function checkHome3D(browser, out) {
           () => !!document.querySelector("ikio-home-3d-card")?.model,
         );
         assert.equal(await card.locator("canvas").count(), 1);
+        const toolbar = await card.evaluate((c) => {
+          const root = c.shadowRoot;
+          const tools = root.querySelector(".tools").getBoundingClientRect();
+          const controls = [
+            ...root.querySelectorAll(
+              ".view-controls button, .view-controls select",
+            ),
+          ].map((control) => control.getBoundingClientRect());
+          const graph = root
+            .querySelector(".sun-graph")
+            .getBoundingClientRect();
+          return {
+            count: controls.length,
+            compact: controls.every((control) => control.height === 26),
+            singleRow: controls.every(
+              (control) =>
+                Math.abs(
+                  control.top +
+                    control.height / 2 -
+                    (graph.top + graph.height / 2),
+                ) < 1,
+            ),
+            leftAligned: controls[0].left === tools.left,
+            rightAligned: Math.abs(graph.right - tools.right) < 1,
+            overlap: controls.some((control) => control.right > graph.left),
+          };
+        });
+        assert.deepEqual(
+          toolbar,
+          {
+            count: 4,
+            compact: true,
+            singleRow: true,
+            leftAligned: true,
+            rightAligned: true,
+            overlap: false,
+          },
+          `${theme}/${width} toolbar`,
+        );
         assert.equal(
           await card.evaluate((c) =>
             [...c.shadowRoot.querySelectorAll("*")].some(
@@ -251,6 +291,94 @@ export async function checkHome3D(browser, out) {
       () => !!document.querySelector("ikio-home-3d-card")?.model,
     );
     assert.equal(await card.locator("canvas").count(), 1);
+    const mobile = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    try {
+      await mobile.route("**/*", (route) =>
+        route.request().url().startsWith("file:")
+          ? route.continue()
+          : route.abort(),
+      );
+      await mobile.setContent(
+        '<iframe sandbox="allow-scripts" style="border: 0; width: 100%; height: 100vh"></iframe>',
+      );
+      await mobile.locator("iframe").evaluate(
+        (frame, gallery) => {
+          frame.srcdoc = gallery;
+        },
+        await readFile("dist/previews/index.html", "utf8"),
+      );
+      const mobileCard = mobile
+        .frameLocator("iframe")
+        .locator("ikio-home-3d-card");
+      await mobileCard.locator(".sun-curve").waitFor();
+      await mobileCard.scrollIntoViewIfNeeded();
+      assert.deepEqual(
+        await mobileCard.evaluate(() => [
+          location.href,
+          window.ikioHomeFileRequests,
+        ]),
+        ["about:srcdoc", 3],
+      );
+      for (const width of [280, 320, 390]) {
+        await mobileCard.evaluate(
+          (_, width) => window.ikioPreview.configure({ theme: "dark", width }),
+          width,
+        );
+        const mobileToolbar = await mobileCard.evaluate((c) => {
+          const root = c.shadowRoot;
+          const graph = root
+            .querySelector(".sun-graph")
+            .getBoundingClientRect();
+          const tools = root.querySelector(".tools").getBoundingClientRect();
+          return {
+            rightAligned: Math.abs(graph.right - tools.right) < 1,
+            controls: [...root.querySelectorAll(".view-control")].map(
+              (wrapper) => {
+                const control =
+                  wrapper.firstElementChild.getBoundingClientRect();
+                return {
+                  width: control.width,
+                  height: control.height,
+                  clearOfGraph: control.right < graph.left,
+                  sameRow:
+                    Math.abs(
+                      control.top +
+                        control.height / 2 -
+                        (graph.top + graph.height / 2),
+                    ) < 1,
+                  visualHeight: getComputedStyle(wrapper, "::before").height,
+                };
+              },
+            ),
+          };
+        });
+        assert(
+          mobileToolbar.rightAligned &&
+            mobileToolbar.controls.every(
+              ({ width, height, clearOfGraph, sameRow, visualHeight }) =>
+                width >= 44 &&
+                height >= 44 &&
+                clearOfGraph &&
+                sameRow &&
+                visualHeight === "26px",
+            ),
+          `touch toolbar at ${width}px: ${JSON.stringify(mobileToolbar)}`,
+        );
+      }
+      await mobileCard.screenshot({ path: resolve(out, "home-3d-mobile.png") });
+      const top = mobileCard.getByRole("button", {
+        name: "Top view",
+        exact: true,
+      });
+      await top.tap();
+      assert.equal(await top.getAttribute("aria-pressed"), "false");
+    } finally {
+      await mobile.close();
+    }
     assert.deepEqual(errors, []);
     return {
       card: "home-3d",

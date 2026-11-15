@@ -70,11 +70,9 @@ export class Card extends ControlCard {
     return node;
   }
   step(a) {
-    const native =
-      finite(a.target_humidity_step) && a.target_humidity_step >= 1
-        ? Math.ceil(a.target_humidity_step)
-        : 1;
+    const native = a.target_humidity_step;
     const requested = this.config.humidity_step;
+    if (!finite(native) || native <= 0) return requested || 5;
     return finite(requested)
       ? Math.max(native, Math.ceil(requested / native) * native)
       : native;

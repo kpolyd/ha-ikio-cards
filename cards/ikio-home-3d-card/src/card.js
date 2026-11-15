@@ -2,6 +2,7 @@ import { element as el, details, t, styles } from "@ikio/card-ui";
 import { language, translateError } from "@ikio/card-ui/i18n";
 import { Room } from "./enums.js";
 import { daylightForSun } from "./theme.js";
+import { createSunGraph } from "./sun-graph.js";
 import { fields, normalizeConfig } from "./config.js";
 import {
   loadConfiguration,
@@ -10,7 +11,19 @@ import {
 import cardStyles from "./styles/card.js";
 import labelStyles from "./styles/labels.js";
 
+function viewButton(icon) {
+  const button = el("button");
+  const glyph = el("ha-icon");
+  button.type = "button";
+  glyph.setAttribute("icon", icon);
+  glyph.setAttribute("aria-hidden", "true");
+  button.append(glyph);
+  return button;
+}
+
 export class Card extends HTMLElement {
+  loadConfiguration = loadConfiguration;
+
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -100,6 +113,7 @@ export class Card extends HTMLElement {
     this.shell?.remove();
     this.shell = null;
     this.snapshot = null;
+    this.sunGraph = null;
   }
   renderStatus() {
     const ready = fields.every((f) => this.config?.[f.name]);
@@ -149,7 +163,7 @@ export class Card extends HTMLElement {
     }, 15000);
     try {
       const [configuration, { createModel }] = await Promise.all([
-        loadConfiguration(this.config, { signal: controller.signal }),
+        this.loadConfiguration(this.config, { signal: controller.signal }),
         import("./model.js"),
       ]);
       if (version !== this.loadVersion || !this.isConnected) return;
@@ -176,7 +190,8 @@ export class Card extends HTMLElement {
       body = el("div", undefined, "body"),
       view = el("main", undefined, "view");
     const canvas = el("canvas"),
-      tools = el("div", undefined, "tools");
+      tools = el("div", undefined, "tools"),
+      controls = el("div", undefined, "view-controls");
     this.roomSelect = el("select");
     for (const room of Object.keys(this.configuration.rooms)) {
       const option = el("option");
@@ -185,33 +200,36 @@ export class Card extends HTMLElement {
     }
     this.roomSelect.value = this.room;
     this.roomSelect.onchange = () => this.choose(this.roomSelect.value);
-    this.topButton = el("button");
-    this.topButton.type = "button";
+    this.topButton = viewButton("mdi:floor-plan");
     this.topButton.onclick = () => {
       this.top = !this.top;
       this.model.focus(this.room, this.top);
       this.updateLabels();
     };
-    this.wallsButton = el("button");
-    this.wallsButton.type = "button";
+    this.wallsButton = viewButton("mdi:wall");
     this.wallsButton.onclick = () => {
       this.walls = !this.walls;
       this.model.setWalls(this.walls);
       this.updateLabels();
     };
-    this.resetButton = el("button");
-    this.resetButton.type = "button";
+    this.resetButton = viewButton("mdi:restore");
     this.resetButton.onclick = () => {
       this.top = true;
       this.choose(Room.OVERVIEW);
       this.updateLabels();
     };
-    tools.append(
+    for (const control of [
       this.roomSelect,
       this.topButton,
       this.wallsButton,
       this.resetButton,
-    );
+    ]) {
+      const wrapper = el("span", undefined, "view-control");
+      wrapper.append(control);
+      controls.append(wrapper);
+    }
+    this.sunGraph = createSunGraph();
+    tools.append(controls, this.sunGraph.element);
     view.append(canvas, tools);
     body.append(view);
     shell.append(body);
@@ -256,12 +274,14 @@ export class Card extends HTMLElement {
     for (const [button, label, on] of [
       [this.topButton, "Top view", this.top],
       [this.wallsButton, "Full walls", this.walls],
+      [this.resetButton, "Reset"],
     ]) {
-      button.textContent = t(this._hass, label);
+      button.title = t(this._hass, label);
+      button.setAttribute("aria-label", button.title);
+      if (on === undefined) continue;
       button.classList.toggle("active", on);
       button.setAttribute("aria-pressed", String(on));
     }
-    this.resetButton.textContent = t(this._hass, "Reset");
     this.shell
       .querySelector("canvas")
       .setAttribute(
@@ -279,16 +299,17 @@ export class Card extends HTMLElement {
       )?.entity || "sun.sun";
     return this.states[id];
   }
-  syncLighting() {
-    if (!this.model) return;
-    const next = daylightForSun(this.sunState());
+  syncLighting(sun) {
+    const next = daylightForSun(sun);
     if (next !== null) this.daylight = next;
     this.model.setDaylight(this.daylight);
   }
   sync() {
     if (!this.model) return;
-    this.model.initializeSun(this.sunState());
-    this.syncLighting();
+    const sun = this.sunState();
+    this.model.initializeSun(sun);
+    this.syncLighting(sun);
+    this.sunGraph.update(sun, this._hass);
     const mapped = Object.fromEntries(
       this.configuration.entities.map(({ entity }) => [
         entity,

@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { sunDirection as direction } from "../src/sun-position.js";
+import {
+  sunDirection as direction,
+  solarTimeline,
+} from "../src/sun-position.js";
 const homeModel = { coordinates: { bearing: 90 } };
 const sunDirection = (state) => direction(state, homeModel.coordinates.bearing);
 const sample = (azimuth, elevation) => ({
@@ -51,4 +54,33 @@ test("a synthetic afternoon sun casts shadows to the right of plan-up", () => {
   assert(shadowX > 0);
   assert(shadowZ < 0);
   close((Math.atan2(shadowX, -shadowZ) * 180) / Math.PI, 12.69);
+});
+
+test("sun graph lays out daylight and darkness in proportion to their duration", () => {
+  const now = Date.parse("2026-06-01T17:00:00Z");
+  const sun = {
+    state: "above_horizon",
+    attributes: {
+      next_rising: "2026-06-02T05:00:00Z",
+      next_setting: "2026-06-01T20:00:00Z",
+    },
+  };
+  const timeline = solarTimeline(sun, now);
+  close(timeline.daylight, 15 / 24);
+  close(timeline.position, 0.5);
+  close(timeline.progress, 0.8);
+  close(
+    solarTimeline(sun, Date.parse(sun.attributes.next_setting)).progress,
+    1,
+  );
+  assert.equal(
+    solarTimeline(
+      {
+        ...sun,
+        attributes: { ...sun.attributes, next_setting: "2026-07-01T20:00:00Z" },
+      },
+      now,
+    ),
+    null,
+  );
 });
