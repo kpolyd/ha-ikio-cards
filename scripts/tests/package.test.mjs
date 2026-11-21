@@ -9,6 +9,7 @@ import { packageCollection } from "../package-ikio.mjs";
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), "ikio-package-"));
   const files = {
+    LICENSE: "Project license",
     "package.json": '{"workspaces":["cards/*","packages/*"]}',
     "package-lock.json": '{"lockfileVersion":3}',
     "ikio/package.json": '{"version":"0.3.0"}',
@@ -75,6 +76,7 @@ test("distribution preserves lazy chunks/notices and includes only tracked repro
     for (const name of [
       "ikio.js",
       "ha-ikio-cards.js",
+      "LICENSE",
       "licenses/NOTICE.txt",
       "ikio-lights-card/chunks/editor.js",
       "ikio-lights-card/licenses/NOTICE.txt",

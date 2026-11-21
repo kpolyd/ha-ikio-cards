@@ -33,7 +33,9 @@ const result = await build({
     js: `/* Three.js (MIT)\n${await readFile("cards/ikio-home-3d-card/licenses/Three-LICENSE.txt", "utf8")} */`,
   },
   banner: {
-    js: `/* Ikio Cards ${version} | https://github.com/kpolyd/ha-ikio-cards */`,
+    js: `/* Ikio Cards ${version} | https://github.com/kpolyd/ha-ikio-cards
+${(await readFile("LICENSE", "utf8")).trimEnd()}
+*/`,
   },
   metafile: true,
 });
