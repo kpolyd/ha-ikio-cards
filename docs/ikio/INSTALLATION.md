@@ -11,7 +11,7 @@ All sixteen cards share the Ikio colour tokens, typography, spacing, controls an
 
 HACS installs a single `ha-ikio-cards.js` file from the selected repository tag through raw.githubusercontent.com containing all sixteen cards and editors, and manages updates under one version. It normally registers `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js?hacstag=...` as a JavaScript module. If no resource appears, add `/hacsfiles/ha-ikio-cards/ha-ikio-cards.js` manually. In YAML dashboard-resource mode, manage that resource through your existing setup. Do not add a second resource if HACS already created one.
 
-The repository must be added as a custom repository; it is not in the default catalogue. If switching from manual Ikio installation, remove the old manual Ikio resource entry and fully reload. Existing Ikio card configurations do not change. For Aethora types, see MIGRATION.md.
+The repository must be added as a custom repository; it is not in the default catalogue. If switching from manual Ikio installation, remove the old manual Ikio resource entry and fully reload. Existing Ikio card configurations do not change.
 
 ## Manual builds
 
@@ -46,10 +46,6 @@ Graph history uses the authenticated HA recorder WebSocket interface. It reports
 
 Automated tests cover card/editor contracts, state transitions, action payloads, number/unit handling, colour math, history gaps and cleanup. The fixture gallery at `dev/previews/collection.html` uses simulated entities/actions and can be served from the repository root after `npm run build && npm run preview:build`. It does not establish real HA integration, native icon rendering or hardware behaviour. Validate the native editor, actual device capabilities, browser touch/accessibility and real service outcomes on a test dashboard before wider use.
 
-
-## Upgrading from Aethora
-
-The Ikio namespace requires a one-time change to existing card types and the resource URL. See [MIGRATION.md](MIGRATION.md).
 
 ## Download errors in HACS 2.0.5
 
