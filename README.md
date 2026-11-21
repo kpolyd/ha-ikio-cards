@@ -6,6 +6,10 @@ Compact, mobile-first Home Assistant cards with a consistent design and visual c
 
 Seventeen independent cards share colours, typography, controls and one synchronized version. Use Ikio dark, Ikio light or your Home Assistant theme. Hold an entity control to open native Home Assistant details.
 
+<!-- ha-marketplace:exclude-start -->
+[![Open Ikio Cards in Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kpolyd&repository=ha-ikio-cards&category=plugin)
+<!-- ha-marketplace:exclude-end -->
+
 | Card | Purpose |
 |---|---|
 | [Lights](cards/ikio-lights-card/README.md) | Compact light/switch buttons with location labels |
