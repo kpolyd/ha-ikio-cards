@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [1.1.2](https://github.com/kpolyd/ha-ikio-cards/compare/v1.1.1...v1.1.2) (2026-11-21)
+
+
+### Bug Fixes
+
+* **distribution:** include the Ikio MIT license with downloads ([5486a2c](https://github.com/kpolyd/ha-ikio-cards/commit/5486a2ca3eb1650eac70effaab4004aa90584314))
+
 ## [1.1.1](https://github.com/kpolyd/ha-ikio-cards/compare/v1.1.0...v1.1.1) (2026-11-21)
 
 
