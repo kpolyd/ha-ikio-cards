@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "version": "1.1.1",
-  "sha": "a1f9d49ca57a726195d38bc030a799804c2fee70",
+  "sha": "832e313fe247ba30bc9b89a017459c519d989329",
   "bundleHash": "6b97f85b32c158beebc3aeb0dc70d952fe4c526a5f5ed96b67ee4931a20ab468",
   "galleryHash": "8f04e03c088d7ac18b29a71b7115b90c71d94115666f47202fd1ec7271b71c63",
   "browser": "141.0.7390.37",
@@ -165,7 +165,7 @@
       "width": 360,
       "scenario": "unavailable",
       "file": "screenshots/dehumidifier/dark-360-unavailable.png",
-      "sha256": "e245d99a7327d289573fced5e9caf77b91328525b9a4c166b9ea61b258a82128"
+      "sha256": "cb49b071f79b262df3a78645f74a03313b951cfb3a08b44e6f643d2de540c391"
     },
     {
       "card": "media",
@@ -173,7 +173,7 @@
       "width": 360,
       "scenario": "unavailable",
       "file": "screenshots/media/dark-360-unavailable.png",
-      "sha256": "ad6fc9d0e30a67804fea0adb604ecb0fc46447472de0f0754d0431e8b9cf18d2"
+      "sha256": "7f91f3452b170497aa43e4b491c8b4c0f6defaf6f28191be192affe20cc4418b"
     },
     {
       "card": "vacuum",
@@ -709,7 +709,7 @@
       "width": 360,
       "scenario": "unavailable",
       "file": "screenshots/dehumidifier/light-360-unavailable.png",
-      "sha256": "606d10f7ff127e3f7480b45466d74d4518b9c9df6f6f1159180e80cb90e2282e"
+      "sha256": "53921324157caafdd6f7c194076cb64c218ca468b8fa3a2cb420e24251f9c8be"
     },
     {
       "card": "media",
@@ -717,7 +717,7 @@
       "width": 360,
       "scenario": "unavailable",
       "file": "screenshots/media/light-360-unavailable.png",
-      "sha256": "fec6bb5a65b0953d0a50834a90dc8dab56fe624ef5a47aa5520bea4a7819f077"
+      "sha256": "90a4d31889d21e4901221996465197db828449a47fe5e16d5bc01e311bd95554"
     },
     {
       "card": "vacuum",
