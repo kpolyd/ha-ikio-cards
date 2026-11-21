@@ -387,7 +387,7 @@ Use 10 px card padding, 4 px section gaps, 6 px control gaps, 24 px main reading
 
 ## 15. Public Ikio repository (0.3.0)
 
-The collection is named Ikio and lives in `kpolyd/ha-ikio-cards`. All eleven cards, shared packages, tests, theme, previews and design documents are included. The 3D card, household bindings and legacy release automation are excluded. Public element names, package scopes, bundle names and resources use `ikio`. See INSTALLATION.md for the one-time migration from Aethora. The 0.2.x changelog records earlier collection work; 0.3.0 is the first Ikio namespace version.
+The collection is named Ikio and lives in `kpolyd/ha-ikio-cards`. All eleven cards, shared packages, tests, theme, previews and design documents are included. The 3D card, household bindings and legacy release automation are excluded. Public element names, package scopes, bundle names and resources use `ikio`. The 0.2.x changelog records earlier collection work; 0.3.0 is the first Ikio namespace version.
 
 
 ## 16. HACS distribution (0.3.1)

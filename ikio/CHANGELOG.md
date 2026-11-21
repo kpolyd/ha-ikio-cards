@@ -474,10 +474,10 @@
 
 ## 0.3.0 — public repository migration
 
-- Rename Aethora to Ikio across all eleven cards, shared packages, theme, editors, bundles and documentation.
+- Adopt the Ikio name across all eleven cards, shared packages, theme, editors, bundles and documentation.
 - Import the full collection into ha-ikio-cards with fresh history, generic examples and no 3D card or household bindings.
 - Keep the compact layouts, energy graph refinements, automatic lock states and editor typing fix from 0.2.3.
-- Breaking namespace change: migrate saved `custom:aethora-*-card` types to `custom:ikio-*-card` and use the Ikio resource URL.
+- Breaking namespace change: migrate saved card types to `custom:ikio-*-card` and use the Ikio resource URL.
 
 ## 0.2.3 — in development
 
