@@ -13,6 +13,7 @@ export async function packageCollection(root = process.cwd()) {
   const output = join(root, "release", folder);
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
+  await cp(join(root, "LICENSE"), join(output, "LICENSE"));
   // Include the standalone HACS asset and its build notices in manual releases.
   await cp(
     join(root, "dist/ha-ikio-cards.js"),

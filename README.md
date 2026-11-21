@@ -79,7 +79,7 @@ Write clear Conventional Commits: `fix(media): hide the source while off` produc
 
 Ikio was previously developed as Aethora. Version 0.3.0 introduces the Ikio namespace and retains the implemented features and fixes from 0.2.3. The 3D model card, household configuration and private repository history are excluded.
 
-An original-source license has not yet been selected. Dependency notices are included in generated distributions and apply to their respective dependencies.
+Ikio’s original code is available under the [MIT License](LICENSE). Dependency notices are included in generated distributions and apply to their respective dependencies.
 
 <!-- IKIO_PREVIEWS_START -->
 ## Card previews · 1.1.1
