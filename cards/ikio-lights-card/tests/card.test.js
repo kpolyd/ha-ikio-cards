@@ -40,6 +40,43 @@ function fixture(states, config = { lights: [{ entity: "light.strip" }] }) {
   };
   return { card, calls };
 }
+test("labels use friendly names without formatting device context", () => {
+  const { card } = fixture({ "light.strip": light() });
+  card.hass = {
+    ...card.hass,
+    entities: {},
+    formatEntityName: () => {
+      throw new Error("Lights must not use the contextual name formatter");
+    },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector(".name").textContent,
+    "Ceiling strip",
+  );
+  const button = card.shadowRoot.querySelector(".toggle");
+  assert.match(button.getAttribute("aria-label"), /Ceiling strip/);
+  assert.match(button.title, /Ceiling strip/);
+  card.setConfig({ lights: [{ entity: "light.strip", name: "Custom label" }] });
+  assert.equal(
+    card.shadowRoot.querySelector(".name").textContent,
+    "Custom label",
+  );
+  card.setConfig({ lights: [{ entity: "light.strip" }] });
+  card.hass = {
+    ...card.hass,
+    states: { "light.strip": { ...light(), attributes: {} } },
+  };
+  assert.equal(
+    card.shadowRoot.querySelector(".name").textContent,
+    "light.strip",
+  );
+  card.hass = { ...card.hass, states: {} };
+  assert.equal(
+    card.shadowRoot.querySelector(".name").textContent,
+    "light.strip",
+  );
+  card.remove();
+});
 test("power-only state follows on/off and never brightness or RGB zero", () => {
   assert.equal(
     adapter.lightState(light("on", 0, ["onoff"]), { control_mode: "auto" })

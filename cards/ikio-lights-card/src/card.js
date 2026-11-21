@@ -1,11 +1,5 @@
 import { t, translateError } from "@ikio/card-ui/i18n";
-import {
-  IkioCard,
-  element,
-  details,
-  entityName,
-  bindHold,
-} from "@ikio/card-ui";
+import { IkioCard, element, details, bindHold } from "@ikio/card-ui";
 import { normalizeConfig } from "./config.js";
 import {
   lightState,
@@ -218,7 +212,7 @@ export class IkioLightsCard extends IkioCard {
         model = lightState(state, ui.row, (s) =>
           this.hass?.formatEntityState?.(s),
         ),
-        name = entityName(this.hass, state, ui.row.name) || ui.row.entity,
+        name = ui.row.name || state?.attributes?.friendly_name || ui.row.entity,
         location = deviceLocation(this.hass, ui.row.entity, ui.row.location);
       on += model.on ? 1 : 0;
       offline += model.available ? 0 : 1;
