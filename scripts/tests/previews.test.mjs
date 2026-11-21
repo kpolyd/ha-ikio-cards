@@ -82,23 +82,38 @@ test("publication is idempotent and rejects changed published versions", async (
       captures,
     };
     await writeFile(join(source, "manifest.json"), JSON.stringify(manifest));
-    const run = () =>
+    const run = (allowUntagged = false, sha = "abc") =>
       execFileSync(
         process.execPath,
         [
           "scripts/publish-previews.mjs",
           source,
           join(root, "site"),
-          "abc",
+          sha,
           join(root, "bundle.js"),
         ],
-        { stdio: "pipe" },
+        {
+          stdio: "pipe",
+          env: { ...process.env, IKIO_UNTAGGED_PREVIEW: String(allowUntagged) },
+        },
       );
     run();
     run();
     manifest.browser = "changed";
     await writeFile(join(source, "manifest.json"), JSON.stringify(manifest));
     assert.throws(run);
+    manifest.sha = "def";
+    await writeFile(join(source, "manifest.json"), JSON.stringify(manifest));
+    run(true, "def");
+    await validatePreview(
+      join(root, "site", "previews", "0.6.1"),
+      "def",
+      "bundle",
+    );
+    manifest.bundleHash = digest("different bundle");
+    await writeFile(join(source, "manifest.json"), JSON.stringify(manifest));
+    await writeFile(join(root, "bundle.js"), "different bundle");
+    assert.throws(() => run(true, "def"), /Preview source\/bundle mismatch/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
