@@ -1,5 +1,11 @@
 # Ikio changelog
 
+## [1.1.3](https://github.com/kpolyd/ha-ikio-cards/compare/v1.1.2...v1.1.3) (2026-11-21)
+
+### Documentation
+
+* Remove outdated namespace migration instructions and references to the former project name. Keep the upgrade instructions for current Ikio installations.
+
 ## [1.1.2](https://github.com/kpolyd/ha-ikio-cards/compare/v1.1.1...v1.1.2) (2026-11-21)
 
 
