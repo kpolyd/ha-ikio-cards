@@ -1,4 +1,4 @@
-/* Ikio Cards 1.1.2 | https://github.com/kpolyd/ha-ikio-cards
+/* Ikio Cards 1.1.3 | https://github.com/kpolyd/ha-ikio-cards
 MIT License
 
 Copyright (c) 2026 Konstantinos Polydorou
