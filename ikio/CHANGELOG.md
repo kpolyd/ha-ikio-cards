@@ -1,5 +1,12 @@
 # Ikio changelog
 
+## [1.1.1](https://github.com/kpolyd/ha-ikio-cards/compare/v1.1.0...v1.1.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **lights:** show friendly names without device context ([be12459](https://github.com/kpolyd/ha-ikio-cards/commit/be1245949fcd94d148df21bf33f4344cb0f10ea1))
+
 ## [1.1.0](https://github.com/kpolyd/ha-ikio-cards/compare/v1.0.0...v1.1.0) (2026-11-15)
 
 
